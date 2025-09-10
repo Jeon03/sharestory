@@ -47,7 +47,7 @@ function Login({ isOpen, onClose }: LoginProps) {
     }, []);
 
     if (!isOpen) return null;
-    //test22
+    //test
     return (
         <>
             {/* 오버레이(클릭 시 닫힘) */}
