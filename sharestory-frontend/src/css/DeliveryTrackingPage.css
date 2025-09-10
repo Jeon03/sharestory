@@ -1,0 +1,23 @@
+.delivery-page {
+    padding: 20px;
+}
+
+.progress {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px 0;
+}
+
+.step {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    border-bottom: 3px solid lightgray;
+    color: gray;
+}
+
+.step.active {
+    border-color: green;
+    color: black;
+    font-weight: bold;
+}

@@ -1,0 +1,69 @@
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### OS / System files ###
+.DS_Store
+Thumbs.db
+
+### Env & Security (민감정보는 절대 올리지 않음) ###
+.env
+.env.*
+application-*.yml
+application-*.properties
+aws-credentials.yml
+
+### Logs ###
+*.log
+*.out
+*.err
+/logs/
+
+### Uploads / Static files ###
+/src/main/resources/static/upload/
+/uploads/
+/.s3-cache/
+
+### Docker / Data ###
+/docker-data/
+/volumes/
+/mysql-data/
+/es-data/
+
+### Test / Coverage ###
+/coverage/
+/test-output/

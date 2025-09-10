@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0.36
+    container_name: sharestory-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_DATABASE=story
+#    command: ["--default-authentication-plugin=mysql_native_password"]
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+    networks:
+      - sharestory-net
+
+
+  backend:
+    build: ./sharestory-backend
+    container_name: sharestory-backend
+    ports:
+      - "8081:8081"
+    env_file:
+      - ./sharestory-backend/.env   # DB_URL은 반드시 db 호스트 사용
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - sharestory-net
+
+  frontend:
+    build: ./sharestory-frontend     # ← Dockerfile에서 .env.production을 build 단계에 COPY
+    container_name: sharestory-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - sharestory-net
+
+  redis:
+    image: redis:7.2
+    container_name: sharestory-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - sharestory-net
+
+volumes:
+  db_data:
+
+networks:
+  sharestory-net:
+    driver: bridge

@@ -1,0 +1,92 @@
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+.chat-messages {
+    flex: 1;
+    overflow-y: scroll;
+    padding: 10px;
+}
+.chat-input {
+    display: flex;
+    padding: 10px;
+}
+.chat-input input {
+    flex: 1;
+    margin-right: 10px;
+}
+.chat-bubble {
+    margin: 5px 0;
+}
+.chat-bubble.mine {
+    text-align: right;
+    color: black;
+}
+.chat-bubble.theirs {
+    text-align: left;
+    color: black;
+}
+
+.chat-bubble {
+    display: inline-block; /* 그대로 유지해도 됨 */
+    max-width: 60%;
+    word-break: break-word;
+    padding: 10px 14px;
+    border-radius: 16px;
+    position: relative;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.mine {
+    background-color: #f5e166;
+    align-self: flex-end; /* 오른쪽 정렬 */
+    border-bottom-right-radius: 2px;
+}
+
+.other {
+    background-color: #f1f0f0;
+    align-self: flex-start;
+    margin-right: auto;
+    border-bottom-left-radius: 2px;
+}
+
+/* 말풍선 꼬리 */
+.mine::after {
+    content: "";
+    position: absolute;
+    right: -8px;
+    top: 10px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid #dcf8c6;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+}
+
+.other::before {
+    content: "";
+    position: absolute;
+    left: -8px;
+    top: 10px;
+    width: 0;
+    height: 0;
+    border-right: 8px solid #f1f0f0;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+}
+
+/* 시간 및 읽음 상태 */
+.message-time {
+    font-size: 11px;
+    color: gray;
+    margin-top: 4px;
+    text-align: right;
+}
+
+.read-check {
+    font-size: 11px;
+    margin-left: 5px;
+    color: gray;
+}

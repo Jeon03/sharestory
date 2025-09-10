@@ -1,0 +1,136 @@
+.slider-overlay {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* 슬라이더 패널 */
+.slider-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 500px;
+    height: 100%;
+    background: white;
+    padding: 1rem;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+}
+
+/* 열릴 때 */
+.slider-panel.open {
+    transform: translateX(0%);
+}
+
+/* 닫힐 때 */
+.slider-panel.closing {
+    transform: translateX(100%);
+}
+
+.close-btn {
+    margin-top: 15px;
+    float: right;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.column-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.item-thumb {
+    width: 100%;                /* 부모 요소 기준 너비 꽉 채우기 */
+    aspect-ratio: 1 / 1;        /* 정사각형 비율 유지 */
+    object-fit: cover;          /* 넘치는 부분 잘라내기 */
+    border-radius: 8px;
+
+}
+.favorite-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border: 1px solid #ddd;
+}
+
+.favorite-card:hover {
+    background-color: #f4f4f4;
+}
+
+.favorite-thumb {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.favorite-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+}
+
+.favorite-title {
+    font-size: 14px;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.favorite-price {
+    font-size: 13px;
+    color: #444;
+}
+
+
+.favorite-mainTitle {
+    font-size: 20px;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.favorite-image-wrapper {
+    position: relative;
+}
+
+.badge-overlay {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 2;
+}
+.badge-overlay.in-progress {
+    background-color: #17a2b8; /* 청록색 */
+}
+
+.badge-overlay.done {
+    background-color: #f5e166; /* 녹색 */
+    color: black;
+    font-weight: bold;
+}

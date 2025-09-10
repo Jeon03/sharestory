@@ -1,0 +1,66 @@
+/* ChatRoomListPanel.css 예시 */
+.chatroom-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 500px;
+    height: 100%;
+    background: white;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    z-index: 9999;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { right: -400px; }
+    to { right: 0; }
+}
+
+.chatroom-panel-header {
+    padding: 1rem;
+    font-weight: bold;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chatroom-panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.chatroom-item {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+
+.chatroom-item:hover {
+    background-color: #f9f9f9;
+}
+.chatroom-title {
+    font-weight: bold;
+    font-size: 1rem;
+    margin-bottom: 4px;
+}
+
+.chatroom-item-title {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.chatroom-last {
+    font-size: 0.85rem;
+    color: gray;
+    margin-top: 4px;
+}
+
+.chatroom-time {
+    font-size: 0.75rem;
+    text-align: right;
+    color: #888;
+}

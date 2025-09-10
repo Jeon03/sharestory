@@ -1,0 +1,80 @@
+package com.sharestory.sharestory_backend.domain;
+
+import com.sharestory.sharestory_backend.dto.ItemStatus;
+import jakarta.persistence.*;
+import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "items")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Item {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String title;          // 상품명
+    private String category;       // 카테고리
+    private int price;             // 가격
+
+    @Column(length = 2000)
+    private String description;    // 설명
+
+    @Embedded
+    private DealInfo dealInfo;
+
+    private Double latitude;       // 위도
+    private Double longitude;      // 경도
+
+
+    @Column(name = "item_condition")
+    private String condition;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "item_status", nullable = false)
+    private ItemStatus status; // ← 여기 이름이 status라면 findByStatus가 맞음
+
+    @CreatedDate
+    @Column(name = "created_date", nullable = false, updatable = false)
+    private LocalDateTime createdDate;
+
+    // ✅ 다중 이미지 매핑 (ItemImage 엔티티와 1:N)
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC")
+    @Builder.Default
+    private List<ItemImage> images = new ArrayList<>();
+
+    private String imageUrl;       // 대표 이미지 (첫 번째 이미지 S3 URL)
+
+    private Long userId;           // 등록자 ID (User FK 예정)
+
+    @Column(name = "favorite_count")
+    private Integer favoriteCount = 0;
+
+    @Builder.Default
+    @Column(name = "view_count", nullable = false)
+    private Integer viewCount = 0;
+
+    @Builder.Default
+    @Column(name = "chat_room_count", nullable = false)
+    private Integer chatRoomCount = 0;
+
+    @PrePersist
+    void prePersist() {
+        if (favoriteCount == null) favoriteCount = 0;
+        if (viewCount == null) viewCount = 0;
+        if (chatRoomCount == null) chatRoomCount = 0;
+    }
+
+    private Long sellerId;
+    private Long buyerId;
+}

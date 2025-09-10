@@ -1,0 +1,38 @@
+.custom-footer {
+    background-color: #f8f9fa;
+    padding: 30px 0; /* 좌우 패딩은 제거, container가 잡아줌 */
+    font-size: 14px;
+    color: #555;
+    border-top: 1px solid #ddd;
+    margin-top: 100px;
+}
+
+.custom-footer .container {
+    max-width: 1200px; /* ✅ nav와 동일한 너비로 맞춰야 한다면 */
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.footer-info {
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.footer-links {
+    margin-bottom: 10px;
+}
+
+.footer-links a {
+    color: #666;
+    text-decoration: none;
+    margin-right: 10px;
+}
+
+.footer-links a:hover {
+    text-decoration: underline;
+}
+
+.footer-disclaimer {
+    font-size: 13px;
+    color: #888;
+}

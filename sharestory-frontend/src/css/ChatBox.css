@@ -1,0 +1,52 @@
+.chatbox {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 500px;
+    height: 100%;
+    background: white;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    z-index: 9999;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { right: -400px; }
+    to { right: 0; }
+}
+
+.chatbox-header, .chatbox-footer {
+    padding: 1rem;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chatbox-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column; /* 위에서 아래로 정렬 */
+    gap: 4px;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.chatbox-footer input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-right: 8px;
+}
+
+.chatbox-footer button {
+    padding: 10px 16px;
+    border: 1px solid black;
+    background: #f5e166;
+    color: black;
+    border-radius: 4px;
+    cursor: pointer;
+}

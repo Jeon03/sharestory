@@ -1,0 +1,42 @@
+.nav {
+    background-color: #f6e367;
+    padding: 10px;
+
+}
+
+.nav-inner {
+    display: flex;
+    align-items: center;
+    position: relative;
+    gap: 20px;
+}
+
+.menu-area {
+    position: relative;
+    display: inline-block;
+    padding: 0 25px 0 20px;
+}
+
+
+/* ☰ 버튼 */
+.menu-icon {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* 드롭다운 메뉴 감싸는 래퍼 */
+.dropdown-wrapper {
+    position: absolute;
+    top: 48px;
+    left: 0; /* ← 꼭 붙게 설정 */
+    width: 200px;
+    background-color: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    z-index: 999;
+    padding: 0;   /* ✅ 패딩 제거 */
+    margin: 0;    /* ✅ 마진 제거 */
+}

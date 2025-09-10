@@ -1,0 +1,294 @@
+/* ===== 전역 변수 ===== */
+:root {
+    --image-size: 250px; /* 👉 여기 값만 바꾸면 전체 이미지 크기 조절 가능 */
+}
+
+/* ===== 공통 레이아웃 ===== */
+.saleProduct {
+    width: 1000px;
+    margin-bottom: 15%;
+}
+
+.hr {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    border: 0.5px solid #f0f0f0;
+}
+
+.hr_bold {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    border: 1px solid;
+}
+
+.h2_top {
+    margin-top: 30px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.h2 {
+    margin-top: 50px !important;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* ===== 상품 이미지 섹션 ===== */
+.productImage {
+    display: block;
+}
+
+
+.uploadedimage {
+    display: none;
+}
+
+/* 3칸 그리드 */
+.previewGrid {
+    display: grid;
+    grid-template-columns: repeat(3, var(--image-size));
+    gap: 12px;
+    margin: 8px 0;
+    justify-content: start;
+}
+
+/* 업로드 타일 */
+.uploadTile {
+    width: var(--image-size);
+    height: var(--image-size);
+    border-radius: 12px;
+    border: 1px dashed #c7c7c7;
+    background: #fafafa;
+    display: grid;
+    place-items: center;
+    color: #9aa0a6;
+    cursor: pointer;
+    text-align: center;
+    font-size: 14px;
+    line-height: 1.3;
+}
+.uploadTile:hover {
+    background: #f0f0f0;
+}
+
+/* 미리보기 카드는 기준 좌표 */
+.previewItem {
+    position: relative;   /* ← 중요: X 버튼을 우상단에 고정 */
+    width: var(--image-size);
+    height: var(--image-size);
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.userimg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 우측 상단 X 버튼 */
+.removeBtn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 24px;            /* 터치도 가능한 크기 */
+    height: 24px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    font-size: 14px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1;             /* 이미지 위에 올라오도록 */
+    transition: background 0.2s, transform 0.05s;
+}
+.removeBtn:hover { background: rgba(0,0,0,0.8); }
+.removeBtn:active { transform: scale(0.95); }
+
+/* 빈 슬롯 */
+.emptySlot {
+    width: var(--image-size);
+    height: var(--image-size);
+    border: 1px dashed #bbb;
+    border-radius: 12px;
+    background: transparent;
+}
+
+.helperText {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #6b7280;
+    white-space: nowrap;
+}
+
+/* ===== 상품명 ===== */
+.productName {
+    display: flex;
+    align-items: center;
+}
+
+.productName input {
+    margin-left: 82px;
+    border: 1px solid #aaaaaa;
+    padding-left: 5px;
+    width: 776px;
+    height: 40px;
+}
+
+.productName p {
+    margin-left: auto;
+    margin-right: 10px;
+}
+
+/* ===== 카테고리 ===== */
+.category {
+    display: flex;
+}
+
+.categoryContainer {
+    margin-left: 66px;
+}
+
+/* ===== 상품 상태 ===== */
+.productCondition {
+    display: flex;
+    align-items: center;
+}
+
+.productConditionButton {
+    margin-left: 66px;
+}
+
+.productCondition button {
+    background-color: white;
+    border: 1px solid #aaaaaa;
+    border-radius: 5px;
+    height: 50px;
+    width: 150px;
+    margin-right: 20px;
+    font-weight: bold;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.selected {
+    background-color: gold !important;
+    border: 2px solid black !important;
+    color: black !important;
+    height: 50px;
+    width: 100px;
+    margin-right: 20px;
+    font-size: 15px;
+    font-weight: bold;
+    border-radius: 5px;
+}
+
+/* ===== 상품 설명 ===== */
+.productExplain {
+    display: flex;
+}
+
+.productExplain textarea {
+    border: 1px solid #cccccc;
+    padding: 12px;
+    margin-left: 66px;
+    width: 776px;
+    height: 250px;
+    resize: none;
+}
+
+.productExplain p {
+    margin: 0;
+    text-align: right;
+}
+
+/* ===== 가격 ===== */
+.price {
+    display: flex;
+    align-items: center;
+}
+
+.price input {
+    margin-left: 66px;
+    border: 1px solid #aaaaaa;
+    padding-left: 5px;
+    width: 300px;
+    height: 50px;
+}
+
+.priceInputWrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.priceInputWrapper input {
+    padding-right: 40px;
+    box-sizing: border-box;
+}
+
+.won {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: gray;
+}
+
+/* ===== 거래 ===== */
+.exchangeMethod {
+    display: flex;
+    align-items: flex-start;
+}
+
+.transactionStyle {
+    width: 100vw;
+}
+
+/* ===== 제출 ===== */
+.upload {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 50px;
+    margin-bottom: 100px;
+}
+
+.submitOption {
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 50px auto;
+}
+
+.submitOptionButton {
+    width: 100%;
+    padding: 10px 25px;
+    font-weight: bolder;
+    background-color: gold;
+    margin-top: 10px;
+    border: 2px solid black !important;
+    color: black;
+    font-size: 17px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.submitOptionButton:hover {
+    background-color: yellow;
+}
+
+.submitOptionButton:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    color: #888;
+}
