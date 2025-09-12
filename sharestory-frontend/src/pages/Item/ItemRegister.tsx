@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import {useEffect, useRef, useState} from 'react';
 import styles from '../../css/SalesPage.module.css';
 import AgreeModal from '../../components/AgreeModal';
 import Category from '../../components/Category';
 import Transaction from "../../components/Transaction";
-import { useNavigate } from 'react-router-dom';
-import type { DealInfo } from '../../types/dealInfo';
+import {useNavigate} from 'react-router-dom';
+import type {DealInfo} from '../../types/dealInfo';
 
 type FormState = {
     latitude: number;

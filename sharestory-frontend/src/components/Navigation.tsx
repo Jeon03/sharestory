@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import {useRef, useState} from 'react';
 import '../css/Navigation.css';
 
 // 🔹 Navigation을 독립형으로 변경 (카테고리 props 제거)

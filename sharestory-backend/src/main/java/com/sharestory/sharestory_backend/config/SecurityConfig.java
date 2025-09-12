@@ -1,18 +1,21 @@
 package com.sharestory.sharestory_backend.config;
 
+import com.sharestory.sharestory_backend.security.CustomOAuth2UserService;
 import com.sharestory.sharestory_backend.security.JwtAuthenticationFilter;
 import com.sharestory.sharestory_backend.security.OAuth2SuccessHandler;
-import com.sharestory.sharestory_backend.security.CustomOAuth2UserService;
+import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.*;
-import jakarta.servlet.http.Cookie;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 import java.util.List;
 
 @Configuration
@@ -44,14 +47,19 @@ public class SecurityConfig {
                                 "/login/**",         // OAuth2 Callback
                                 "/auth/**",         //토큰 재발급, 로그아웃 API
                                 "/actuator/**",
-                                "/registerItem",
                                 "/api/allItems",
                                 "/api/items/sorted/**",
                                 "/api/items/**",
                                 "/api/map/**",
-                                "/api/favorites/**"
-
+                                "/api/favorites/**",
+                                "/api/main",
+                                "/api/items/autocomplete"
                         ).permitAll()
+                        .requestMatchers(
+                                "/api/users/location",
+                                "/registerItem"
+
+                        ).authenticated()
                         .anyRequest().authenticated()
                 )
 
@@ -75,14 +83,20 @@ public class SecurityConfig {
                             Cookie access = new Cookie("ACCESS_TOKEN", null);
                             access.setMaxAge(0);
                             access.setPath("/");
+                            access.setHttpOnly(true); // ✅ JWT는 HttpOnly 쿠키
+                            access.setSecure(true);   // ✅ HTTPS 배포 환경이면 필수
                             res.addCookie(access);
 
                             Cookie refresh = new Cookie("REFRESH_TOKEN", null);
                             refresh.setMaxAge(0);
                             refresh.setPath("/");
+                            refresh.setHttpOnly(true);
+                            refresh.setSecure(true);
                             res.addCookie(refresh);
 
                             res.setStatus(200);
+                            res.setContentType("application/json");
+                            res.getWriter().write("{\"success\":true}");
                         })
                 );
         return http.build();

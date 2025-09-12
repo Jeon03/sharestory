@@ -1,12 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+// Header.tsx
+import React, {useEffect, useRef, useState} from 'react';
+import {Link, useNavigate} from 'react-router-dom';
 import '../css/Header.css';
-import type { User } from '../types/user';
+import type {User} from '../types/user';
 import logo from '../images/logo.png';
-
-function LocationSelector() {
-    return <input className="header_search-box" placeholder="위치 검색 (더미)" />;
-}
+import LocationSelector from './LocationSelector';
 
 function ChatRoomListPanel({ onClose }: { onClose: () => void }) {
     return (
@@ -26,7 +24,15 @@ function ChatBox({ roomId, onClose }: { roomId: string; onClose: () => void }) {
     );
 }
 
-export default function Header({ user, onLoginClick }: { user: User | null; onLoginClick: () => void }) {
+export default function Header({
+                                   user,
+                                   onLoginClick,
+                                   setUser,
+                               }: {
+    user: User | null;
+    onLoginClick: () => void;
+    setUser: React.Dispatch<React.SetStateAction<User | null>>;
+}) {
     const navigate = useNavigate();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement | null>(null);
@@ -41,15 +47,14 @@ export default function Header({ user, onLoginClick }: { user: User | null; onLo
 
     const handleLogout = async () => {
         try {
-            // 백엔드 로그아웃 API 호출 (쿠키 삭제 등)
             const res = await fetch(`${import.meta.env.VITE_API_URL}/logout`, {
                 method: 'POST',
                 credentials: 'include',
             });
-
             if (res.ok) {
                 alert('로그아웃 되었습니다.');
-                window.location.href = '/'; // 메인으로 이동
+                setUser(null);
+                navigate('/');
             } else {
                 alert('로그아웃 실패');
             }
@@ -58,7 +63,6 @@ export default function Header({ user, onLoginClick }: { user: User | null; onLo
             alert('로그아웃 중 오류 발생');
         }
     };
-
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -82,8 +86,7 @@ export default function Header({ user, onLoginClick }: { user: User | null; onLo
             <div className="menu-links">
                 {user ? (
                     <>
-                        {/* 채팅 */}
-                        <div className="chat-link-wrapper relative" style={{ position: "relative", display: "flex", alignItems: "center", gap: "4px" }}>
+                        <div className="chat-link-wrapper relative" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                             <div style={{ position: "relative" }}>
                                 <i className="bi-chat-dots"></i>
                                 {unreadCount > 0 && <span className="chat-alert-dot">{unreadCount}</span>}
@@ -101,12 +104,10 @@ export default function Header({ user, onLoginClick }: { user: User | null; onLo
                             </a>
                         </div>
 
-                        {/* 판매하기 */}
                         <span className="mx-2">|</span>
                         <i className="bi-bag-dash"></i>
                         <a href="/registerItem" onClick={handleProductRegisterClick}>판매하기</a>
                         <span className="mx-2">|</span>
-
 
                         {/* 드롭다운 */}
                         <div className="header-dropdown" ref={dropdownRef}>

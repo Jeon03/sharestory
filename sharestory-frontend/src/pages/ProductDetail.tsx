@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import {useEffect, useMemo, useState} from 'react';
+import {Link, useParams} from 'react-router-dom';
+import type {CustomArrowProps, Settings} from 'react-slick';
 import Slider from 'react-slick';
 import '../css/productDetail.css';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import type { CustomArrowProps, Settings } from 'react-slick';
-import { Heart } from 'lucide-react';
+import {Heart} from 'lucide-react';
 
 type ItemStatus =
     | 'ON_SALE'

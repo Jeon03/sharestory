@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 import '../css/list.css';
-import { Link } from 'react-router-dom';
-import { Eye, Heart, MessageCircle } from 'lucide-react';
-import { Navigation, Pagination } from 'swiper/modules';
-import { Swiper, SwiperSlide } from 'swiper/react';
+import {Link} from 'react-router-dom';
+import {Eye, Heart, MessageCircle} from 'lucide-react';
+import {Navigation, Pagination} from 'swiper/modules';
+import {Swiper, SwiperSlide} from 'swiper/react';
 // @ts-expect-error swiper css has no type declarations
 import 'swiper/css';
 // @ts-expect-error swiper css has no type declarations

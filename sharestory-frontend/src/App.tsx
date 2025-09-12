@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import {useCallback, useEffect, useState} from 'react';
+import {BrowserRouter as Router, Navigate, Outlet, Route, Routes} from 'react-router-dom';
 import Header from './components/Header';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
@@ -8,19 +8,19 @@ import Login from './pages/Login';
 import ItemRegister from "./pages/Item/ItemRegister";
 import ProductDetail from './pages/ProductDetail';
 import './css/App.css';
-import type { User } from './types/user';
-import { Navigate } from "react-router-dom";
+import type {User} from './types/user';
 
 interface AppLayoutProps {
     user: User | null;
     onLoginClick: () => void;
+    setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
-function AppLayout({ user, onLoginClick }: AppLayoutProps) {
+function AppLayout({ user, onLoginClick, setUser }: AppLayoutProps) {
     return (
         <div className="App">
             <div className="heaerset">
-                <Header user={user} onLoginClick={onLoginClick} />
+                <Header user={user} onLoginClick={onLoginClick} setUser={setUser} />
                 <Navigation />
             </div>
             <main className="main-content">
@@ -42,13 +42,20 @@ export default function App() {
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
     // 로그인 상태 조회 + 1회 토큰 리프레시 재시도
+// 로그인 상태 조회 + 1회 토큰 리프레시 재시도
     const fetchMe = useCallback(async () => {
         try {
             // 1) 사용자 정보 조회
             const res = await fetch(`${API_URL}/api/main`, { credentials: 'include' });
             if (res.ok) {
-                const data: User | null = await res.json();
-                setUser(data);
+                const data = await res.json();
+
+                // ✅ 로그인 여부 판별
+                if (data.authenticated) {
+                    setUser(data); // 로그인 사용자
+                } else {
+                    setUser(null); // 비로그인 사용자
+                }
                 return;
             }
 
@@ -61,8 +68,12 @@ export default function App() {
             if (rf.ok) {
                 const res2 = await fetch(`${API_URL}/api/main`, { credentials: 'include' });
                 if (res2.ok) {
-                    const data2: User | null = await res2.json();
-                    setUser(data2);
+                    const data2 = await res2.json();
+                    if (data2.authenticated) {
+                        setUser(data2);
+                    } else {
+                        setUser(null);
+                    }
                     return;
                 }
             }
@@ -78,12 +89,21 @@ export default function App() {
         fetchMe();
     }, [fetchMe]);
 
+
+    useEffect(() => {
+        fetchMe();
+    }, [fetchMe]);
+
     return (
         <Router>
             <Routes>
                 <Route
                     element={
-                        <AppLayout user={user} onLoginClick={() => setIsLoginOpen(true)} />
+                        <AppLayout
+                            user={user}
+                            onLoginClick={() => setIsLoginOpen(true)}
+                            setUser={setUser}   // ✅ 전달
+                        />
                     }
                 >
 

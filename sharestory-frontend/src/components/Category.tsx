@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import styles from '../css/Category.module.css';
 
 // ✅ Props 타입 정의

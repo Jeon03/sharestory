@@ -57,4 +57,14 @@ public class User {
     public User(Long id) {
         this.id = id;
     }
+
+    @Column
+    private Double myLatitude;
+
+    @Column
+    private Double myLongitude;
+
+    @Column
+    private String addressName;
+
 }

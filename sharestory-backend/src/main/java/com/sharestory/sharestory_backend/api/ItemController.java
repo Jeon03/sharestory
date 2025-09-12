@@ -5,8 +5,10 @@ import com.sharestory.sharestory_backend.domain.DealInfo;
 import com.sharestory.sharestory_backend.domain.Item;
 import com.sharestory.sharestory_backend.dto.ItemRequestDto;
 import com.sharestory.sharestory_backend.security.CustomUserDetails;
+import com.sharestory.sharestory_backend.service.ItemSearchService;
 import com.sharestory.sharestory_backend.service.ItemService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,8 +16,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
-
+@Slf4j
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -23,6 +26,7 @@ public class ItemController {
 
     private final ItemService itemService;
     private final ObjectMapper objectMapper;
+    private final ItemSearchService itemSearchService;
 
     @PostMapping(value = "/registerItem", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> registerItem(
@@ -102,5 +106,20 @@ public class ItemController {
 
     }
 
+    @GetMapping("/items/autocomplete")
+    public ResponseEntity<List<Map<String,Object>>> autocomplete(
+            @RequestParam String keyword,
+            @RequestParam double lat,
+            @RequestParam double lon,
+            @RequestParam(defaultValue = "5km") String distance
+    ) throws IOException {
+        System.out.println("[AUTOCOMPLETE API] keyword=" + keyword +
+                ", lat=" + lat +
+                ", lon=" + lon +
+                ", distance=" + distance);
+        return ResponseEntity.ok(
+                itemSearchService.autocomplete(keyword, lat, lon, distance)
+        );
+    }
 
 }

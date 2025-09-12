@@ -1,13 +1,15 @@
 package com.sharestory.sharestory_backend.service;
 
 import com.sharestory.sharestory_backend.domain.Item;
-
 import com.sharestory.sharestory_backend.dto.ItemDetailResponse;
 import com.sharestory.sharestory_backend.dto.ItemStatus;
 import com.sharestory.sharestory_backend.dto.ItemSummaryDto;
 import com.sharestory.sharestory_backend.repo.ItemRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

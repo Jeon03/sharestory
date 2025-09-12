@@ -13,7 +13,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -24,6 +26,7 @@ public class ItemService {
     private final ItemRepository itemRepository;
     private final ItemImageRepository itemImageRepository;
     private final S3Service s3Service;
+    private final ItemSearchIndexer itemSearchIndexer;
 
     @Transactional
     public Item registerItem(ItemRequestDto dto, List<MultipartFile> images, Long userId) throws IOException {
@@ -78,12 +81,14 @@ public class ItemService {
             itemImageRepository.saveAll(imageEntities);
             // 양방향 매핑 사용 시 컬렉션도 갱신
             item.getImages().addAll(imageEntities);
-
             // 대표 이미지(첫 장)
             item.setImageUrl(uploadedUrls.get(0));
             // 명시 저장은 선택(영속 상태라 flush로 반영됨)
             // itemRepository.save(item);
         }
+
+
+        itemSearchIndexer.indexItem(item);
 
         return item;
     }

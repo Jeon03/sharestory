@@ -1,5 +1,5 @@
-import { useEffect, useCallback } from 'react';
-import type { MouseEvent } from 'react';   // ⭐ 타입 전용 import
+import type {MouseEvent} from 'react'; // ⭐ 타입 전용 import
+import {useCallback, useEffect} from 'react';
 import styles from '../css/Login.module.css';
 
 // 프로젝트 내부 이미지 경로 권장 (src/images/*)
@@ -47,7 +47,7 @@ function Login({ isOpen, onClose }: LoginProps) {
     }, []);
 
     if (!isOpen) return null;
-    //test333
+
     return (
         <>
             {/* 오버레이(클릭 시 닫힘) */}

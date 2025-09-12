@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import {useEffect, useRef, useState} from "react";
 import styles from '../css/Transaction.module.css';
 import KakaoMap from '../components/KakoMap';
-import type { DealInfo } from '../types/dealInfo';
+import type {DealInfo} from '../types/dealInfo';
 
 type TransactionProps = {
     onLocationSelect: (coords: { lat: number; lng: number }) => void;
