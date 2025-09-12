@@ -7,6 +7,8 @@ import com.sharestory.sharestory_backend.domain.Item;
 import com.sharestory.sharestory_backend.domain.ItemDoc;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Service
@@ -32,7 +34,7 @@ public class ItemSearchIndexer {
             doc.setTitleNgram(item.getTitle());
             doc.setPrice(item.getPrice());
             doc.setLocation(point);
-            doc.setCreatedAt(LocalDateTime.now());
+            doc.setCreatedAt(Instant.now().toString());
 
             try {
                 ObjectMapper mapper = new ObjectMapper();

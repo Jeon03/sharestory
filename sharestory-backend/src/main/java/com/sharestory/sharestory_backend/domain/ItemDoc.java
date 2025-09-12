@@ -13,7 +13,7 @@ public class ItemDoc {
     private String titleNgram;
     private GeoPoint location;
     private Integer price;
-    private LocalDateTime createdAt;
+    private String createdAt;
 
     @Getter @Setter
     public static class GeoPoint {
