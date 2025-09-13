@@ -20,8 +20,6 @@ public class ItemSearchIndexer {
     public void indexItem(Item item) {
         try {
 
-
-
             // 1. 좌표 매핑
             ItemDoc.GeoPoint point = new ItemDoc.GeoPoint();
             point.setLat(item.getLatitude());
@@ -29,12 +27,25 @@ public class ItemSearchIndexer {
 
             // 2. ES 문서 객체 생성
             ItemDoc doc = new ItemDoc();
+            doc.setId(item.getId());
             doc.setTitle(item.getTitle());
             doc.setTitleSuggest(item.getTitle());
             doc.setTitleNgram(item.getTitle());
             doc.setPrice(item.getPrice());
             doc.setLocation(point);
-            doc.setCreatedAt(Instant.now().toString());
+            doc.setCreatedAt(item.getCreatedDate().toString());
+
+            // ✅ 대표 이미지 (Item 엔티티에서 첫 번째 이미지 사용)
+            if (item.getImages() != null && !item.getImages().isEmpty()) {
+                doc.setImageUrl(item.getImages().get(0).getUrl());
+            }
+
+            // ✅ 상태 저장
+            doc.setItemStatus(item.getStatus().name());
+
+            doc.setFavoriteCount(item.getFavoriteCount());
+            doc.setViewCount(item.getViewCount());
+            doc.setChatRoomCount(item.getChatRoomCount());
 
             try {
                 ObjectMapper mapper = new ObjectMapper();

@@ -120,34 +120,18 @@
     background: #f5f5f5;
 }
 
-/* 현재 위치 버튼 */
-.myPosition-button {
-    width: 100%;
-    background: #fdf2f2;
-    border: 1px solid #fca5a5;
-    color: #dc2626;
-    font-size: 14px;
-    padding: 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    text-align: left;
-}
-
 .myPosition-button:hover {
     background: #fee2e2;
 }
 
 /* 검색 영역 */
 .header_search-box {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    max-width: 450px;
-    height: 35px !important;
-    padding: 5px;
-    border-radius: 5px;
-    position: relative; /* 자동완성창 위치 기준점 */
+    position: relative;
+    display: inline-block;
+    width: 400px; /* 검색창 크기에 맞춤 */
+
 }
+
 
 .search-icon {
     width: 20px;
@@ -181,23 +165,85 @@
 }
 
 .autocomplete-list {
+    list-style: none;
     position: absolute;
-    background: #fff;
+    top: 100%; /* 입력창 바로 아래 */
+    left: 0;
+    width: 450px;
+    background: white;
     border: 1px solid #ddd;
-    width: 100%;
+    border-top: none; /* 검색창과 자연스럽게 연결 */
+    border-radius: 0 0 6px 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
     max-height: 200px;
     overflow-y: auto;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    z-index: 1000;
+    font-size: 15px;
 }
 
 .autocomplete-item {
-    padding: 8px 12px;
+    list-style: none;
+    padding: 10px 12px;
     cursor: pointer;
 }
 
 .autocomplete-item:hover {
-    background-color: #f2f2f2;
+    background-color: #f8f8f8;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    border-radius: 30px;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+}
+
+.radius-label {
+    font-size: 14px;
+    color: #555;
+}
+
+.radius-select {
+    border: none;
+    outline: none;
+    padding: 2px 10px;
+    font-size: 14px;
+    border-radius: 20px;
+    background: #f8f9fa;
+    cursor: pointer;
+}
+
+.radius-select:hover {
+    background: #f1f3f5;
+}
+
+.search-icon-btn:hover {
+    background: #ffcd1f;
+}
+
+.select-button {
+    height: 42px; /* 검색창과 높이 맞춤 */
+    padding: 0 16px;
+    background: #ffcd1f;
+    border: 1px solid #1a1a1a;
+    border-radius: 20px; /* 둥글게 */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    font-size: 14px;
+    color: #000;
+    transition: background 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+}
+
+.select-button:hover {
+    background: #ffd84d;
+    transform: translateY(-1px);
 }

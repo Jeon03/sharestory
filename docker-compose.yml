@@ -6,12 +6,19 @@ services:
     container_name: es
     environment:
       - discovery.type=single-node
-      - xpack.security.enabled=false   # 보안 끔 → 키/비번 필요 없음
+      - xpack.security.enabled=false
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
     ports:
       - "9200:9200"
     volumes:
       - esdata:/usr/share/elasticsearch/data
+    command: >
+      bash -c "
+        if [ ! -d plugins/analysis-nori ]; then
+          ./bin/elasticsearch-plugin install --batch analysis-nori;
+        fi;
+        exec /usr/local/bin/docker-entrypoint.sh elasticsearch
+      "
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.14.3

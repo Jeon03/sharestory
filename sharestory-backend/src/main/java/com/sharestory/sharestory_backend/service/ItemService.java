@@ -87,7 +87,6 @@ public class ItemService {
             // itemRepository.save(item);
         }
 
-
         itemSearchIndexer.indexItem(item);
 
         return item;

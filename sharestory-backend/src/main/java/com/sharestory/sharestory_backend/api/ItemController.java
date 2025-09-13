@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sharestory.sharestory_backend.domain.DealInfo;
 import com.sharestory.sharestory_backend.domain.Item;
 import com.sharestory.sharestory_backend.dto.ItemRequestDto;
+import com.sharestory.sharestory_backend.dto.ItemSummaryDto;
 import com.sharestory.sharestory_backend.security.CustomUserDetails;
 import com.sharestory.sharestory_backend.service.ItemSearchService;
 import com.sharestory.sharestory_backend.service.ItemService;
@@ -107,19 +108,13 @@ public class ItemController {
     }
 
     @GetMapping("/items/autocomplete")
-    public ResponseEntity<List<Map<String,Object>>> autocomplete(
+    public ResponseEntity<List<ItemSummaryDto>> autocomplete(
             @RequestParam String keyword,
-            @RequestParam double lat,
-            @RequestParam double lon,
+            @RequestParam(required = false) Double lat,
+            @RequestParam(required = false) Double lon,
             @RequestParam(defaultValue = "5km") String distance
     ) throws IOException {
-        System.out.println("[AUTOCOMPLETE API] keyword=" + keyword +
-                ", lat=" + lat +
-                ", lon=" + lon +
-                ", distance=" + distance);
-        return ResponseEntity.ok(
-                itemSearchService.autocomplete(keyword, lat, lon, distance)
-        );
+        return ResponseEntity.ok(itemSearchService.autocomplete(keyword, lat, lon, distance));
     }
 
 }
