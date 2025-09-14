@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface ItemImageRepository extends JpaRepository<ItemImage, Long> {
     List<ItemImage> findByItemIdOrderBySortOrderAsc(Long itemId);
-
+    void deleteAllByItemId(Long itemId);
 }

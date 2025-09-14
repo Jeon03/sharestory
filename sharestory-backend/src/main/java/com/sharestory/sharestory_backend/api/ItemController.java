@@ -1,5 +1,6 @@
 package com.sharestory.sharestory_backend.api;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sharestory.sharestory_backend.domain.DealInfo;
 import com.sharestory.sharestory_backend.domain.Item;
@@ -107,6 +108,46 @@ public class ItemController {
 
     }
 
+    // ✅ 상품 수정
+    @PutMapping(value = "/items/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateItem(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestPart("data") ItemRequestDto dto,
+            @RequestPart(value = "images", required = false) List<MultipartFile> newImages
+    ) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("인증 정보가 없습니다.");
+        }
+
+        try {
+            itemService.updateItem(id, dto, newImages, user.getId());
+            return ResponseEntity.ok("상품이 수정되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("수정 실패: " + e.getMessage());
+        }
+    }
+
+
+    // ✅ 상품 삭제
+    @DeleteMapping("/items/{id}")
+    public ResponseEntity<?> deleteItem(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        try {
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("인증 정보가 없습니다.");
+            }
+            itemService.deleteItem(id, user.getId());
+            return ResponseEntity.ok("상품이 삭제되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("삭제 실패: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/items/autocomplete")
     public ResponseEntity<List<ItemSummaryDto>> autocomplete(
             @RequestParam String keyword,
@@ -116,5 +157,7 @@ public class ItemController {
     ) throws IOException {
         return ResponseEntity.ok(itemSearchService.autocomplete(keyword, lat, lon, distance));
     }
+
+
 
 }

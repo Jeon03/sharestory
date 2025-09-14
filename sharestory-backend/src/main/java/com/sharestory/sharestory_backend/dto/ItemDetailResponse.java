@@ -30,5 +30,8 @@ public class ItemDetailResponse {
     private Double latitude;
     private Double longitude;
 
-    private DealInfo dealInfo;    // 택배/직거래/안전거래/배송비 옵션
+    private DealInfo dealInfo;// 택배/직거래/안전거래/배송비 옵션
+
+    private boolean modified;      // 수정 여부
+    private String updatedDate;
 }

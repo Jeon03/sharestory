@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useState} from 'react';
-import {Link, useParams} from 'react-router-dom';
+import {Link, useNavigate, useParams} from 'react-router-dom';
 import type {CustomArrowProps, Settings} from 'react-slick';
 import Slider from 'react-slick';
 import '../css/productDetail.css';
@@ -40,28 +40,24 @@ interface ItemDetail {
     imageUrl?: string;
     images?: string[];
     dealInfo?: DealInfo;
+    modified?: boolean;
+    updatedDate?: string;
+}
+
+interface User {
+    id: number;
+    name: string;
+    email: string;
 }
 
 const API_BASE = import.meta?.env?.VITE_API_BASE || '';
 
 function PrevArrow({ className, style, onClick }: CustomArrowProps) {
-    return (
-        <div
-            className={className}
-            style={{ ...style, display: 'block', left: 20, zIndex: 1 }}
-            onClick={onClick}
-        />
-    );
+    return <div className={className} style={{ ...style, display: 'block', left: 20, zIndex: 1 }} onClick={onClick} />;
 }
 
 function NextArrow({ className, style, onClick }: CustomArrowProps) {
-    return (
-        <div
-            className={className}
-            style={{ ...style, display: 'block', right: 20, zIndex: 1 }}
-            onClick={onClick}
-        />
-    );
+    return <div className={className} style={{ ...style, display: 'block', right: 20, zIndex: 1 }} onClick={onClick} />;
 }
 
 export default function ProductDetailSimple() {
@@ -69,6 +65,9 @@ export default function ProductDetailSimple() {
     const [item, setItem] = useState<ItemDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [err, setErr] = useState<string | null>(null);
+
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
+    const navigate = useNavigate();
 
     // ❤️ 관심상품 상태
     const [isFavorite, setIsFavorite] = useState(false);
@@ -84,23 +83,27 @@ export default function ProductDetailSimple() {
                 setErr(null);
 
                 // 상품 상세
-                const r = await fetch(`${API_BASE}/api/items/${id}`, {
-                    credentials: 'include',
-                });
+                const r = await fetch(`${API_BASE}/api/items/${id}`, { credentials: 'include' });
                 if (!r.ok) throw new Error(await r.text());
                 const data = (await r.json()) as ItemDetail;
+                console.log(data);
                 if (!aborted) setItem(data);
 
                 // 관심 여부 + 개수
-                const f = await fetch(`${API_BASE}/api/favorites/${id}`, {
-                    credentials: 'include',
-                });
+                const f = await fetch(`${API_BASE}/api/favorites/${id}`, { credentials: 'include' });
                 if (f.ok) {
                     const fav = await f.json();
                     if (!aborted) {
                         setIsFavorite(fav.isFavorite);
                         setFavoriteCount(fav.favoriteCount ?? 0);
                     }
+                }
+
+                // 현재 로그인 사용자 정보
+                const me = await fetch(`${API_BASE}/api/main`, { credentials: 'include' });
+                if (me.ok) {
+                    const user = (await me.json()) as User;
+                    if (!aborted) setCurrentUser(user);
                 }
             } catch (e) {
                 if (!aborted) setErr(e instanceof Error ? e.message : '요청 실패');
@@ -128,6 +131,26 @@ export default function ProductDetailSimple() {
             setFavoriteCount(data.favoriteCount);
         } catch {
             alert('관심상품 처리 중 오류 발생');
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!id) return;
+        if (!window.confirm('정말로 이 상품을 삭제하시겠습니까?')) return;
+
+        try {
+            const res = await fetch(`${API_BASE}/api/items/${id}`, {
+                method: 'DELETE',
+                credentials: 'include',
+            });
+            if (res.ok) {
+                alert('상품이 삭제되었습니다.');
+                navigate('/');
+            } else {
+                alert('삭제 실패');
+            }
+        } catch {
+            alert('삭제 중 오류 발생');
         }
     };
 
@@ -171,9 +194,7 @@ export default function ProductDetailSimple() {
         <div className="detail-container">
             {/* 브레드크럼 */}
             <nav className="breadcrumb">
-                <Link to="/">홈</Link> &gt;{' '}
-                <Link to="/category">{item.category}</Link> &gt;{' '}
-                <span>{item.title}</span>
+                <Link to="/">홈</Link> &gt; <Link to="/category">{item.category}</Link> &gt; <span>{item.title}</span>
             </nav>
 
             <div className="detail-main">
@@ -183,30 +204,13 @@ export default function ProductDetailSimple() {
                         <Slider {...sliderSettings}>
                             {images.map((url, idx) => (
                                 <div key={idx} className="image-wrapper">
-                                    <img
-                                        src={url}
-                                        alt={`${item.title} ${idx + 1}`}
-                                        className="slide-image"
-                                    />
-                                    {item.itemStatus === 'RESERVED' && (
-                                        <div className="status-overlay reserved">예약중</div>
-                                    )}
-                                    {item.itemStatus === 'SOLD_OUT' && (
-                                        <div className="status-overlay sold">판매완료</div>
-                                    )}
-                                    {[
-                                        'SAFE_DELIVERY',
-                                        'SAFE_DELIVERY_START',
-                                        'SAFE_DELIVERY_ING',
-                                        'SAFE_DELIVERY_COMPLETE',
-                                    ].includes(item.itemStatus) && (
-                                        <div className="status-overlay in-progress">
-                                            거래 진행중
-                                        </div>
-                                    )}
-                                    {item.itemStatus === 'SAFE_DELIVERY_POINT_DONE' && (
-                                        <div className="status-overlay done">거래 완료</div>
-                                    )}
+                                    <img src={url} alt={`${item.title} ${idx + 1}`} className="slide-image" />
+                                    {item.itemStatus === 'RESERVED' && <div className="status-overlay reserved">예약중</div>}
+                                    {item.itemStatus === 'SOLD_OUT' && <div className="status-overlay sold">판매완료</div>}
+                                    {['SAFE_DELIVERY', 'SAFE_DELIVERY_START', 'SAFE_DELIVERY_ING', 'SAFE_DELIVERY_COMPLETE'].includes(
+                                        item.itemStatus
+                                    ) && <div className="status-overlay in-progress">거래 진행중</div>}
+                                    {item.itemStatus === 'SAFE_DELIVERY_POINT_DONE' && <div className="status-overlay done">거래 완료</div>}
                                 </div>
                             ))}
                         </Slider>
@@ -235,19 +239,20 @@ export default function ProductDetailSimple() {
                         <span className="category">{item.category}</span>
                         <span> · </span>
                         <span className="time">
-              {new Date(item.createdDate).toLocaleString()}
-            </span>
+                            {new Date(item.createdDate).toLocaleString()}
+                            {item.modified && (
+                                <span style={{ marginLeft: "6px", color: "#888", fontSize: "0.9em" }}>
+                                (수정됨)
+                                </span>
+                            )}
+                        </span>
                     </div>
 
                     <p className="detail-price">{item.price.toLocaleString()}원</p>
 
                     {/* ❤️ 관심상품 버튼 */}
                     <button onClick={toggleFavorite} className="favorite-btn">
-                        {isFavorite ? (
-                            <Heart fill="red" stroke="red" size={24} />
-                        ) : (
-                            <Heart stroke="gray" size={24} />
-                        )}
+                        {isFavorite ? <Heart fill="red" stroke="red" size={24} /> : <Heart stroke="gray" size={24} />}
                         <span style={{ marginLeft: 6 }}>{favoriteCount}</span>
                     </button>
 
@@ -266,23 +271,32 @@ export default function ProductDetailSimple() {
                         <tr>
                             <th>거래방식</th>
                             <td>
-                                {[
-                                    item.dealInfo?.parcel && '택배거래',
+                                {[item.dealInfo?.parcel && '택배거래',
                                     item.dealInfo?.direct && '직거래',
                                     item.dealInfo?.safeTrade && '🔒안전거래',
                                     item.dealInfo?.shippingOption &&
-                                    `(배송비: ${
-                                        item.dealInfo.shippingOption === 'included'
-                                            ? '포함'
-                                            : '별도'
-                                    })`,
-                                ]
+                                    `(배송비: ${item.dealInfo.shippingOption === 'included' ? '포함' : '별도'})`]
                                     .filter(Boolean)
                                     .join(' · ')}
                             </td>
                         </tr>
                         </tbody>
                     </table>
+
+                    {/* ✅ 수정/삭제 버튼 (작성자만) */}
+                    {currentUser && item.userId === currentUser.id && (
+                        <div className="owner-actions">
+                            <button
+                                className="edit-btn"
+                                onClick={() => navigate(`/items/${item.id}/edit`)}
+                            >
+                                수정하기
+                            </button>
+                            <button className="delete-btn" onClick={handleDelete}>
+                                삭제하기
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

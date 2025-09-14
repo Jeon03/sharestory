@@ -25,6 +25,8 @@ interface ProductItem {
     latitude?: number;
     longitude?: number;
     location?: string;
+    modified?: boolean;      // 수정 여부
+    updatedDate?: string;
 }
 
 const API_BASE = import.meta?.env?.VITE_API_BASE || '';
@@ -58,7 +60,6 @@ const fetchRegionName = async (lat: number, lng: number): Promise<string> => {
         credentials: 'include'
     });
     if (!res.ok) return '알 수 없음';
-
     const data = await res.json();
     const loc = data.documents?.[0]?.region_3depth_name || '알 수 없음';
     locationCache.set(key, loc);
@@ -140,7 +141,14 @@ export default function ProductList() {
                                 <div className="product-meta">
                                     <span className="location">{item.location}</span>
                                     <span> · </span>
-                                    <span className="product-date">{formatTimeAgo(item.createdDate)}</span>
+                                    <span className="product-date">
+                                        {formatTimeAgo(item.createdDate)}
+                                        {item.modified && (
+                                            <span style={{ marginLeft: "4px", fontSize: "0.85em", color: "#888" }}>
+                                                (수정됨)
+                                            </span>
+                                        )}
+                                    </span>
                                 </div>
                             </div>
                         </Link>
@@ -191,7 +199,14 @@ export default function ProductList() {
                                         <div className="product-meta">
                                             <span className="location">{item.location}</span>
                                             <span> · </span>
-                                            <span className="product-date">{formatTimeAgo(item.createdDate)}</span>
+                                            <span className="product-date">
+                                                {formatTimeAgo(item.createdDate)}
+                                                {item.modified && (
+                                                    <span style={{ marginLeft: "4px", fontSize: "0.85em", color: "#888" }}>
+                                                        (수정됨)
+                                                    </span>
+                                                )}
+                                            </span>
                                         </div>
                                     </div>
                                 </Link>

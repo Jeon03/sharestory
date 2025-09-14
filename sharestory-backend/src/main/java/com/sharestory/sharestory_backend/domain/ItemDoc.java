@@ -16,6 +16,7 @@ public class ItemDoc {
     private GeoPoint location;
     private Integer price;
     private String createdAt;
+    private String updatedAt;
 
     @Getter @Setter
     public static class GeoPoint {

@@ -6,6 +6,7 @@ import Footer from './components/Footer';
 import ProductList from './pages/ProductList';
 import Login from './pages/Login';
 import ItemRegister from "./pages/Item/ItemRegister";
+import ItemEdit from "./pages/Item/ItemEdit";
 import ProductDetail from './pages/ProductDetail';
 import SearchPage from "./pages/SearchPage";  // 경로는 실제 위치에 맞게 수정
 import './css/App.css';
@@ -86,10 +87,6 @@ export default function App() {
         }
     }, [API_URL]);
 
-    useEffect(() => {
-        fetchMe();
-    }, [fetchMe]);
-
 
     useEffect(() => {
         fetchMe();
@@ -111,6 +108,7 @@ export default function App() {
                     <Route index element={<ProductList />} />
                     <Route path="/items/:id" element={<ProductDetail />} />
                     <Route path="/registerItem" element={user ? <ItemRegister /> : <Navigate to="/" replace />}/>
+                    <Route path="/items/:id/edit" element={<ItemEdit />} />
                     <Route path="/search" element={<SearchPage />} />
                 </Route>
             </Routes>

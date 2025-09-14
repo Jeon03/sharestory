@@ -10,9 +10,7 @@ type TransactionProps = {
 };
 
 function Transaction({ onLocationSelect, onDealInfoChange, initialDealInfo }: TransactionProps) {
-    useEffect(() => {
-        console.log("🧾 initialDealInfo 값:", initialDealInfo);
-    }, [initialDealInfo]);
+
 
     const [transactionMethods, setTransactionMethods] = useState({
         parcel: initialDealInfo?.parcel ?? false,
@@ -25,22 +23,32 @@ function Transaction({ onLocationSelect, onDealInfoChange, initialDealInfo }: Tr
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const parcelRef = useRef<HTMLDivElement | null>(null);
-    const initialized = useRef(false);
 
     const isValidPhoneNumber = (number: string) => /^010-?\d{4}-?\d{4}$/.test(number);
 
-    // ✅ 초기값 반영
+    // ✅ 초기값 반영 (initialized 제거)
     useEffect(() => {
-        if (initialDealInfo && !initialized.current) {
-            setTransactionMethods({
-                parcel: !!initialDealInfo.parcel,
-                direct: !!initialDealInfo.direct,
-                safeTrade: !!initialDealInfo.safeTrade,
+        if (initialDealInfo) {
+            setTransactionMethods((prev) => {
+                const next = {
+                    parcel: !!initialDealInfo.parcel,
+                    direct: !!initialDealInfo.direct,
+                    safeTrade: !!initialDealInfo.safeTrade,
+                };
+                return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
             });
-            setShippingOption(initialDealInfo.shippingOption || '');
-            setPhoneNumber(initialDealInfo.phoneNumber || '');
-            setPhoneNumberValid(initialDealInfo.phoneNumber ? isValidPhoneNumber(initialDealInfo.phoneNumber) : false);
-            initialized.current = true;
+
+            setShippingOption((prev) =>
+                prev === (initialDealInfo.shippingOption || "") ? prev : initialDealInfo.shippingOption || ""
+            );
+
+            setPhoneNumber((prev) =>
+                prev === (initialDealInfo.phoneNumber || "") ? prev : initialDealInfo.phoneNumber || ""
+            );
+
+            setPhoneNumberValid(
+                initialDealInfo.phoneNumber ? isValidPhoneNumber(initialDealInfo.phoneNumber) : false
+            );
         }
     }, [initialDealInfo]);
 
@@ -138,7 +146,7 @@ function Transaction({ onLocationSelect, onDealInfoChange, initialDealInfo }: Tr
                         <label>연락처 (택배 발송용)</label>
                         <input
                             type="tel"
-                            placeholder="010-1234-5678"
+                            placeholder="01012345678"
                             value={phoneNumber}
                             onChange={(e) => {
                                 const value = e.target.value;
@@ -149,7 +157,7 @@ function Transaction({ onLocationSelect, onDealInfoChange, initialDealInfo }: Tr
                         {/* ✅ 입력값이 있는데 정규식에 맞지 않으면 메시지 출력 */}
                         {!phoneNumberValid && phoneNumber.length > 0 && (
                             <p className={styles.validationMessage}>
-                                올바른 휴대폰 번호를 입력해주세요. (예: 010-1234-5678)
+                                올바른 휴대폰 번호를 입력해주세요. (예: 01012345678)
                             </p>
                         )}
                     </div>

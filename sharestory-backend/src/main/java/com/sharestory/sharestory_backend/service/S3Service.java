@@ -62,6 +62,14 @@ public class S3Service {
         return urls;
     }
 
+    /** URL 기반 삭제 (호출하기 편하게 추가) */
+    public void deleteFile(String url) {
+        String key = extractKeyFromUrl(url);
+        if (key != null) {
+            deleteByKey(key);
+        }
+    }
+
     /** 객체 삭제 (필요시) */
     public void deleteByKey(String key) {
         s3Client.deleteObject(DeleteObjectRequest.builder()
@@ -69,6 +77,22 @@ public class S3Service {
                 .key(key)
                 .build());
     }
+
+    /** URL에서 key 추출 */
+    public String extractKeyFromUrl(String url) {
+        if (url == null || url.isBlank()) return null;
+
+        // region별로 URL 패턴이 다를 수 있음
+        String host = "us-east-1".equals(region) ? "s3.amazonaws.com" : "s3." + region + ".amazonaws.com";
+        String prefix = "https://" + bucket + "." + host + "/";
+
+        if (url.startsWith(prefix)) {
+            return url.substring(prefix.length());
+        }
+        // 혹시 예상치 못한 패턴이면 그대로 리턴
+        return url;
+    }
+
 
     /** region에 맞는 S3 퍼블릭 URL 생성 */
     private String buildS3Url(String key) {

@@ -43,9 +43,18 @@ public class Item {
     @Column(name = "item_status", nullable = false)
     private ItemStatus status; // ← 여기 이름이 status라면 findByStatus가 맞음
 
-    @CreatedDate
+    //@CreatedDate
     @Column(name = "created_date", nullable = false, updatable = false)
     private LocalDateTime createdDate;
+
+    //수정일
+    @Column(name = "updated_date")
+    private LocalDateTime updatedDate;
+
+    //수정 여부
+    @Column(name = "is_modified", nullable = false)
+    private boolean isModified = false;
+
 
     // ✅ 다중 이미지 매핑 (ItemImage 엔티티와 1:N)
     @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)

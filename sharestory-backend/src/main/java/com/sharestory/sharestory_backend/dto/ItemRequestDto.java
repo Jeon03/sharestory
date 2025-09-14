@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,4 +23,6 @@ public class ItemRequestDto {
     private Double longitude;       // 경도
 
     private DealInfo dealInfo;      // 거래 방식 (택배/직거래/안전거래)
+
+    private List<String> existingImageUrls;
 }

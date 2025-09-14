@@ -113,6 +113,8 @@ public class ItemQueryService {
                 .latitude(item.getLatitude())
                 .longitude(item.getLongitude())
                 .dealInfo(item.getDealInfo())
+                .modified(item.isModified())
+                .updatedDate(item.getUpdatedDate() != null ? item.getUpdatedDate().format(ISO) : null)
                 .build();
     }
 
@@ -134,6 +136,8 @@ public class ItemQueryService {
                 .chatRoomCount(item.getChatRoomCount())
                 .latitude(item.getLatitude())
                 .longitude(item.getLongitude())
+                .modified(item.isModified())   // ✅ 수정 여부
+                .updatedDate(item.getUpdatedDate() != null ? item.getUpdatedDate().toString() : null)
                 .build();
     }
 }

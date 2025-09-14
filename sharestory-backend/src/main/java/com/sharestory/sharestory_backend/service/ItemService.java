@@ -4,6 +4,7 @@ import com.sharestory.sharestory_backend.domain.Item;
 import com.sharestory.sharestory_backend.domain.ItemImage;
 import com.sharestory.sharestory_backend.dto.ItemRequestDto;
 import com.sharestory.sharestory_backend.dto.ItemStatus;
+import com.sharestory.sharestory_backend.repo.FavoriteItemRepository;
 import com.sharestory.sharestory_backend.repo.ItemImageRepository;
 import com.sharestory.sharestory_backend.repo.ItemRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -27,6 +29,7 @@ public class ItemService {
     private final ItemImageRepository itemImageRepository;
     private final S3Service s3Service;
     private final ItemSearchIndexer itemSearchIndexer;
+    private final FavoriteItemRepository favoriteItemRepository;
 
     @Transactional
     public Item registerItem(ItemRequestDto dto, List<MultipartFile> images, Long userId) throws IOException {
@@ -92,12 +95,118 @@ public class ItemService {
         return item;
     }
 
+    @Transactional
+    public void updateItem(Long itemId,
+                           ItemRequestDto dto,
+                           List<MultipartFile> images,
+                           Long userId) throws IOException {
+
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다."));
+
+        if (!item.getUserId().equals(userId)) {
+            throw new SecurityException("수정 권한이 없습니다.");
+        }
+
+        // 상품 필드 수정
+        item.setTitle(dto.getTitle());
+        item.setCategory(dto.getCategory());
+        item.setCondition(dto.getCondition());
+        item.setPrice(dto.getPrice());
+        item.setDescription(dto.getDescription());
+        item.setDealInfo(dto.getDealInfo());
+        item.setLatitude(dto.getLatitude());
+        item.setLongitude(dto.getLongitude());
+        item.setUpdatedDate(LocalDateTime.now());
+        item.setModified(true);
+
+        // ✅ 기존 이미지 전부 삭제 (S3 + DB)
+        List<ItemImage> oldImages = new ArrayList<>(item.getImages());
+        for (ItemImage img : oldImages) {
+            try {
+                String key = s3Service.extractKeyFromUrl(img.getUrl());
+                if (key != null) s3Service.deleteByKey(key);
+            } catch (Exception e) {
+                System.err.println("[S3 DELETE FAIL] " + img.getUrl() + " : " + e.getMessage());
+            }
+        }
+        itemImageRepository.deleteAll(oldImages);
+        item.getImages().clear();
+
+        // ✅ 새로운 이미지 등록 (기존 + 신규 합쳐진 이미지들)
+        if (images == null || images.isEmpty()) {
+            throw new IllegalArgumentException("상품 이미지는 최소 1장 이상이어야 합니다.");
+        }
+
+        List<ItemImage> newImageEntities = new ArrayList<>();
+        for (int i = 0; i < images.size(); i++) {
+            MultipartFile file = images.get(i);
+            if (file == null || file.isEmpty()) continue;
+
+            String url = s3Service.uploadFile(file, "items/" + item.getId());
+            ItemImage newImg = ItemImage.builder()
+                    .item(item)
+                    .url(url)
+                    .sortOrder(i)
+                    .build();
+            newImageEntities.add(newImg);
+        }
+
+        itemImageRepository.saveAll(newImageEntities);
+        item.getImages().addAll(newImageEntities);
+
+        // 대표 이미지 설정
+        item.setImageUrl(newImageEntities.get(0).getUrl());
+
+        // 검색 인덱스 갱신
+        itemSearchIndexer.indexItem(item);
+    }
+
+
+
+    @Transactional
+    public void deleteItem(Long itemId, Long userId) {
+        // 1) 상품 조회
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다."));
+
+        if (!item.getUserId().equals(userId)) {
+            throw new SecurityException("삭제 권한이 없습니다.");
+        }
+
+        //관심상품 db 삭제
+        favoriteItemRepository.deleteAllByItemId(itemId);
+
+        // ✅ S3 이미지 삭제
+        if (item.getImages() != null && !item.getImages().isEmpty()) {
+            for (ItemImage img : item.getImages()) {
+                try {
+                    String key = s3Service.extractKeyFromUrl(img.getUrl());
+                    if (key != null) {
+                        s3Service.deleteByKey(key);
+                        System.out.println("[S3 DELETE SUCCESS] key=" + key);
+                    }
+                } catch (Exception e) {
+                    System.err.println("[S3 DELETE FAIL] url=" + img.getUrl() + " err=" + e.getMessage());
+                }
+            }
+        }
+
+        //다중 이미지 db 삭제
+        itemImageRepository.deleteAllByItemId(itemId);
+        
+        // 2) DB 삭제 (연관 이미지 함께 삭제됨: CascadeType.ALL + orphanRemoval = true)
+        itemRepository.delete(item);
+
+        // 3) ES 인덱스 삭제
+        itemSearchIndexer.deleteItem(itemId);
+    }
+
     @Transactional(readOnly = true)
     public List<String> getImageUrls(Long itemId) {
         return itemImageRepository.findByItemIdOrderBySortOrderAsc(itemId).stream()
                 .map(ItemImage::getUrl)
                 .collect(Collectors.toList()); // (Java 16+면 .toList() 가능
     }
-
 
 }

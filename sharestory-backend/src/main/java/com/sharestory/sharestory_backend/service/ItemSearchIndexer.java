@@ -21,28 +21,52 @@ public class ItemSearchIndexer {
         try {
 
             // 1. 좌표 매핑
-            ItemDoc.GeoPoint point = new ItemDoc.GeoPoint();
-            point.setLat(item.getLatitude());
-            point.setLon(item.getLongitude());
+//            ItemDoc.GeoPoint point = new ItemDoc.GeoPoint();
+//            point.setLat(item.getLatitude());
+//            point.setLon(item.getLongitude());
 
             // 2. ES 문서 객체 생성
+//            ItemDoc doc = new ItemDoc();
+//            doc.setId(item.getId());
+//            doc.setTitle(item.getTitle());
+//            doc.setTitleSuggest(item.getTitle());
+//            doc.setTitleNgram(item.getTitle());
+//            doc.setPrice(item.getPrice());
+//            doc.setLocation(point);
+//            doc.setCreatedAt(item.getCreatedDate().toString());
+
             ItemDoc doc = new ItemDoc();
             doc.setId(item.getId());
             doc.setTitle(item.getTitle());
             doc.setTitleSuggest(item.getTitle());
             doc.setTitleNgram(item.getTitle());
             doc.setPrice(item.getPrice());
-            doc.setLocation(point);
-            doc.setCreatedAt(item.getCreatedDate().toString());
 
-            // ✅ 대표 이미지 (Item 엔티티에서 첫 번째 이미지 사용)
+            if (item.getLatitude() != null && item.getLongitude() != null) {
+                ItemDoc.GeoPoint point = new ItemDoc.GeoPoint();
+                point.setLat(item.getLatitude());
+                point.setLon(item.getLongitude());
+                doc.setLocation(point);
+            }
+
+            // ✅ 날짜
+            if (item.getCreatedDate() != null) {
+                doc.setCreatedAt(item.getCreatedDate().toString());
+            }
+            if (item.getUpdatedDate() != null) {
+                doc.setUpdatedAt(item.getUpdatedDate().toString());
+            }
+
+
+            // ✅ 대표 이미지
             if (item.getImages() != null && !item.getImages().isEmpty()) {
                 doc.setImageUrl(item.getImages().get(0).getUrl());
+            } else {
+                doc.setImageUrl(item.getImageUrl()); // fallback
             }
 
             // ✅ 상태 저장
             doc.setItemStatus(item.getStatus().name());
-
             doc.setFavoriteCount(item.getFavoriteCount());
             doc.setViewCount(item.getViewCount());
             doc.setChatRoomCount(item.getChatRoomCount());
@@ -66,6 +90,15 @@ public class ItemSearchIndexer {
 
         } catch (Exception e) {
             System.err.println("[INDEX FAIL] " + e.getMessage());
+        }
+    }
+
+    public void deleteItem(Long itemId) {
+        try {
+            es.delete(d -> d.index("items").id(itemId.toString()));
+            System.out.println("[DELETE SUCCESS] id=" + itemId);
+        } catch (Exception e) {
+            System.err.println("[DELETE FAIL] " + e.getMessage());
         }
     }
 }
