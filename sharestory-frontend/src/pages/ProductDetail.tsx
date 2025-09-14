@@ -42,7 +42,7 @@ interface ItemDetail {
     dealInfo?: DealInfo;
 }
 
-const API_BASE = import.meta?.env?.VITE_API_BASE ?? 'http://localhost:8081';
+const API_BASE = import.meta?.env?.VITE_API_BASE || '';
 
 function PrevArrow({ className, style, onClick }: CustomArrowProps) {
     return (

@@ -40,7 +40,7 @@ export default function App() {
     const [user, setUser] = useState<User | null>(null);
     const [isLoginOpen, setIsLoginOpen] = useState(false);
 
-    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8081";
+    const API_URL = import.meta.env.VITE_API_URL || "";
 
     // 로그인 상태 조회 + 1회 토큰 리프레시 재시도
 // 로그인 상태 조회 + 1회 토큰 리프레시 재시도

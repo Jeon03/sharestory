@@ -132,7 +132,7 @@ const ItemRegister = () => {
         formData.append('latitude', String(form.latitude));
         formData.append('longitude', String(form.longitude));
 
-        const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:8081';
+        const API_BASE = import.meta.env.VITE_API_BASE || '';
 
         try {
             const res = await fetch(`${API_BASE}/api/registerItem`, {

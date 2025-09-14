@@ -5,7 +5,7 @@ import { Eye, Heart, MessageCircle } from "lucide-react";
 import "../css/list.css"; // ProductList에서 쓰던 CSS 재사용
 import type { ItemSummary } from "../types/item"; // ✅ DTO 기반 타입 import
 
-const API_BASE = import.meta?.env?.VITE_API_BASE ?? "http://localhost:8081";
+const API_BASE = import.meta?.env?.VITE_API_BASE || "";
 
 const formatTimeAgo = (dateStr: string | null | undefined): string => {
     if (!dateStr) return "";

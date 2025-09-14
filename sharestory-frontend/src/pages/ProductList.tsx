@@ -27,7 +27,7 @@ interface ProductItem {
     location?: string;
 }
 
-const API_BASE = import.meta?.env?.VITE_API_BASE ?? 'http://localhost:8081';
+const API_BASE = import.meta?.env?.VITE_API_BASE || '';
 
 // 상대시간 포맷
 const formatTimeAgo = (dateStr: string | null | undefined): string => {

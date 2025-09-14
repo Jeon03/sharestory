@@ -19,6 +19,7 @@ public class ElasticsearchConfig {
     public ElasticsearchClient elasticsearchClient() {
         RestClient restClient = RestClient.builder(
                 new HttpHost("localhost", 9200, "http")
+//                new HttpHost("es", 9200, "http")
         ).build();
 
         ObjectMapper objectMapper = new ObjectMapper();

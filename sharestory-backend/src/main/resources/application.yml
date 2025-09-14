@@ -4,7 +4,6 @@ server:
 app:
   ## 프론트 도메인 (Vite dev 서버)
   frontend-url: "http://localhost:5173"
-#  frontend-url: "http://localhost"
   ##frontend-url: "http://54.180.88.4"
   ## JWT 설정 (반드시 긴 랜덤값으로, 환경변수 주입 권장)
   jwt:
@@ -23,7 +22,8 @@ spring:
 
   data:
     redis:
-      host: redis
+      host: localhost
+      #host: redis
       port: 6379
 
   mail:
@@ -126,8 +126,8 @@ cloud:
     elasticsearch:
       client:
         reactive:
-          endpoints: localhost:9100
-
+          endpoints: localhost:9200
+          #endpoints: es:9200
 
 
   task:
