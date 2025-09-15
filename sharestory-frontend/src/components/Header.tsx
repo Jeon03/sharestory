@@ -1,28 +1,11 @@
 // Header.tsx
-import React, {useEffect, useRef, useState} from 'react';
-import {Link, useNavigate} from 'react-router-dom';
-import '../css/Header.css';
-import type {User} from '../types/user';
-import logo from '../images/logo.png';
-import LocationSelector from './LocationSelector';
-
-function ChatRoomListPanel({ onClose }: { onClose: () => void }) {
-    return (
-        <div className="chat-panel">
-            <p>채팅방 목록 (더미)</p>
-            <button onClick={onClose}>닫기</button>
-        </div>
-    );
-}
-
-function ChatBox({ roomId, onClose }: { roomId: string; onClose: () => void }) {
-    return (
-        <div className="chat-box">
-            <p>채팅방 #{roomId} (더미)</p>
-            <button onClick={onClose}>닫기</button>
-        </div>
-    );
-}
+import React, { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "../css/Header.css";
+import type { User } from "../types/user";
+import logo from "../images/logo.png";
+import LocationSelector from "./LocationSelector";
+import ChatSlider from "./chat/ChatSlider"; // ✅ ChatSlider 사용
 
 export default function Header({
                                    user,
@@ -36,41 +19,41 @@ export default function Header({
     const navigate = useNavigate();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement | null>(null);
-    const [showChatList, setShowChatList] = useState(false);
-    const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+    const [showChat, setShowChat] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
 
     const handleProductRegisterClick = (e: React.MouseEvent) => {
         e.preventDefault();
-        navigate('/registerItem');
+        navigate("/registerItem");
     };
 
     const handleLogout = async () => {
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/logout`, {
-                method: 'POST',
-                credentials: 'include',
+                method: "POST",
+                credentials: "include",
             });
             if (res.ok) {
-                alert('로그아웃 되었습니다.');
+                alert("로그아웃 되었습니다.");
                 setUser(null);
-                navigate('/');
+                navigate("/");
             } else {
-                alert('로그아웃 실패');
+                alert("로그아웃 실패");
             }
         } catch (err) {
             console.error(err);
-            alert('로그아웃 중 오류 발생');
+            alert("로그아웃 중 오류 발생");
         }
     };
+
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
                 setIsDropdownOpen(false);
             }
         };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     return (
@@ -86,7 +69,11 @@ export default function Header({
             <div className="menu-links">
                 {user ? (
                     <>
-                        <div className="chat-link-wrapper relative" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                        {/* 채팅하기 버튼 */}
+                        <div
+                            className="chat-link-wrapper relative"
+                            style={{ display: "flex", alignItems: "center", gap: "4px" }}
+                        >
                             <div style={{ position: "relative" }}>
                                 <i className="bi-chat-dots"></i>
                                 {unreadCount > 0 && <span className="chat-alert-dot">{unreadCount}</span>}
@@ -95,8 +82,7 @@ export default function Header({
                                 href="#"
                                 onClick={(e) => {
                                     e.preventDefault();
-                                    setSelectedRoomId(null);
-                                    setShowChatList(true);
+                                    setShowChat(true); // ✅ 슬라이더 열기
                                     setUnreadCount(0);
                                 }}
                             >
@@ -106,7 +92,9 @@ export default function Header({
 
                         <span className="mx-2">|</span>
                         <i className="bi-bag-dash"></i>
-                        <a href="/registerItem" onClick={handleProductRegisterClick}>판매하기</a>
+                        <a href="/registerItem" onClick={handleProductRegisterClick}>
+                            판매하기
+                        </a>
                         <span className="mx-2">|</span>
 
                         {/* 드롭다운 */}
@@ -129,8 +117,8 @@ export default function Header({
                             )}
                         </div>
 
-                        {showChatList && <ChatRoomListPanel onClose={() => setShowChatList(false)} />}
-                        {selectedRoomId && <ChatBox roomId={selectedRoomId} onClose={() => setSelectedRoomId(null)} />}
+                        {/* ✅ ChatSlider 추가 */}
+                        <ChatSlider isOpen={showChat} onClose={() => setShowChat(false)} />
                     </>
                 ) : (
                     <>
@@ -163,8 +151,7 @@ export default function Header({
                                 href="#"
                                 onClick={(e) => {
                                     e.preventDefault();
-                                    setSelectedRoomId(null);
-                                    setShowChatList(true);
+                                    setShowChat(true);
                                     setUnreadCount(0);
                                 }}
                             >

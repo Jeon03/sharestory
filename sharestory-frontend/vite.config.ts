@@ -14,5 +14,8 @@ export default defineConfig({
       '/logout': { target: 'http://localhost:8081', changeOrigin: true },
     },
   },
+  define: {
+    global: "window", //
+  },
 })
 

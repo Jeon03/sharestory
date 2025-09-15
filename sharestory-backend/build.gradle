@@ -59,6 +59,11 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+// STOMP, WebSocket 지원
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+// 메시징 코어 모듈
+	implementation 'org.springframework:spring-messaging'
 }
 
 configurations.all {

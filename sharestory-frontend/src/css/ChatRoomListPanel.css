@@ -1,9 +1,8 @@
-/* ChatRoomListPanel.css 예시 */
 .chatroom-panel {
     position: fixed;
     top: 0;
     right: 0;
-    width: 500px;
+    width: 23%;
     height: 100%;
     background: white;
     box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
@@ -14,53 +13,112 @@
 }
 
 @keyframes slideIn {
-    from { right: -400px; }
-    to { right: 0; }
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
 }
 
+/* 🔹 헤더 */
 .chatroom-panel-header {
     padding: 1rem;
     font-weight: bold;
     border-bottom: 1px solid #ddd;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;   /* 가운데 정렬 */
     align-items: center;
+    position: relative;
+}
+.chatroom-panel-header button {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    color: rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+}
+.chatroom-panel-header button:hover {
+    color: black;
 }
 
+/* 🔹 바디 */
 .chatroom-panel-body {
     flex: 1;
     overflow-y: auto;
-    padding: 1rem;
+    padding: 0.5rem 0;
 }
 
+/* 🔹 채팅 아이템 */
 .chatroom-item {
+    display: flex;
+    justify-content: space-between; /* 좌/우 정렬 */
+    align-items: center;
     padding: 0.75rem 1rem;
     border-bottom: 1px solid #eee;
     cursor: pointer;
 }
-
 .chatroom-item:hover {
     background-color: #f9f9f9;
 }
+
+/* 왼쪽: 썸네일 + 정보 */
+.chatroom-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1; /* 남는 공간 차지 */
+}
+
+.chatroom-thumb {
+    width: 50px;
+    height: 50px;
+    border-radius: 6px;
+    object-fit: cover;
+}
+
+.chatroom-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+}
+
 .chatroom-title {
     font-weight: bold;
     font-size: 1rem;
-    margin-bottom: 4px;
 }
 
 .chatroom-item-title {
-    font-size: 0.9rem;
+    font-size: 1.1rem;
     color: #555;
 }
 
 .chatroom-last {
     font-size: 0.85rem;
     color: gray;
-    margin-top: 4px;
+}
+
+/* 가격 강조 */
+.chatroom-price {
+    font-weight: bold;
+    color: black;
+    font-size: 0.9rem;
+}
+
+/* 오른쪽: 시간 */
+.chatroom-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 80px; /* 일정 너비 확보 → 열 정렬 */
+    margin-top: 40px;
 }
 
 .chatroom-time {
     font-size: 0.75rem;
-    text-align: right;
     color: #888;
+}
+.chatroom-last {
+    font-size: 1.0rem;
 }

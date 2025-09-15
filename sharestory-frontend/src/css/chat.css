@@ -29,7 +29,7 @@
 }
 
 .chat-bubble {
-    display: inline-block; /* 그대로 유지해도 됨 */
+    display: block; /* 👉 inline-block 대신 block으로 */
     max-width: 60%;
     word-break: break-word;
     padding: 10px 14px;
@@ -37,19 +37,23 @@
     position: relative;
     font-size: 14px;
     line-height: 1.4;
+    margin: 5px 0; /* 세로 간격 */
 }
 
 .mine {
     background-color: #f5e166;
-    align-self: flex-end; /* 오른쪽 정렬 */
+    align-self: flex-end;
     border-bottom-right-radius: 2px;
+    margin-left: auto;   /* 👉 오른쪽 정렬 */
+    width: 400px;
 }
 
 .other {
     background-color: #f1f0f0;
     align-self: flex-start;
-    margin-right: auto;
     border-bottom-left-radius: 2px;
+    margin-right: auto;  /* 👉 왼쪽 정렬 */
+    width: 400px;
 }
 
 /* 말풍선 꼬리 */
@@ -60,7 +64,7 @@
     top: 10px;
     width: 0;
     height: 0;
-    border-left: 8px solid #dcf8c6;
+    border-left: 8px solid #f5e166;
     border-top: 8px solid transparent;
     border-bottom: 8px solid transparent;
 }
@@ -90,3 +94,50 @@
     margin-left: 5px;
     color: gray;
 }
+
+/* 채팅방 상단 상품 정보 */
+.chat-room-item-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #eee;
+    background: #fff;
+}
+
+.chat-room-item-thumb {
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
+    object-fit: cover;
+    margin-right: 12px;
+}
+
+.chat-room-item-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.chat-room-item-price {
+    font-size: 16px;
+    font-weight: bold;
+    color: black;
+    margin-bottom: 4px;
+}
+
+.chat-room-item-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 2px;
+}
+
+.chat-room-item-desc {
+    font-size: 12px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px; /* 👉 텍스트 길어지면 ... 처리 */
+}
+

@@ -6,6 +6,7 @@ import '../css/productDetail.css';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import {Heart} from 'lucide-react';
+import ChatSlider from '../components/chat/ChatSlider.tsx';  // ✅ 채팅 슬라이더 import
 
 type ItemStatus =
     | 'ON_SALE'
@@ -73,6 +74,10 @@ export default function ProductDetailSimple() {
     const [isFavorite, setIsFavorite] = useState(false);
     const [favoriteCount, setFavoriteCount] = useState(0);
 
+    // ✅ 채팅 상태
+    const [showChat, setShowChat] = useState(false);
+    const [activeRoomId, setActiveRoomId] = useState<number | null>(null);
+
     useEffect(() => {
         if (!id) return;
         let aborted = false;
@@ -86,7 +91,6 @@ export default function ProductDetailSimple() {
                 const r = await fetch(`${API_BASE}/api/items/${id}`, { credentials: 'include' });
                 if (!r.ok) throw new Error(await r.text());
                 const data = (await r.json()) as ItemDetail;
-                console.log(data);
                 if (!aborted) setItem(data);
 
                 // 관심 여부 + 개수
@@ -151,6 +155,26 @@ export default function ProductDetailSimple() {
             }
         } catch {
             alert('삭제 중 오류 발생');
+        }
+    };
+
+    // ✅ 채팅 시작 함수
+    const handleStartChat = async () => {
+        if (!id) return;
+        try {
+            const res = await fetch(`${API_BASE}/api/chat/room?itemId=${id}`, {
+                method: "POST",
+                credentials: "include",
+            });
+            if (res.ok) {
+                const room = await res.json(); // ChatRoomDto
+                setActiveRoomId(room.roomId);
+                setShowChat(true);
+            } else {
+                alert("채팅방 생성 실패");
+            }
+        } catch (err) {
+            console.error("채팅 시작 실패:", err);
         }
     };
 
@@ -283,6 +307,14 @@ export default function ProductDetailSimple() {
                         </tbody>
                     </table>
 
+                    {/* ✅ 채팅하기 버튼 */}
+                    <button
+                        onClick={handleStartChat}
+                        className="chat-btn bg-blue-500 text-white px-4 py-2 rounded mt-4"
+                    >
+                        💬 채팅하기
+                    </button>
+
                     {/* ✅ 수정/삭제 버튼 (작성자만) */}
                     {currentUser && item.userId === currentUser.id && (
                         <div className="owner-actions">
@@ -299,6 +331,13 @@ export default function ProductDetailSimple() {
                     )}
                 </div>
             </div>
+
+            {/* ✅ ChatSlider 연결 */}
+            <ChatSlider
+                isOpen={showChat}
+                onClose={() => setShowChat(false)}
+                activeRoomId={activeRoomId}
+            />
         </div>
     );
 }
