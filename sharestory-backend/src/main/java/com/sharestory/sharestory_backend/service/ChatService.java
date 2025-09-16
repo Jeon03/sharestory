@@ -87,19 +87,22 @@ public class ChatService {
 
         ChatMessage msg = ChatMessage.builder()
                 .room(room)
-                .senderId(dto.getSenderId()) // 이제는 서버에서 넣어준 값
+                .senderId(dto.getSenderId())
                 .content(dto.getContent())
+                .type(dto.getType())              // ✅ 메시지 타입 저장
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        room.setUpdatedAt(LocalDateTime.now());
         return chatMessageRepository.save(msg);
     }
 
-    public List<ChatMessage> getMessages(Long roomId) {
-        return chatMessageRepository.findByRoom_IdOrderByCreatedAtAsc(roomId);
+    @Transactional(readOnly = true)
+    public List<ChatMessageDto> getMessages(Long roomId) {
+        return chatMessageRepository.findByRoom_IdOrderByCreatedAtAsc(roomId)
+                .stream()
+                .map(ChatMessageDto::from)
+                .toList();
     }
-
 
     @Transactional(readOnly = true)
     public Map<String, Object> getItemByRoom(Long roomId) {

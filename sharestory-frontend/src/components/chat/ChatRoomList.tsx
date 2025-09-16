@@ -39,6 +39,18 @@ export default function ChatRoomList({ onRoomSelect }: ChatRoomListProps) {
         (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
     );
 
+    const renderLastMessage = (msg: string) => {
+        if (!msg) return "메시지 없음";
+
+        if (msg.startsWith("http") && msg.includes("amazonaws")) {
+            return "[사진]";
+        }
+        if (msg.startsWith("{") && msg.includes("lat") && msg.includes("lng")) {
+            return "[지도]";
+        }
+        return msg; // 일반 텍스트
+    };
+
     return (
         <div className="chatroom-panel-body">
             {sortedRooms.length === 0 ? (
@@ -71,7 +83,7 @@ export default function ChatRoomList({ onRoomSelect }: ChatRoomListProps) {
                         {/* 오른쪽 : 마지막 메시지 + 시간 */}
                         <div className="chatroom-right">
                             <div className="chatroom-last">
-                                {room.lastMessage || "메시지 없음"}
+                                {renderLastMessage(room.lastMessage)}
                             </div>
                             <div className="chatroom-time">
                                 {new Date(room.updatedAt).toLocaleDateString("ko-KR", {

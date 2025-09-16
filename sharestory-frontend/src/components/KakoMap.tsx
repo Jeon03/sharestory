@@ -45,7 +45,7 @@ const KakaoMap = ({ onSelect }: KakaoMapProps) => {
         markerRef.current = marker;
 
         // 지도 클릭 이벤트
-        window.kakao.maps.event.addListener(map, "click", (mouseEvent: kakao.maps.MouseEvent) => {
+        window.kakao.maps.event.addListener(map, "click", (mouseEvent: kakao.maps.event.MouseEvent) => {
             const lat = mouseEvent.latLng.getLat();
             const lng = mouseEvent.latLng.getLng();
 

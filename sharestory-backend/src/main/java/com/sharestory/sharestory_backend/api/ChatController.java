@@ -1,19 +1,19 @@
 package com.sharestory.sharestory_backend.api;
 
 import com.sharestory.sharestory_backend.domain.ChatMessage;
-import com.sharestory.sharestory_backend.domain.ChatRoom;
-import com.sharestory.sharestory_backend.domain.Item;
 import com.sharestory.sharestory_backend.dto.ChatMessageDto;
 import com.sharestory.sharestory_backend.dto.ChatRoomDto;
-import com.sharestory.sharestory_backend.repo.ChatRoomRepository;
 import com.sharestory.sharestory_backend.security.CustomUserDetails;
 import com.sharestory.sharestory_backend.service.ChatService;
+import com.sharestory.sharestory_backend.service.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,9 +23,10 @@ import java.util.Map;
 @RequestMapping("/api/chat")
 public class ChatController {
 
+    private final S3Service s3Service;
     private final ChatService chatService;
     private final SimpMessagingTemplate messagingTemplate;
-    private final ChatRoomRepository chatRoomRepository;
+
     // STOMP 메시지 전송
     @MessageMapping("/message")
     public void message(ChatMessageDto dto) {
@@ -51,18 +52,28 @@ public class ChatController {
         return chatService.getRooms(user.getId());
     }
 
-    // 채팅방 메시지 조회
+    // ✅ 채팅방 메시지 조회
     @GetMapping("/room/{roomId}/messages")
     public List<ChatMessageDto> getMessages(@PathVariable Long roomId) {
-        return chatService.getMessages(roomId).stream()
-                .map(ChatMessageDto::from)
-                .toList();
+        return chatService.getMessages(roomId); // 이미 DTO 반환
     }
+
 
     @GetMapping("/room/{roomId}/item")
     public Map<String, Object> getItemByRoom(@PathVariable Long roomId) {
         return chatService.getItemByRoom(roomId);
     }
 
+    @PostMapping("/upload")
+    public Map<String, String> uploadImage(
+            @RequestParam("file") MultipartFile file
+    ) throws IOException {
+        // "chat" 폴더 밑에 저장
+        String url = s3Service.uploadFile(file, "chat");
+
+        Map<String, String> response = new HashMap<>();
+        response.put("url", url);
+        return response;
+    }
 }
 

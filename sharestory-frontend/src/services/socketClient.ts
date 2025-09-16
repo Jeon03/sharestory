@@ -4,17 +4,22 @@ import type { Message } from "stompjs";
 
 let stompClient: Client | null = null;
 
+// 모든 메시지 타입 정의
+export type MessageType = "TEXT" | "IMAGE" | "LOCATION_MAP" | "LOCATION_TEXT";
+
 export interface ChatMessage {
     roomId: number;
     senderId: number;
     content: string;
     createdAt: string;
+    type: MessageType;   // ✅ 확장된 타입
 }
 
-// 메시지 타입 (프론트 → 서버로 보낼 때 senderId 제외)
+// 메시지 페이로드 (프론트 → 서버 전송용)
 export interface ChatMessagePayload {
     roomId: number;
     content: string;
+    type: MessageType;
 }
 
 export const connect = (
@@ -25,7 +30,6 @@ export const connect = (
     const socket = new SockJS(`${API_BASE}/ws`);
     stompClient = Stomp.over(socket) as Client;
 
-
     stompClient.connect(
         {},
         () => {
@@ -34,7 +38,7 @@ export const connect = (
             if (stompClient.connected) {
                 stompClient.subscribe(`/sub/chat/room/${roomId}`, (message: Message) => {
                     try {
-                        const body = JSON.parse(message.body);
+                        const body: ChatMessage = JSON.parse(message.body);
                         onMessage(body);
                     } catch (err) {
                         console.error("❌ 메시지 파싱 실패:", err);
@@ -49,12 +53,22 @@ export const connect = (
             console.error("❌ STOMP connection error:", error);
         }
     );
-
 };
 
-export const sendMessage = (roomId: number, content: string, senderId: number) => {
+export const sendMessage = (
+    roomId: number,
+    content: string,
+    senderId: number,
+    type: MessageType = "TEXT"   // 기본값: TEXT
+) => {
     if (stompClient && stompClient.connected) {
-        const payload = { roomId, content, senderId };
+        const payload: ChatMessage = {
+            roomId,
+            content,
+            senderId,
+            type,
+            createdAt: new Date().toISOString(), // 서버 저장용
+        };
         stompClient.send("/pub/message", {}, JSON.stringify(payload));
     }
 };

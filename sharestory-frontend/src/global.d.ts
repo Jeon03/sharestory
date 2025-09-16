@@ -1,4 +1,3 @@
-// src/types/global.d.ts
 export {};
 
 declare global {
@@ -16,8 +15,12 @@ declare global {
                     addListener: (
                         target: kakao.maps.Map | kakao.maps.Marker,
                         type: string,
-                        handler: (event: kakao.maps.MouseEvent) => void
+                        handler: (event: kakao.maps.event.MouseEvent) => void
                     ) => void;
+                };
+                services: {
+                    Geocoder: new () => kakao.maps.services.Geocoder;
+                    Status: { OK: string };
                 };
             };
         };
@@ -36,15 +39,31 @@ declare global {
 
         interface Marker {
             setPosition(position: LatLng): void;
+            setMap(map: Map | null): void;
         }
 
-        interface MouseEvent {
-            latLng: LatLng;
+        namespace event {
+            interface MouseEvent {
+                latLng: LatLng;
+            }
+        }
+
+        namespace services {
+            interface Geocoder {
+                coord2Address(
+                    lng: number,
+                    lat: number,
+                    callback: (
+                        result: { address: { address_name: string } }[],
+                        status: string
+                    ) => void
+                ): void;
+            }
         }
     }
 }
 
 /* ✅ Swiper CSS 모듈 선언 추가 */
-declare module 'swiper/css';
-declare module 'swiper/css/navigation';
-declare module 'swiper/css/pagination';
+declare module "swiper/css";
+declare module "swiper/css/navigation";
+declare module "swiper/css/pagination";
