@@ -11,3 +11,6 @@ docker-data/
 volumes/
 mysql-data/
 es-data/
+
+# Environment variables
+.env
