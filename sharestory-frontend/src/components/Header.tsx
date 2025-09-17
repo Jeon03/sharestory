@@ -5,7 +5,7 @@ import "../css/Header.css";
 import type { User } from "../types/user";
 import logo from "../images/logo.png";
 import LocationSelector from "./LocationSelector";
-import ChatSlider from "./chat/ChatSlider"; // ✅ ChatSlider 사용
+import ChatSlider from "./chat/ChatSlider";
 
 export default function Header({
                                    user,
@@ -70,19 +70,14 @@ export default function Header({
                 {user ? (
                     <>
                         {/* 채팅하기 버튼 */}
-                        <div
-                            className="chat-link-wrapper relative"
-                            style={{ display: "flex", alignItems: "center", gap: "4px" }}
-                        >
-                            <div style={{ position: "relative" }}>
-                                <i className="bi-chat-dots"></i>
-                                {unreadCount > 0 && <span className="chat-alert-dot">{unreadCount}</span>}
-                            </div>
+                        <div className="chat-link-wrapper" style={{ position: "relative" }}>
+                            <i className="bi-chat-dots"></i>
+                            {unreadCount > 0 && <span className="chat-alert-dot">{unreadCount}</span>}
                             <a
                                 href="#"
                                 onClick={(e) => {
                                     e.preventDefault();
-                                    setShowChat(true); // ✅ 슬라이더 열기
+                                    setShowChat(true);
                                     setUnreadCount(0);
                                 }}
                             >
@@ -90,12 +85,17 @@ export default function Header({
                             </a>
                         </div>
 
-                        <span className="mx-2">|</span>
-                        <i className="bi-bag-dash"></i>
-                        <a href="/registerItem" onClick={handleProductRegisterClick}>
-                            판매하기
-                        </a>
-                        <span className="mx-2">|</span>
+                        <span className="divider">|</span>
+
+                        {/* 판매하기 */}
+                        <div className="menu-item">
+                            <i className="bi-bag-dash"></i>
+                            <a href="/registerItem" onClick={handleProductRegisterClick}>
+                                판매하기
+                            </a>
+                        </div>
+
+                        <span className="divider">|</span>
 
                         {/* 드롭다운 */}
                         <div className="header-dropdown" ref={dropdownRef}>
@@ -117,34 +117,44 @@ export default function Header({
                             )}
                         </div>
 
-                        {/* ✅ ChatSlider 추가 */}
                         <ChatSlider isOpen={showChat} onClose={() => setShowChat(false)} />
                     </>
                 ) : (
                     <>
-                        <i className="bi-person"></i>
-                        <a
-                            href="#"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                onLoginClick();
-                            }}
-                        >
-                            로그인
-                        </a>
+                        {/* 로그인 */}
+                        <div className="menu-item">
+                            <i className="bi-person"></i>
+                            <a
+                                href="#"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    onLoginClick();
+                                }}
+                            >
+                                로그인
+                            </a>
+                        </div>
+
                         <span className="divider">|</span>
-                        <i className="bi-bag-dash"></i>
-                        <a
-                            href="#"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                onLoginClick();
-                            }}
-                        >
-                            판매하기
-                        </a>
+
+                        {/* 판매하기 */}
+                        <div className="menu-item">
+                            <i className="bi-bag-dash"></i>
+                            <a
+                                href="#"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    onLoginClick();
+                                }}
+                            >
+                                판매하기
+                            </a>
+                        </div>
+
                         <span className="divider">|</span>
-                        <div className="chat-link-wrapper">
+
+                        {/* 채팅하기 */}
+                        <div className="chat-link-wrapper" style={{ position: "relative" }}>
                             <i className="bi-chat-dots"></i>
                             {unreadCount > 0 && <span className="chat-alert-dot">{unreadCount}</span>}
                             <a

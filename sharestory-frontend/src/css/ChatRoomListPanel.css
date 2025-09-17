@@ -122,3 +122,17 @@
 .chatroom-last {
     font-size: 1.0rem;
 }
+.chatroom-panel-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* 부모가 채팅 영역 전체 차지 */
+}
+
+.empty-message {
+    flex: 1; /* 남은 공간 다 차지 */
+    display: flex;
+    align-items: center;   /* 세로 중앙 */
+    justify-content: center; /* 가로 중앙 */
+    color: #777;
+    font-size: 1rem;
+}

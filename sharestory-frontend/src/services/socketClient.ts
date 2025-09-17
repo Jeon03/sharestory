@@ -21,10 +21,19 @@ export interface ChatMessagePayload {
     content: string;
     type: MessageType;
 }
+export interface ItemUpdateMessage {
+    roomId: number;
+    id: number;
+    title: string;
+    price: number;
+    imageUrl: string;
+    description: string;
+}
 
 export const connect = (
     roomId: number,
-    onMessage: (msg: ChatMessage) => void
+    onMessage: (msg: ChatMessage) => void,
+    onItemUpdate?: (item: ItemUpdateMessage) => void
 ) => {
     const API_BASE = import.meta.env.VITE_API_URL;
     const socket = new SockJS(`${API_BASE}/ws`);
@@ -36,6 +45,7 @@ export const connect = (
             if (!stompClient) return;
 
             if (stompClient.connected) {
+                // ✅ 채팅 메시지 구독
                 stompClient.subscribe(`/sub/chat/room/${roomId}`, (message: Message) => {
                     try {
                         const body: ChatMessage = JSON.parse(message.body);
@@ -44,7 +54,19 @@ export const connect = (
                         console.error("❌ 메시지 파싱 실패:", err);
                     }
                 });
-                console.log("✅ STOMP connected");
+
+                // ✅ 상품 업데이트 구독
+                if (onItemUpdate) {
+                    stompClient.subscribe(`/sub/chat/room/${roomId}/item`, (message: Message) => {
+                        try {
+                            const body: ItemUpdateMessage = JSON.parse(message.body);
+                            onItemUpdate(body);
+                        } catch (err) {
+                            console.error("❌ 상품 업데이트 파싱 실패:", err);
+                        }
+                    });
+                }
+
             } else {
                 console.warn("⚠️ STOMP not connected yet, subscribe skipped");
             }
@@ -76,7 +98,7 @@ export const sendMessage = (
 export const disconnect = () => {
     if (stompClient && stompClient.connected) {
         stompClient.disconnect(() => {
-            console.log("🔌 STOMP disconnected");
+
         });
     } else {
         console.warn("⚠️ STOMP client is not connected, skip disconnect");
