@@ -129,6 +129,21 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
     useEffect(() => {
         if (!currentUserId) return;
 
+        async function fetchItem() {
+            try {
+                const res = await fetch(
+                    `${import.meta.env.VITE_API_URL}/api/chat/room/${roomId}/item`,
+                    { credentials: "include" }
+                );
+                if (res.ok) {
+                    const data: ItemInfo = await res.json();
+                    setItem(data);
+                }
+            } catch (err) {
+                console.error("상품 정보 즉시 갱신 실패:", err);
+            }
+        }
+
         connect(roomId, (msg: ServerMessage) => {
             setMessages((prev) => [
                 ...prev,
@@ -143,8 +158,18 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                     type: msg.type ?? "TEXT",
                 },
             ]);
-        });
-
+        },
+            (update) => {
+                setItem({
+                    id: update.id,
+                    title: update.title,
+                    price: update.price,
+                    imageUrl: update.imageUrl,
+                    description: update.description,
+                });
+            }
+        );
+        fetchItem();
         return () => disconnect();
     }, [roomId, currentUserId]);
 
@@ -228,6 +253,7 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                             )}
                             <div className={`chat-bubble ${m.mine ? "mine" : "other"}`}>
                                 {m.type === "LOCATION_MAP" ? (
+                                    // 지도 공유 미리보기
                                     <div
                                         className="location-map-preview"
                                         onClick={() => {
@@ -237,9 +263,13 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                                                 "_blank"
                                             );
                                         }}
-                                        style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}
+                                        style={{
+                                            cursor: "pointer",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "6px",
+                                        }}
                                     >
-                                        {/* ✅ 카카오맵 아이콘 */}
                                         <img
                                             src={kakaomapIcon}
                                             alt="카카오맵"
@@ -247,11 +277,20 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                                         />
                                         <span style={{ color: "#007aff", fontWeight: "bold" }}>위치 보기</span>
                                     </div>
+                                ) : m.type === "IMAGE" ? (
+                                    // ✅ 이미지 메시지 처리
+                                    <img
+                                        src={m.content}
+                                        alt="chat-img"
+                                        style={{ maxWidth: "200px", borderRadius: "8px" }}
+                                    />
                                 ) : (
+                                    // 기본 텍스트 메시지
                                     m.content
                                 )}
                                 <div className="message-time">{m.time}</div>
                             </div>
+
                         </div>
                     );
                 })}

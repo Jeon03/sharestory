@@ -10,6 +10,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 // @ts-expect-error swiper css has no type declarations
 import 'swiper/css/pagination';
+import BannerSlider from "../components/BannerSlider.tsx";
 
 interface ProductItem {
     id: number;
@@ -162,6 +163,7 @@ export default function ProductList() {
 
     return (
         <div className="product-list container">
+            <BannerSlider />
             <section>
                 <p className="textMain">최신 등록 상품</p>
                 {renderSwiper(latestItems.filter(i => i.itemStatus === 'ON_SALE'))}

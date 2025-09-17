@@ -1,13 +1,19 @@
 package com.sharestory.sharestory_backend.service;
 
+import com.sharestory.sharestory_backend.domain.ChatMessage;
+import com.sharestory.sharestory_backend.domain.ChatRoom;
 import com.sharestory.sharestory_backend.domain.Item;
 import com.sharestory.sharestory_backend.domain.ItemImage;
 import com.sharestory.sharestory_backend.dto.ItemRequestDto;
 import com.sharestory.sharestory_backend.dto.ItemStatus;
+import com.sharestory.sharestory_backend.dto.ItemUpdateMessage;
+import com.sharestory.sharestory_backend.repo.ChatRoomRepository;
 import com.sharestory.sharestory_backend.repo.FavoriteItemRepository;
 import com.sharestory.sharestory_backend.repo.ItemImageRepository;
 import com.sharestory.sharestory_backend.repo.ItemRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,11 +22,10 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ItemService {
@@ -30,6 +35,8 @@ public class ItemService {
     private final S3Service s3Service;
     private final ItemSearchIndexer itemSearchIndexer;
     private final FavoriteItemRepository favoriteItemRepository;
+    private final ChatRoomRepository chatRoomRepository;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     @Transactional
     public Item registerItem(ItemRequestDto dto, List<MultipartFile> images, Long userId) throws IOException {
@@ -160,6 +167,23 @@ public class ItemService {
 
         // 검색 인덱스 갱신
         itemSearchIndexer.indexItem(item);
+        // ✅ 채팅방 참여자에게 실시간 상품 업데이트 전송
+        List<ChatRoom> rooms = chatRoomRepository.findByItem_Id(itemId);
+        for (ChatRoom room : rooms) {
+            ItemUpdateMessage updateMessage = new ItemUpdateMessage(
+                    room.getId(),
+                    item.getId(),
+                    item.getTitle(),
+                    item.getPrice(),
+                    item.getImageUrl(),
+                    item.getDescription()
+            );
+
+            simpMessagingTemplate.convertAndSend(
+                    "/sub/chat/room/" + room.getId() + "/item",
+                    updateMessage
+            );
+        }
     }
 
 
@@ -174,6 +198,24 @@ public class ItemService {
             throw new SecurityException("삭제 권한이 없습니다.");
         }
 
+        List<ChatRoom> rooms = chatRoomRepository.findByItem_Id(itemId);
+        for (ChatRoom room : rooms) {
+            // ✅ 채팅 메시지 중 IMAGE 타입은 S3에서도 삭제
+            for (ChatMessage msg : room.getMessages()) {
+                if (msg.getType() == ChatMessage.MessageType.IMAGE) {
+                    try {
+                        String key = s3Service.extractKeyFromUrl(msg.getContent());
+                        if (key != null) {
+                            s3Service.deleteByKey(key);
+                        }
+                    } catch (Exception e) {
+                        log.error("[S3 DELETE FAIL] ChatMessage image {} : {}", msg.getContent(), e.getMessage());
+                    }
+                }
+            }
+        }
+        // ✅ 채팅방(메시지 포함) 삭제
+        chatRoomRepository.deleteAll(rooms);
         //관심상품 db 삭제
         favoriteItemRepository.deleteAllByItemId(itemId);
 

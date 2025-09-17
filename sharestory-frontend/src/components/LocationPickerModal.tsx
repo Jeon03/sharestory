@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import "../css/chat.css"
 
 interface LocationPickerModalProps {
     onConfirm: (lat: number, lng: number, address: string) => void;
@@ -25,7 +26,7 @@ export default function LocationPickerModal({ onConfirm, onCancel }: LocationPic
                 level: 3,
             });
 
-            // 지도 클릭 시 이벤트
+            // 지도 클릭 이벤트
             window.kakao.maps.event.addListener(
                 map,
                 "click",
@@ -33,15 +34,10 @@ export default function LocationPickerModal({ onConfirm, onCancel }: LocationPic
                     const latlng = mouseEvent.latLng;
 
                     // 기존 마커 제거
-                    if (markerRef.current) {
-                        markerRef.current.setMap(null);
-                    }
+                    if (markerRef.current) markerRef.current.setMap(null);
 
-                    // 새 마커 표시
-                    const newMarker = new window.kakao.maps.Marker({
-                        position: latlng,
-                        map,
-                    });
+                    // 새 마커 생성
+                    const newMarker = new window.kakao.maps.Marker({ position: latlng, map });
                     markerRef.current = newMarker;
 
                     const lat = latlng.getLat();
@@ -62,26 +58,31 @@ export default function LocationPickerModal({ onConfirm, onCancel }: LocationPic
     }, []);
 
     return (
-        <div className="location-modal-overlay">
-            <div className="location-modal">
-                <h3>📍 위치 선택</h3>
-                <div ref={mapRef} style={{ width: "100%", height: "300px" }} />
+        <div className="modal-overlay">
+            <div className="modal-box">
+                {/* 헤더 */}
+                <div className="modal-header">
+                    <h2>📍 위치 선택</h2>
+                    <button className="close-btn" onClick={onCancel}>×</button>
+                </div>
 
+                {/* 지도 */}
+                <div ref={mapRef} className="map-container" />
+
+                {/* 위치 정보 */}
                 {coords && (
                     <p className="location-info">
                         선택한 위치: {address || `${coords.lat}, ${coords.lng}`}
                     </p>
                 )}
 
-                <div className="location-modal-actions">
-                    <button onClick={onCancel}>취소</button>
+                {/* 푸터 */}
+                <div className="modal-footer">
+                    <button className="btn cancel" onClick={onCancel}>취소</button>
                     <button
+                        className="btn confirm"
                         disabled={!coords}
-                        onClick={() => {
-                            if (coords) {
-                                onConfirm(coords.lat, coords.lng, address || "");
-                            }
-                        }}
+                        onClick={() => coords && onConfirm(coords.lat, coords.lng, address || "")}
                     >
                         공유하기
                     </button>
