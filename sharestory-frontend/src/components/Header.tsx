@@ -21,7 +21,7 @@ export default function Header({
     const dropdownRef = useRef<HTMLDivElement | null>(null);
     const [showChat, setShowChat] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
-
+//test
     const handleProductRegisterClick = (e: React.MouseEvent) => {
         e.preventDefault();
         navigate("/registerItem");
