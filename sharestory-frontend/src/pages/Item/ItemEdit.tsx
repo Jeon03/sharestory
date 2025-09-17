@@ -11,7 +11,7 @@ type FormState = {
   longitude: number;
   dealInfo?: string;
 };
-
+//test
 type ExistingImage = { id: number; url: string };
 
 const MAX_IMAGES = 3;
