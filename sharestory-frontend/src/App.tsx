@@ -9,6 +9,8 @@ import ItemRegister from "./pages/Item/ItemRegister";
 import ItemEdit from "./pages/Item/ItemEdit";
 import ProductDetail from './pages/ProductDetail';
 import SearchPage from "./pages/SearchPage";  // 경로는 실제 위치에 맞게 수정
+import AuctionList from './pages/AuctionList';
+import UsedproductList from "./pages/UsedproductList.tsx";
 import './css/App.css';
 import type {User} from './types/user';
 
@@ -105,15 +107,17 @@ export default function App() {
                     }
                 >
 
-                    <Route index element={<ProductList />} />
-                    <Route path="/items/:id" element={<ProductDetail />} />
-                    <Route path="/registerItem" element={user ? <ItemRegister /> : <Navigate to="/" replace />}/>
-                    <Route path="/items/:id/edit" element={<ItemEdit />} />
-                    <Route path="/search" element={<SearchPage />} />
+                    <Route index element={<ProductList/>}/>
+                    <Route path="/items/:id" element={<ProductDetail/>}/>
+                    <Route path="/auction" element={<AuctionList/>}/>
+                    <Route path="/usedproduct" element={<UsedproductList/>}/>
+                    <Route path="/registerItem" element={user ? <ItemRegister/> : <Navigate to="/" replace/>}/>
+                    <Route path="/items/:id/edit" element={<ItemEdit/>}/>
+                    <Route path="/search" element={<SearchPage/>}/>
                 </Route>
             </Routes>
 
-            <Login isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+            <Login isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)}/>
         </Router>
     );
 

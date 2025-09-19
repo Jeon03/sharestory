@@ -20,6 +20,7 @@ const ItemRegister = () => {
     const [dealInfo, setDealInfo] = useState<DealInfo>({
         parcel: false,
         direct: false,
+        auction: false,
         shippingOption: '',
     });
 
@@ -36,7 +37,7 @@ const ItemRegister = () => {
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const navigate = useNavigate();
 
-    const hasValidDealMethod = Boolean(dealInfo.parcel || dealInfo.direct);
+    const hasValidDealMethod = Boolean(dealInfo.parcel || dealInfo.direct || dealInfo.auction);
     const hasValidShippingOption = !dealInfo.parcel || !!dealInfo.shippingOption;
 
     // 이미지가 최소 1장 있어야 등록 가능

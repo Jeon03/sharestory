@@ -26,6 +26,7 @@ export default function ItemEdit() {
   const [dealInfo, setDealInfo] = useState<DealInfo>({
     parcel: false,
     direct: false,
+    auction: false,
     safeTrade: false,
     shippingOption: "",
     phoneNumber: "",

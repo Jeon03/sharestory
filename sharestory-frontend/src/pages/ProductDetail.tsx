@@ -23,6 +23,7 @@ type ShippingOption = 'included' | 'separate';
 interface DealInfo {
     parcel?: boolean;
     direct?: boolean;
+    auction?: boolean;
     safeTrade?: boolean;
     shippingOption?: ShippingOption;
 }
@@ -297,6 +298,7 @@ export default function ProductDetailSimple() {
                             <td>
                                 {[item.dealInfo?.parcel && '택배거래',
                                     item.dealInfo?.direct && '직거래',
+                                    item.dealInfo?.auction && '물품경매',
                                     item.dealInfo?.safeTrade && '🔒안전거래',
                                     item.dealInfo?.shippingOption &&
                                     `(배송비: ${item.dealInfo.shippingOption === 'included' ? '포함' : '별도'})`]

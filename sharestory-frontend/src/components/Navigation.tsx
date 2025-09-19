@@ -1,10 +1,10 @@
-import {useRef, useState} from 'react';
-import '../css/Navigation.css';
+import { useRef, useState } from "react";
+import "../css/Navigation.css";
+import { Link } from "react-router-dom";
 
-// 🔹 Navigation을 독립형으로 변경 (카테고리 props 제거)
 function Navigation() {
     const [showDropdown, setShowDropdown] = useState(false);
-    const [dummyCategory, setDummyCategory] = useState<string | null>(null); // ✅ 더미 카테고리 상태
+    const [dummyCategory, setDummyCategory] = useState<string | null>(null);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const handleMouseEnter = () => {
@@ -34,29 +34,35 @@ function Navigation() {
                             onMouseEnter={handleMouseEnter}
                             onMouseLeave={handleMouseLeave}
                             style={{
-                                background: '#fff',
-                                border: '1px solid #ccc',
-                                padding: '1rem',
-                                marginTop: '8px',
+                                background: "#fff",
+                                border: "1px solid #ccc",
+                                padding: "1rem",
+                                marginTop: "8px",
                             }}
                         >
-                            <p style={{ margin: 0, fontSize: '14px' }}>
+                            <p style={{ margin: 0, fontSize: "14px" }}>
                                 카테고리 드롭다운 (준비중)
                             </p>
                             <button
-                                onClick={() => setDummyCategory('패션')}
-                                style={{ display: 'block', marginTop: '8px' }}
+                                onClick={() => setDummyCategory("패션")}
+                                style={{ display: "block", marginTop: "8px" }}
                             >
                                 패션 선택
                             </button>
                             <button
-                                onClick={() => setDummyCategory('가전')}
-                                style={{ display: 'block', marginTop: '4px' }}
+                                onClick={() => setDummyCategory("가전")}
+                                style={{ display: "block", marginTop: "4px" }}
                             >
                                 가전 선택
                             </button>
                             {dummyCategory && (
-                                <p style={{ marginTop: '8px', fontSize: '13px', color: 'gray' }}>
+                                <p
+                                    style={{
+                                        marginTop: "8px",
+                                        fontSize: "13px",
+                                        color: "gray",
+                                    }}
+                                >
                                     선택됨: {dummyCategory}
                                 </p>
                             )}
@@ -64,9 +70,8 @@ function Navigation() {
                     )}
                 </div>
 
-                <a href="#">중고거래</a>
-                <a href="#">물품경매</a>
-
+                <Link to="/usedproduct">중고거래</Link>
+                <Link to="/auction">물품경매</Link>
             </div>
         </nav>
     );
