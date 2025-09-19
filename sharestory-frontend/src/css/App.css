@@ -34,15 +34,7 @@ a {
   gap: 10px;
 }
 
-.header_search-box {
-  display: flex;               /* 가로 정렬 */
-  align-items: center;         /* 세로 중앙 정렬 */
-  width: 500px;
-  height: 30px;
-  padding: 5px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
+
 .heaerset{
   position: fixed;
   width: 100%;

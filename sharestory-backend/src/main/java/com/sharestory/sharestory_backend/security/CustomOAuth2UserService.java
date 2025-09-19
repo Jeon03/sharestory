@@ -41,6 +41,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .providerId(info.providerId())
                     .createdAt(Instant.now())
                     .role("ROLE_USER")
+                    .points(100000)
                     .build();
         }
 

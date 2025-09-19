@@ -67,4 +67,6 @@ public class User {
     @Column
     private String addressName;
 
+    @Column(nullable = false)
+    private int points = 0;
 }

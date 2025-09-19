@@ -150,3 +150,8 @@ management:
       exposure:
         include: health,info,env
 
+
+iamport:
+  api:
+    key: ${IAMPORT_API_KEY}
+    secret: ${IAMPORT_API_SECRET}

@@ -1,17 +1,26 @@
+/* ================================
+   지역 선택 버튼
+================================ */
 .select-button {
-    width: auto;
-    height: 35px;
-    background: #f5e166;
-    border-radius: 5px;
-    padding: 5px 10px;
+    height: 50px; /* 검색창과 높이 맞춤 */
+    padding: 0 16px;
+    background: #ffcd1f;
+    border: none;
+    border-radius: 20px; /* 둥글게 */
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-weight: bold;
-    border: 1px solid dimgray;
-    color: black;
-    font-size: 13px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #000;
+    transition: background 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    white-space: nowrap;
+}
+
+.select-button:hover {
+    background: #ffd84d;
+    transform: translateY(-1px);
 }
 
 /* 드롭다운 아이콘 */
@@ -21,68 +30,118 @@
     opacity: 1;
 }
 
-/* 오버레이 */
-.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.4);
-    z-index: 99;
+.save-location-btn {
+    margin-top: 12px;
+    padding: 10px;
+    background: #ffcd1f;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
 }
 
-/* ✅ 모달 */
-.modal {
+.save-location-btn:hover {
+    background: #ffd84d;
+}
+
+/* ================================
+   오버레이
+================================ */
+.location-selector-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 900;
+}
+
+/* ================================
+   모달
+================================ */
+.location-selector-modal {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: white;
+    background: #fff;
     border-radius: 10px;
-    width: 360px;
-    max-width: 90%;
+    width: 90%;
+    max-width: 900px;   /* 데스크탑에서는 최대 900px */
+    height: 90%;
+    max-height: 700px;  /* 데스크탑에서는 최대 700px */
     padding: 20px;
-    z-index: 100;
+    z-index: 901;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     display: flex;
     flex-direction: column;
     gap: 15px;
-    animation: fadeIn 0.2s ease-in-out; /* 애니메이션 */
+    animation: fadeIn 0.2s ease-in-out;
+
 }
 
 /* 모달 헤더 */
-.modal-header {
+.location-selector-modal-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: center; /* 제목만 중앙 */
     align-items: center;
+    position: relative; /* 닫기 버튼을 absolute로 배치할 기준 */
+    padding: 12px 16px;
+    border-bottom: 1px solid #eee;
+    font-size: 1.1rem;
     font-weight: bold;
-    font-size: 16px;
 }
 
-/* 닫기 버튼 */
-.close-button {
-    background: none;
+.location-selector-modal-header span {
+    flex-grow: 0; /* 제목은 고정 */
+    text-align: center;
+}
+
+.location-selector-modal-header .location-selector-close-button {
+    position: absolute;
+    right: 16px;   /* 오른쪽 여백 */
+    top: 50%;
+    transform: translateY(-50%); /* 세로 중앙 정렬 */
+    background: transparent;
     border: none;
-    font-size: 18px;
+    font-size: 1.2rem;
     cursor: pointer;
-    color: #555;
+    color: #666;
+}
+
+
+.location-selector-modal-header .location-selector-close-button:hover {
+    color: #000;
 }
 
 /* 모달 바디 */
-.modal-body {
+
+.location-selector-modal-body {
+    flex: 1; /* 남은 공간을 모두 차지 */
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    overflow: hidden; /* 전체 바디 넘침 방지 */
+}
+.location-selector-address-box {
+    flex-shrink: 0; /* 입력창은 줄어들지 않음 */
 }
 
-/* 모달 푸터 */
-.modal-footer {
+
+#map {
+    flex: 1;
+    min-height: 300px;
     margin-top: 10px;
 }
 
-/* 검색 박스 */
-.search-box {
+
+.location-selector-modal-footer {
+    flex-shrink: 0;
+    padding-top: 10px;
+}
+
+/* ================================
+   검색창
+================================ */
+.location-selector-address-box {
     display: flex;
     align-items: center;
     border: 1px solid #ccc;
@@ -91,15 +150,26 @@
     background: #fafafa;
 }
 
-.search-input {
+.location-selector-address-input {
     flex: 1;
     border: none;
     outline: none;
     font-size: 14px;
+    height: 30px;
 }
 
-/* 자동완성 리스트 */
-.autocomplete-suggestions {
+
+.search-icon {
+    width: 20px;
+    height: 20px;
+    margin: 3px 7px;
+}
+
+
+/* ================================
+   자동완성 리스트
+================================ */
+.location-selector-autocomplete-suggestions {
     list-style: none;
     margin: 8px 0 0 0;
     padding: 0;
@@ -111,98 +181,19 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.autocomplete-item {
-    padding: 10px;
-    cursor: pointer;
-}
-
-.autocomplete-item:hover {
-    background: #f5f5f5;
-}
-
-.myPosition-button:hover {
-    background: #fee2e2;
-}
-
-/* 검색 영역 */
-.header_search-box {
-    position: relative;
-    display: inline-block;
-    width: 400px; /* 검색창 크기에 맞춤 */
-
-}
-
-
-.search-icon {
-    width: 20px;
-    height: 20px;
-    margin: 3px 7px;
-}
-
-.kmoption {
-    font-size: 13px;
-}
-
-.radius-select {
-    font-size: 13px;
-}
-
-.text {
-    margin-top: 2px;
-    font-size: 13px;
-}
-
-/* ✅ 모달 등장 애니메이션 */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translate(-50%, -48%);
-    }
-    to {
-        opacity: 1;
-        transform: translate(-50%, -50%);
-    }
-}
-
-.autocomplete-list {
-    list-style: none;
-    position: absolute;
-    top: 100%; /* 입력창 바로 아래 */
-    left: 0;
-    width: 450px;
-    background: white;
-    border: 1px solid #ddd;
-    border-top: none; /* 검색창과 자연스럽게 연결 */
-    border-radius: 0 0 6px 6px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-    max-height: 200px;
-    overflow-y: auto;
-    font-size: 15px;
-}
-
-.autocomplete-item {
-    list-style: none;
+.location-selector-autocomplete-item {
     padding: 10px 12px;
     cursor: pointer;
 }
 
-.autocomplete-item:hover {
-    background-color: #f8f8f8;
+.location-selector-autocomplete-item:hover {
+    background: #f5f5f5;
 }
 
-.search-bar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-    border: 1px solid #ddd;
-    border-radius: 30px;
-    background: #fff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 
-}
-
+/* ================================
+   반경 설정
+================================ */
 .radius-label {
     font-size: 14px;
     color: #555;
@@ -222,28 +213,72 @@
     background: #f1f3f5;
 }
 
-.search-icon-btn:hover {
-    background: #ffcd1f;
+
+
+.text {
+    margin-top: 2px;
+    font-size: 13px;
 }
 
-.select-button {
-    height: 42px; /* 검색창과 높이 맞춤 */
-    padding: 0 16px;
-    background: #ffcd1f;
-    border: 1px solid #1a1a1a;
-    border-radius: 20px; /* 둥글게 */
-    cursor: pointer;
+/* ================================
+   기타
+================================ */
+.myPosition-button:hover {
+    background: #fee2e2;
+}
+
+.search-bar {
     display: flex;
     align-items: center;
-    font-weight: 600;
-    font-size: 14px;
-    color: #000;
-    transition: background 0.2s ease, transform 0.1s ease;
+    gap: 8px;
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    border-radius: 30px;
+    background: #fff;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-
 }
 
-.select-button:hover {
+/* ================================
+   애니메이션
+================================ */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -48%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+.location-selector-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.save-location-btn {
+    width: 100%;
+    padding: 14px;
+    background: #ffcd1f;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: background 0.2s ease;
+}
+
+.save-location-btn:hover {
     background: #ffd84d;
-    transform: translateY(-1px);
+}
+
+.cancel-location-btn {
+    background: #ccc;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
 }

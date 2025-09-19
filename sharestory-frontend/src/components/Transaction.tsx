@@ -26,7 +26,6 @@ function Transaction({ onLocationSelect, onDealInfoChange, initialDealInfo }: Tr
 
     const isValidPhoneNumber = (number: string) => /^010-?\d{4}-?\d{4}$/.test(number);
 
-    // ✅ 초기값 반영 (initialized 제거)
     useEffect(() => {
         if (initialDealInfo) {
             setTransactionMethods((prev) => {

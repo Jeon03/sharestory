@@ -33,9 +33,10 @@ public class UserController {
             result.put("email", user.getEmail());
             result.put("nickname", user.getNickname());
             result.put("role", user.getRole());
-            result.put("myLatitude", u.getMyLatitude());   // ✅ null 가능 → HashMap은 허용
+            result.put("myLatitude", u.getMyLatitude());
             result.put("myLongitude", u.getMyLongitude());
             result.put("addressName", u.getAddressName());
+            result.put("points", u.getPoints());
             result.put("authenticated", true);
 
             return result;

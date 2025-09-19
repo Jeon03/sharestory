@@ -3,7 +3,7 @@ import '../css/footer.css';
 function Footer() {
     return (
         <footer className="custom-footer">
-            <div className="container"> {/* ✅ 네비게이션과 동일한 너비 정렬 */}
+            <div className="container">
                 <div className="footer-info">
                     <strong>(주)ShareStory 사업자 정보</strong><br />
                     대표자: 전여욱 | 사업자 등록번호: 123-45-67890<br />
