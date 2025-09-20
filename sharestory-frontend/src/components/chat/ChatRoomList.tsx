@@ -9,6 +9,7 @@ interface ChatRoom {
     updatedAt: string;
     itemThumbnail: string;
     itemPrice: number;
+    unreadCount: number;
 }
 
 interface ChatRoomListProps {
@@ -95,6 +96,11 @@ export default function ChatRoomList({ onRoomSelect }: ChatRoomListProps) {
                                     minute: "2-digit",
                                 })}
                             </div>
+                            {room.unreadCount > 0 && (
+                                <span className="chat-unread-badge">
+                                    {room.unreadCount}
+                                </span>
+                            )}
                         </div>
                     </div>
                 ))

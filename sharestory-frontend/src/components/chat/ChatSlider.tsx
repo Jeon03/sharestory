@@ -1,22 +1,40 @@
 import { useState, useEffect } from "react";
 import ChatRoomList from "./ChatRoomList";
 import ChatRoom from "./ChatRoom";
+import { useChatContext } from "../../contexts/ChatContext";
 
 interface ChatSliderProps {
     isOpen: boolean;
     onClose: () => void;
     activeRoomId?: number | null;
+    setUnreadCount: React.Dispatch<React.SetStateAction<number>>;
 }
 
-export default function ChatSlider({ isOpen, onClose, activeRoomId }: ChatSliderProps) {
+export default function ChatSlider({
+                                       isOpen,
+                                       onClose,
+                                       activeRoomId,
+                                       setUnreadCount,
+                                   }: ChatSliderProps) {
     const [activeRoom, setActiveRoom] = useState<number | null>(null);
+    const { setCurrentOpenRoomId } = useChatContext();
 
-    // ✅ 외부에서 activeRoomId가 들어오면 반영
+    // ✅ 외부에서 activeRoomId 들어오면 반영
     useEffect(() => {
         if (activeRoomId) {
             setActiveRoom(activeRoomId);
+            setCurrentOpenRoomId(activeRoomId); // 🔥 방 진입 시 Context에 등록
         }
-    }, [activeRoomId]);
+    }, [activeRoomId, setCurrentOpenRoomId]);
+
+    // ✅ 방 변경될 때 Context 업데이트
+    useEffect(() => {
+        if (activeRoom) {
+            setCurrentOpenRoomId(activeRoom);
+        } else {
+            setCurrentOpenRoomId(null); // 방 나가면 초기화
+        }
+    }, [activeRoom, setCurrentOpenRoomId]);
 
     if (!isOpen) return null;
 
@@ -28,9 +46,9 @@ export default function ChatSlider({ isOpen, onClose, activeRoomId }: ChatSlider
                 <button
                     onClick={() => {
                         if (activeRoom) {
-                            setActiveRoom(null); // ✅ 방 안이면 목록으로
+                            setActiveRoom(null); // ✅ 목록으로 돌아감
                         } else {
-                            onClose(); // ✅ 목록이면 닫기
+                            onClose(); // ✅ 전체 닫기
                         }
                     }}
                 >
@@ -41,9 +59,14 @@ export default function ChatSlider({ isOpen, onClose, activeRoomId }: ChatSlider
             {/* 본문 */}
             <div className="chatroom-panel-body">
                 {activeRoom ? (
-                    <ChatRoom roomId={activeRoom} onBack={() => setActiveRoom(null)} />
+                    <ChatRoom roomId={activeRoom} setUnreadCount={setUnreadCount} />
                 ) : (
-                    <ChatRoomList onRoomSelect={(id) => setActiveRoom(id)} />
+                    <ChatRoomList
+                        onRoomSelect={(id) => {
+                            setActiveRoom(id);
+                            setCurrentOpenRoomId(id); // ✅ 채팅방 클릭 → Context 반영
+                        }}
+                    />
                 )}
             </div>
         </div>

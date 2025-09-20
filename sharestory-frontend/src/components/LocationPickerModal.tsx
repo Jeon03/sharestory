@@ -62,7 +62,7 @@ export default function LocationPickerModal({ onConfirm, onCancel }: LocationPic
             <div className="modal-box">
                 {/* 헤더 */}
                 <div className="modal-header">
-                    <h2>📍 위치 선택</h2>
+                    <h2>공유위치 선택</h2>
                     <button className="close-btn" onClick={onCancel}>×</button>
                 </div>
 

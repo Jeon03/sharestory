@@ -4,17 +4,18 @@ import "../../css/chat.css";
 import { Image, MapPin, X } from "lucide-react";
 import LocationPickerModal from "../LocationPickerModal.tsx";
 import kakaomapIcon from "../../images/kakaomap_basic.png";
+import { useChatContext } from "../../contexts/ChatContext";
 
 interface ChatRoomProps {
     roomId: number;
-    onBack: () => void;
+    setUnreadCount: React.Dispatch<React.SetStateAction<number>>;
 }
 
 interface ChatMsg {
     content: string;
     mine: boolean;
-    time: string; // HH:mm
-    rawTime: string; // ISO
+    time: string;
+    rawTime: string;
     type: "TEXT" | "IMAGE" | "LOCATION_MAP" | "LOCATION_TEXT";
 }
 
@@ -39,7 +40,7 @@ const DateDivider = ({ date }: { date: string }) => (
     <div className="chat-date-divider">{date}</div>
 );
 
-export default function ChatRoom({ roomId }: ChatRoomProps) {
+export default function ChatRoom({ roomId, setUnreadCount }: ChatRoomProps) {
     const [messages, setMessages] = useState<ChatMsg[]>([]);
     const [input, setInput] = useState("");
     const [currentUserId, setCurrentUserId] = useState<number | null>(null);
@@ -47,11 +48,34 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
 
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [previewFile, setPreviewFile] = useState<File | null>(null);
-    const [showMap, setShowMap] = useState(false); // ✅ 위치 모달 상태
+    const [showMap, setShowMap] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const inputWrapperRef = useRef<HTMLDivElement | null>(null);
     const [bottomPadding, setBottomPadding] = useState(80);
+
+    const { setCurrentOpenRoomId } = useChatContext();
+
+    // ✅ 방 입장/퇴장 시 현재 열린 방 등록
+    useEffect(() => {
+        setCurrentOpenRoomId(roomId);
+        return () => setCurrentOpenRoomId(null);
+    }, [roomId, setCurrentOpenRoomId]);
+
+    // ✅ 방에 입장했을 때만 읽음 처리
+    useEffect(() => {
+        if (roomId && currentUserId) {
+            fetch(`${import.meta.env.VITE_API_URL}/api/chat/${roomId}/read`, {
+                method: "POST",
+                credentials: "include",
+            })
+                .then(() => {
+                    console.log(`✅ Room #${roomId} 읽음 처리 완료`);
+                    setUnreadCount((prev) => Math.max(prev - 1, 0)); // 🔥 전체 unreadCount에서 하나 줄임
+                })
+                .catch((err) => console.error("읽음 처리 실패:", err));
+        }
+    }, [roomId, currentUserId, setUnreadCount]);
 
     // ✅ 입력창 높이 자동 반영
     useLayoutEffect(() => {
@@ -129,47 +153,28 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
     useEffect(() => {
         if (!currentUserId) return;
 
-        async function fetchItem() {
-            try {
-                const res = await fetch(
-                    `${import.meta.env.VITE_API_URL}/api/chat/room/${roomId}/item`,
-                    { credentials: "include" }
-                );
-                if (res.ok) {
-                    const data: ItemInfo = await res.json();
-                    setItem(data);
-                }
-            } catch (err) {
-                console.error("상품 정보 즉시 갱신 실패:", err);
-            }
-        }
-
-        connect(roomId, (msg: ServerMessage) => {
-            setMessages((prev) => [
-                ...prev,
-                {
-                    content: msg.content,
-                    mine: msg.senderId === currentUserId,
-                    time: new Date(msg.createdAt ?? Date.now()).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    }),
-                    rawTime: msg.createdAt ?? new Date().toISOString(),
-                    type: msg.type ?? "TEXT",
-                },
-            ]);
-        },
+        connect(
+            roomId,
+            (msg) => {
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                        content: msg.content,
+                        mine: msg.senderId === currentUserId,
+                        time: new Date(msg.createdAt).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        }),
+                        rawTime: msg.createdAt,
+                        type: msg.type,
+                    },
+                ]);
+            },
             (update) => {
-                setItem({
-                    id: update.id,
-                    title: update.title,
-                    price: update.price,
-                    imageUrl: update.imageUrl,
-                    description: update.description,
-                });
+                setItem(update);
             }
         );
-        fetchItem();
+
         return () => disconnect();
     }, [roomId, currentUserId]);
 
@@ -177,7 +182,6 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
     const handleSend = async () => {
         if (!currentUserId) return;
 
-        // 1️⃣ 이미지 업로드
         if (previewFile) {
             const formData = new FormData();
             formData.append("file", previewFile);
@@ -202,14 +206,12 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
             }
         }
 
-        // 2️⃣ 텍스트 메시지
         if (input.trim() !== "") {
             sendMessage(roomId, input, currentUserId, "TEXT");
             setInput("");
         }
     };
 
-    // ✅ 파일 선택 핸들러
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -253,13 +255,14 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                             )}
                             <div className={`chat-bubble ${m.mine ? "mine" : "other"}`}>
                                 {m.type === "LOCATION_MAP" ? (
-                                    // 지도 공유 미리보기
                                     <div
                                         className="location-map-preview"
                                         onClick={() => {
                                             const { lat, lng, address } = JSON.parse(m.content);
                                             window.open(
-                                                `https://map.kakao.com/link/map/${encodeURIComponent(address)},${lat},${lng}`,
+                                                `https://map.kakao.com/link/map/${encodeURIComponent(
+                                                    address
+                                                )},${lat},${lng}`,
                                                 "_blank"
                                             );
                                         }}
@@ -275,28 +278,27 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                                             alt="카카오맵"
                                             style={{ width: "28px", height: "28px" }}
                                         />
-                                        <span style={{ color: "#007aff", fontWeight: "bold" }}>위치 보기</span>
+                                        <span style={{ color: "#007aff", fontWeight: "bold" }}>
+                      위치 보기
+                    </span>
                                     </div>
                                 ) : m.type === "IMAGE" ? (
-                                    // ✅ 이미지 메시지 처리
                                     <img
                                         src={m.content}
                                         alt="chat-img"
                                         style={{ maxWidth: "200px", borderRadius: "8px" }}
                                     />
                                 ) : (
-                                    // 기본 텍스트 메시지
                                     m.content
                                 )}
                                 <div className="message-time">{m.time}</div>
                             </div>
-
                         </div>
                     );
                 })}
             </div>
 
-            {/* 입력창 + 미리보기 */}
+            {/* 입력창 */}
             <div className="chat-input-wrapper" ref={inputWrapperRef}>
                 {previewImage && (
                     <div className="chat-preview">
@@ -326,7 +328,6 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                         <Image size={18} />
                     </button>
 
-                    {/* ✅ 위치 공유 버튼 */}
                     <button className="icon-button" onClick={() => setShowMap(true)}>
                         <MapPin size={18} />
                     </button>
@@ -343,17 +344,13 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                 </div>
             </div>
 
-            {/* ✅ 위치 선택 모달 */}
+            {/* 위치 선택 모달 */}
             {showMap && (
                 <LocationPickerModal
                     onConfirm={(lat, lng, address) => {
                         const payload = JSON.stringify({ lat, lng, address });
-
-                        // 지도 미리보기 메시지
                         sendMessage(roomId, payload, currentUserId!, "LOCATION_MAP");
-                        // 주소 텍스트 메시지
                         sendMessage(roomId, address, currentUserId!, "LOCATION_TEXT");
-
                         setShowMap(false);
                     }}
                     onCancel={() => setShowMap(false)}

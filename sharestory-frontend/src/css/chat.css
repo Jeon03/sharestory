@@ -8,6 +8,29 @@
     background: #fff;
     position: relative;     /* 자식 absolute/sticky 기준 */
 }
+.chat-icon-container {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    font-size: 20px;
+    color: #333;
+}
+
+.chat-alert-badge {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    background-color: #ff4d4f; /* 빨간색 */
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 999px; /* 동그랗게 */
+    min-width: 18px;
+    text-align: center;
+    line-height: 1.2;
+    box-shadow: 0 0 4px rgba(0,0,0,0.2);
+}
 
 /* 메시지 영역 */
 .chat-messages {
@@ -294,7 +317,7 @@
 .modal-box {
     background: #fff;
     border-radius: 16px;
-    width: 630px;        /* ✅ 기존 420px → 630px */
+    width: 650px;        /* ✅ 기존 420px → 630px */
     max-width: 95%;      /* 화면이 작을 때 대응 */
     overflow: hidden;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);

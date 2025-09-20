@@ -1,15 +1,9 @@
 package com.sharestory.sharestory_backend.service;
 
-import com.sharestory.sharestory_backend.domain.ChatMessage;
-import com.sharestory.sharestory_backend.domain.ChatRoom;
-import com.sharestory.sharestory_backend.domain.Item;
-import com.sharestory.sharestory_backend.domain.User;
+import com.sharestory.sharestory_backend.domain.*;
 import com.sharestory.sharestory_backend.dto.ChatMessageDto;
 import com.sharestory.sharestory_backend.dto.ChatRoomDto;
-import com.sharestory.sharestory_backend.repo.ChatMessageRepository;
-import com.sharestory.sharestory_backend.repo.ChatRoomRepository;
-import com.sharestory.sharestory_backend.repo.ItemRepository;
-import com.sharestory.sharestory_backend.repo.UserRepository;
+import com.sharestory.sharestory_backend.repo.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +20,7 @@ public class ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final ChatReadRepository chatReadRepository;
 
     @Transactional
     public ChatRoomDto createOrGetRoom(Long itemId, Long buyerId) {
@@ -58,6 +53,7 @@ public class ChatService {
                     String partnerName = userRepository.findById(sellerId)
                             .map(User::getNickname)
                             .orElse("알 수 없음");
+
                     return ChatRoomDto.from(newRoom, partnerName, "");
                 });
     }
@@ -75,7 +71,10 @@ public class ChatService {
 
                     String lastMsg = room.getMessages().isEmpty() ? "" :
                             room.getMessages().get(room.getMessages().size()-1).getContent();
-                    return ChatRoomDto.from(room, partnerName, lastMsg);
+
+
+                    int unreadCount = chatReadRepository.countUnreadByRoomAndUser(room.getId(), userId);
+                    return ChatRoomDto.from(room, partnerName, lastMsg, unreadCount);
                 })
                 .toList();
     }
@@ -89,11 +88,32 @@ public class ChatService {
                 .room(room)
                 .senderId(dto.getSenderId())
                 .content(dto.getContent())
-                .type(dto.getType())              // ✅ 메시지 타입 저장
+                .type(dto.getType())
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        return chatMessageRepository.save(msg);
+        ChatMessage saved = chatMessageRepository.save(msg);
+
+        // ✅ 보낸 사람(senderId)이 아닌 상대방을 찾아서 안읽음 처리
+        Long receiverId;
+        if (room.getBuyerId().equals(dto.getSenderId())) {
+            receiverId = room.getSellerId();
+        } else {
+            receiverId = room.getBuyerId();
+        }
+
+        ChatRead chatRead = ChatRead.builder()
+                .message(saved)
+                .userId(receiverId) // User 엔티티 연결 대신 userId만 저장도 가능
+                .read(false)
+                .build();
+
+        chatReadRepository.save(chatRead);
+
+        // ✅ 마지막 메시지 시간 갱신
+        room.setUpdatedAt(LocalDateTime.now());
+
+        return saved;
     }
 
     @Transactional(readOnly = true)
@@ -119,4 +139,11 @@ public class ChatService {
         return result;
     }
 
+    @Transactional
+    public void markMessagesAsRead(Long roomId, Long userId) {
+        chatReadRepository.markAllAsRead(roomId, userId);
+    }
+    public int getTotalUnreadCount(Long userId) {
+        return chatReadRepository.countUnreadByUser(userId);
+    }
 }
