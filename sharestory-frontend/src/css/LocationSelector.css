@@ -67,14 +67,13 @@
     border-radius: 10px;
     width: 90%;
     max-width: 900px;   /* 데스크탑에서는 최대 900px */
-    height: 90%;
+    height: 100%;
     max-height: 700px;  /* 데스크탑에서는 최대 700px */
     padding: 20px;
     z-index: 901;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     display: flex;
     flex-direction: column;
-    gap: 15px;
     animation: fadeIn 0.2s ease-in-out;
 
 }
@@ -119,12 +118,12 @@
     flex: 1; /* 남은 공간을 모두 차지 */
     display: flex;
     flex-direction: column;
+    margin-top: 20px;
     overflow: hidden; /* 전체 바디 넘침 방지 */
 }
 .location-selector-address-box {
     flex-shrink: 0; /* 입력창은 줄어들지 않음 */
 }
-
 
 #map {
     flex: 1;
@@ -135,7 +134,6 @@
 
 .location-selector-modal-footer {
     flex-shrink: 0;
-    padding-top: 10px;
 }
 
 /* ================================
@@ -148,6 +146,7 @@
     padding: 6px 10px;
     border-radius: 6px;
     background: #fafafa;
+    position: relative;
 }
 
 .location-selector-address-input {
@@ -164,7 +163,6 @@
     height: 20px;
     margin: 3px 7px;
 }
-
 
 /* ================================
    자동완성 리스트
@@ -191,6 +189,48 @@
 }
 
 
+/* 자동완성 리스트 */
+.autocomplete-list {
+    position: absolute;
+    top: calc(100% + 4px); /* input 바로 아래 */
+    left: 0;
+    width: calc(100% + 220px);
+    margin-top: 10px;
+    padding: 0;
+    list-style: none;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    max-height: 220px;
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 9999;
+}
+
+/* 검색창 감싸는 폼 */
+.header_search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* input + 자동완성 래퍼 */
+.search-input-wrap {
+    position: relative; /* ✅ 자동완성 리스트 기준점 */
+    flex: 1;
+}
+
+.autocomplete-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.autocomplete-item:hover {
+    background: #f5f5f5;
+}
+
 /* ================================
    반경 설정
 ================================ */
@@ -212,8 +252,6 @@
 .radius-select:hover {
     background: #f1f3f5;
 }
-
-
 
 .text {
     margin-top: 2px;

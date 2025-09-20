@@ -17,6 +17,8 @@ public class ChatRoomDto {
     private LocalDateTime updatedAt;
     private String itemThumbnail; // 대표 이미지
     private int itemPrice;
+    private int unreadCount;
+
 
     public static ChatRoomDto from(ChatRoom room, String partnerName, String lastMessage) {
         return ChatRoomDto.builder()
@@ -27,6 +29,20 @@ public class ChatRoomDto {
                 .updatedAt(room.getUpdatedAt())
                 .itemThumbnail(room.getItem().getImageUrl())  // Item 엔티티에 대표이미지 URL 있음
                 .itemPrice(room.getItem().getPrice())
+                .build();
+    }
+
+
+    public static ChatRoomDto from(ChatRoom room, String partnerName, String lastMessage, int unreadCount) {
+        return ChatRoomDto.builder()
+                .roomId(room.getId())
+                .itemTitle(room.getItem().getTitle())
+                .partnerName(partnerName)
+                .lastMessage(lastMessage)
+                .updatedAt(room.getUpdatedAt())
+                .itemThumbnail(room.getItem().getImageUrl())  // Item 엔티티에 대표이미지 URL 있음
+                .itemPrice(room.getItem().getPrice())
+                .unreadCount(unreadCount)
                 .build();
     }
 }

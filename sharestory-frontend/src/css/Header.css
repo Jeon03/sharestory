@@ -43,21 +43,29 @@
     align-items: center;
     gap: 6px; /* 아이콘-텍스트 간격 */
 }
+.chat-icon-container {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
 
 .divider {
     margin: 0 8px;
     color: #aaa;
 }
-
 .chat-alert-dot {
     position: absolute;
-    top: -4px;
+    top: -6px;
     right: -6px;
     background: red;
     color: white;
+    font-size: 12px;
+    font-weight: bold;
     border-radius: 50%;
-    font-size: 0.7rem;
-    padding: 2px 5px;
+    padding: 2px 6px;
+    line-height: 1;
+    min-width: 18px;
+    text-align: center;
 }
 
 

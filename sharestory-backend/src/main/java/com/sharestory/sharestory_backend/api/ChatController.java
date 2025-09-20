@@ -3,10 +3,14 @@ package com.sharestory.sharestory_backend.api;
 import com.sharestory.sharestory_backend.domain.ChatMessage;
 import com.sharestory.sharestory_backend.dto.ChatMessageDto;
 import com.sharestory.sharestory_backend.dto.ChatRoomDto;
+import com.sharestory.sharestory_backend.repo.ChatReadRepository;
+import com.sharestory.sharestory_backend.repo.ChatRoomRepository;
 import com.sharestory.sharestory_backend.security.CustomUserDetails;
 import com.sharestory.sharestory_backend.service.ChatService;
 import com.sharestory.sharestory_backend.service.S3Service;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +31,7 @@ public class ChatController {
     private final S3Service s3Service;
     private final ChatService chatService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final ChatReadRepository chatReadRepository;
 
     // STOMP 메시지 전송
     @MessageMapping("/message")
@@ -74,6 +80,26 @@ public class ChatController {
         Map<String, String> response = new HashMap<>();
         response.put("url", url);
         return response;
+    }
+
+    // 전체 안읽은 메시지 수
+    @GetMapping("/unreadCount")
+    public ResponseEntity<Map<String, Object>> getUnreadCount(
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        int totalUnread = chatService.getTotalUnreadCount(user.getId());
+        return ResponseEntity.ok(Map.of("unreadCount", totalUnread));
+    }
+
+    // 방 입장 → 안읽은 메시지 모두 읽음 처리
+    @PostMapping("/{roomId}/read")
+    public ResponseEntity<Map<String, Object>> markRoomAsRead(
+            @PathVariable Long roomId,
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        chatService.markMessagesAsRead(roomId, user.getId());
+        int totalUnread = chatService.getTotalUnreadCount(user.getId());
+        return ResponseEntity.ok(Map.of("unreadCount", totalUnread));
     }
 }
 

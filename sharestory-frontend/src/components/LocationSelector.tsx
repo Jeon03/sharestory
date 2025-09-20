@@ -45,7 +45,9 @@ export default function LocationSelector() {
 
     useEffect(() => {
         const handleEsc = (e: KeyboardEvent) => {
-            if (e.key === "Escape") setIsOpen(false);
+            if (e.key === "Escape") {
+                handleCloseModal();
+            }
         };
         window.addEventListener("keydown", handleEsc);
         return () => window.removeEventListener("keydown", handleEsc);
@@ -73,81 +75,59 @@ export default function LocationSelector() {
         circleRefs.current = [];
     };
 
-    // ✅ 지도 표시
+    const DEFAULT_COORDS = { lat: 37.5665, lng: 126.9780 }; // 서울시청 기본값
+
+// ✅ 지도 표시
     useEffect(() => {
-        if (isOpen && coords && window.kakao) {
+        if (isOpen && window.kakao) {
+            const center = coords ?? DEFAULT_COORDS;
+
             window.kakao.maps.load(() => {
                 const container = document.getElementById("map");
                 if (!container) return;
 
-                const newLatLng = new window.kakao.maps.LatLng(coords.lat, coords.lng);
+                const newLatLng = new window.kakao.maps.LatLng(center.lat, center.lng);
 
-                // 지도 초기화 (없으면 생성)
-                if (!mapRef.current) {
-                    mapRef.current = new window.kakao.maps.Map(container, {
+                // ✅ 항상 새 지도 생성
+                mapRef.current = new window.kakao.maps.Map(container, {
+                    center: newLatLng,
+                    level: 6,
+                });
+
+                // ✅ 새 마커 생성
+                markerRef.current = new window.kakao.maps.Marker({
+                    map: mapRef.current,
+                    position: newLatLng,
+                    draggable: true,
+                });
+
+                window.kakao.maps.event.addListener(markerRef.current, "dragend", () => {
+                    const pos = markerRef.current!.getPosition();
+                    setCoords({ lat: pos.getLat(), lng: pos.getLng() });
+                });
+
+                window.kakao.maps.event.addListener(mapRef.current!, "click", (mouseEvent) => {
+                    const latlng = mouseEvent.latLng;
+                    markerRef.current!.setPosition(latlng);
+                    setCoords({ lat: latlng.getLat(), lng: latlng.getLng() });
+                });
+
+                circleRefs.current = [1000, 3000, 5000, 10000].map((r, i) =>
+                    new window.kakao.maps.Circle({
+                        map: mapRef.current!,
                         center: newLatLng,
-                        level: 6,
-                    });
-                } else {
-                    // ✅ 모달 닫았다 열 때 강제 리레이아웃
-                    mapRef.current.setCenter(newLatLng);
-                    mapRef.current.relayout();
-                }
-
-                // 마커 초기화 (최초 1회만)
-                if (!markerRef.current) {
-                    markerRef.current = new window.kakao.maps.Marker({
-                        map: mapRef.current,
-                        draggable: true,
-                    });
-
-                    // ✅ 드래그 이벤트
-                    window.kakao.maps.event.addListener(markerRef.current, "dragend", () => {
-                        const pos = markerRef.current!.getPosition();
-                        setCoords({ lat: pos.getLat(), lng: pos.getLng() });
-                    });
-
-                    // ✅ 지도 클릭 이벤트
-                    window.kakao.maps.event.addListener(mapRef.current!, "click", (mouseEvent) => {
-                        const latlng = mouseEvent.latLng;
-                        markerRef.current!.setPosition(latlng);
-                        setCoords({ lat: latlng.getLat(), lng: latlng.getLng() });
-                    });
-                }
-
-                // 마커 위치 갱신
-
-                markerRef.current.setPosition(newLatLng);
-                mapRef.current.setCenter(newLatLng);
-
-                // 원 초기화 (처음만 생성)
-                if (circleRefs.current.length === 0) {
-                    const circles = [1000, 5000, 10000];
-                    const colors = ["#ff0000", "#00aaff", "#ffaa00"];
-
-                    circleRefs.current = circles.map(
-                        (r, i) =>
-                            new window.kakao.maps.Circle({
-                                map: mapRef.current!,
-                                center: newLatLng,
-                                radius: r,
-                                strokeWeight: 2,
-                                strokeColor: colors[i],
-                                strokeOpacity: 0.8,
-                                strokeStyle: "dashed",
-                                fillColor: colors[i],
-                                fillOpacity: 0.1,
-                            })
-                    );
-                } else {
-                    // 기존 원 위치만 갱신
-                    circleRefs.current.forEach((circle) =>
-                        circle.setOptions({ center: newLatLng })
-                    );
-                }
+                        radius: r,
+                        strokeWeight: 2,
+                        strokeColor: ["#ff0000", "#00aaff", "#ffaa00", "#008000"][i],
+                        strokeOpacity: 0.8,
+                        strokeStyle: "dashed",
+                        fillColor: ["#ff0000", "#00aaff", "#ffaa00", "#008000"][i],
+                        fillOpacity: 0.1,
+                    })
+                );
             });
         }
-    }, [isOpen,coords]);
+    }, [isOpen, coords]);
 
     // ✅ 유저 위치 불러오기
     useEffect(() => {
@@ -234,11 +214,12 @@ export default function LocationSelector() {
             alert("로그인이 필요합니다.");
             return;
         }
-
         const geocoder = new window.kakao.maps.services.Geocoder();
         geocoder.coord2Address(coords.lng, coords.lat, async (result, status) => {
             if (status === window.kakao.maps.services.Status.OK) {
-                const addressName = result[0].address.address_name;
+                const fullAddress = result[0].address.address_name;
+                const parts = fullAddress.split(" ");
+                const addressName = parts.slice(0, 3).join(" ");
                 try {
                     await api.put("/users/location", {
                         addressName,
@@ -280,9 +261,10 @@ export default function LocationSelector() {
         }
     };
 
-    // ✅ 검색 제출
-    const handleSearchSubmit = (e?: React.FormEvent) => {
-        if (e?.preventDefault) e.preventDefault();
+// ✅ 검색 제출 (폼 전용)
+    const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault(); // Enter 눌렀을 때 새로고침 방지
+
         if (!coordsReady) {
             alert("위치 정보를 불러오는 중입니다.");
             return;
@@ -303,7 +285,18 @@ export default function LocationSelector() {
 
     return (
         <>
-            <button className="select-button" onClick={() => setIsOpen(true)}>
+            <button
+                className="select-button"
+                onClick={() => {
+                    // 지도/마커/원 무조건 초기화
+                    mapRef.current = null;
+                    markerRef.current = null;
+                    circleRefs.current = [];
+
+                    // 모달 열기
+                    setIsOpen(true);
+                }}
+            >
                 {selectedLocation}
             </button>
 
@@ -365,43 +358,50 @@ export default function LocationSelector() {
 
             {/* 상품 검색창 */}
             <form className="header_search-box" onSubmit={handleSearchSubmit}>
-                <input
-                    type="text"
-                    className="search-input"
-                    placeholder="어떤 상품을 찾으시나요?"
-                    value={searchKeyword}
-                    onChange={handleKeywordChange}
-                />
-                {suggestions.length > 0 && (
-                    <ul className="autocomplete-list">
-                        {suggestions.map((item) => (
-                            <li key={item.id} className="autocomplete-item" onClick={() => navigate(`/items/${item.id}`)}>
-                                <div style={{ display: "flex", alignItems: "center" }}>
-                                    <img
-                                        src={item.imageUrl || "/placeholder.png"}
-                                        alt={item.title}
-                                        style={{
-                                            width: 40,
-                                            height: 40,
-                                            objectFit: "cover",
-                                            marginRight: 8,
-                                            borderRadius: 4,
-                                        }}
-                                        onError={(e) => {
-                                            e.currentTarget.src = "/placeholder.png";
-                                        }}
-                                    />
-                                    <div>
-                                        <div>{item.title}</div>
-                                        <div style={{ fontSize: "0.9em", color: "#666" }}>
-                                            {item.price.toLocaleString()}원
+                {/* ✅ 입력창 + 자동완성 리스트를 감싸는 래퍼 */}
+                <div className="search-input-wrap">
+                    <input
+                        type="text"
+                        className="search-input"
+                        placeholder="어떤 상품을 찾으시나요?"
+                        value={searchKeyword}
+                        onChange={handleKeywordChange}
+                    />
+                    {suggestions.length > 0 && (
+                        <ul className="autocomplete-list">
+                            {suggestions.map((item) => (
+                                <li
+                                    key={item.id}
+                                    className="autocomplete-item"
+                                    onClick={() => navigate(`/items/${item.id}`)}
+                                >
+                                    <div style={{ display: "flex", alignItems: "center" }}>
+                                        <img
+                                            src={item.imageUrl || "/placeholder.png"}
+                                            alt={item.title}
+                                            style={{
+                                                width: 40,
+                                                height: 40,
+                                                objectFit: "cover",
+                                                marginRight: 8,
+                                                borderRadius: 4,
+                                            }}
+                                            onError={(e) => {
+                                                e.currentTarget.src = "/placeholder.png";
+                                            }}
+                                        />
+                                        <div>
+                                            <div>{item.title}</div>
+                                            <div style={{ fontSize: "0.9em", color: "#666" }}>
+                                                {item.price.toLocaleString()}원
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                )}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
 
                 {coords && selectedLocation !== "전체" && selectedLocation !== "동네 설정" && (
                     <div className="search-bar">
@@ -449,14 +449,14 @@ export default function LocationSelector() {
                     </div>
                 )}
 
-                <img
-                    src={searchIcon}
-                    className="search-icon clickable"
-                    alt="search"
-                    style={{ cursor: "pointer" }}
-                    onClick={handleSearchSubmit}
-                />
+                <button
+                    type="submit"
+                    style={{ background: "none", border: "none" }}
+                >
+                    <img className="search-icon clickable" src={searchIcon} alt="search" />
+                </button>
             </form>
+
         </>
     );
 }
