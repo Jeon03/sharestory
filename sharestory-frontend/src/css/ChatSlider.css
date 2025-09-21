@@ -1,0 +1,33 @@
+.chatroom-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;               /* 화면 전체 높이 */
+    width: 35vw;                 /* 화면의 30% */
+    max-width: 500px;            /* 너무 넓어지지 않도록 제한 */
+    min-width: 280px;            /* 너무 좁아지지 않도록 제한 */
+    background: #fff;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    z-index: 2000;
+    transition: transform 0.3s ease-in-out;
+}
+
+/* 패널 헤더 */
+.chatroom-panel-header {
+    padding: 10px;
+    font-weight: bold;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 작은 화면 (모바일)에서는 80% */
+@media (max-width: 768px) {
+    .chatroom-panel {
+        width: 80vw;
+        max-width: none;
+    }
+}

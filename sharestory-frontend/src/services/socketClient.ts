@@ -7,11 +7,13 @@ let stompClient: Client | null = null;
 export type MessageType = "TEXT" | "IMAGE" | "LOCATION_MAP" | "LOCATION_TEXT";
 
 export interface ChatMessage {
+    id: number;
     roomId: number;
     senderId: number;
     content: string;
     createdAt: string;
     type: MessageType;
+    read?: boolean;
 }
 
 export interface ItemUpdateMessage {
@@ -22,36 +24,32 @@ export interface ItemUpdateMessage {
     imageUrl: string;
     description: string;
 }
+export interface ReadEvent {
+    roomId: number;
+    userId: number;
+    messageId?: number;
+    readIds: number[];
+}
 
 export const connect = (
     roomId: number,
     onMessage: (msg: ChatMessage) => void,
     onItemUpdate?: (item: ItemUpdateMessage) => void,
-    onUnreadIncrease?: () => void
+    onRead?: (event: ReadEvent) => void,
+    onConnected?: () => void
 ) => {
     const API_BASE = import.meta.env.VITE_API_URL;
     const socket = new SockJS(`${API_BASE}/ws`);
     stompClient = Stomp.over(socket) as Client;
 
-
-
-    // ⚡ 반드시 connect 안에서 구독해야 함
     stompClient.connect({}, () => {
         console.log("✅ STOMP 연결 성공");
-
-
 
         // 채팅 메시지 구독
         stompClient!.subscribe(`/sub/chat/room/${roomId}`, (message: Message) => {
             try {
                 const body: ChatMessage = JSON.parse(message.body);
                 onMessage(body);
-
-                // 내가 보낸 게 아니면 unread 증가
-                const currentUserId = Number(localStorage.getItem("userId"));
-                if (body.senderId !== currentUserId) {
-                    onUnreadIncrease?.();
-                }
             } catch (err) {
                 console.error("❌ 메시지 파싱 실패:", err);
             }
@@ -68,9 +66,32 @@ export const connect = (
                 }
             });
         }
+
+        if (onRead) {
+            stompClient!.subscribe(`/sub/chat/room/${roomId}/read`, (message: Message) => {
+                try {
+                    const event: ReadEvent = JSON.parse(message.body);
+                    console.log("📖 읽음 이벤트 수신:", event);
+                    onRead(event);
+                } catch (err) {
+                    console.error("❌ 읽음 이벤트 파싱 실패:", err);
+                }
+            });
+        }
+        if (onConnected) {
+            onConnected();
+        }
     }, (error) => {
         console.error("❌ STOMP 연결 실패:", error);
     });
+};
+
+export const sendReadEvent = (roomId: number, userId: number, readIds: number[] = []) => {
+    if (stompClient && stompClient.connected) {
+        const payload: ReadEvent = { roomId, userId, readIds };
+        console.log("📤 보내는 읽음 이벤트:", payload); // ✅ 로그 찍어보기
+        stompClient.send("/pub/read", {}, JSON.stringify(payload));
+    }
 };
 
 export const sendMessage = (
@@ -81,11 +102,13 @@ export const sendMessage = (
 ) => {
     if (stompClient && stompClient.connected) {
         const payload: ChatMessage = {
+            id: 0,
             roomId,
             content,
             senderId,
             type,
             createdAt: new Date().toISOString(),
+            read: false,
         };
         stompClient.send("/pub/message", {}, JSON.stringify(payload));
     } else {
@@ -101,7 +124,8 @@ export const disconnect = () => {
 
 export const connectGlobal = (
     userId: number,
-    onMessage: (msg: ChatMessage) => void
+    onMessage: (msg: ChatMessage) => void,
+    onUnreadIncrease?: (roomId: number) => void
 ) => {
     const API_BASE = import.meta.env.VITE_API_URL;
     const socket = new SockJS(`${API_BASE}/ws`);
@@ -119,12 +143,15 @@ export const connectGlobal = (
                 return;
             }
 
-            // ✅ 연결이 완료된 뒤에만 구독 실행
+            // ✅ 유저 단위 글로벌 구독
             stompClient.subscribe(`/sub/chat/user/${userId}`, (message: Message) => {
                 try {
                     const body: ChatMessage = JSON.parse(message.body);
                     console.log("📩 글로벌 새 메시지:", body);
                     onMessage(body);
+
+                    // 현재 열려있지 않은 방 → unread 증가
+                    onUnreadIncrease?.(body.roomId);
                 } catch (err) {
                     console.error("❌ 글로벌 메시지 파싱 실패:", err);
                 }

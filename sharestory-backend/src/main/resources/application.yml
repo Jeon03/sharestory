@@ -155,3 +155,8 @@ iamport:
   api:
     key: ${IAMPORT_API_KEY}
     secret: ${IAMPORT_API_SECRET}
+
+  logging:
+    level:
+      org.springframework.messaging: DEBUG
+      org.springframework.web.socket: DEBUG

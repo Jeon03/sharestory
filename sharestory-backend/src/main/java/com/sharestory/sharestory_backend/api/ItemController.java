@@ -153,11 +153,16 @@ public class ItemController {
             @RequestParam String keyword,
             @RequestParam(required = false) Double lat,
             @RequestParam(required = false) Double lon,
-            @RequestParam(defaultValue = "5km") String distance
+            @RequestParam(defaultValue = "5km") String distance,
+            @AuthenticationPrincipal CustomUserDetails user // ✅ 로그인 여부 확인
     ) throws IOException {
-        return ResponseEntity.ok(itemSearchService.autocomplete(keyword, lat, lon, distance));
+        if (user != null) {
+            // ✅ 로그인 사용자 → 위치 포함 자동완성
+            return ResponseEntity.ok(itemSearchService.autocomplete(keyword, lat, lon, distance));
+        } else {
+            // ✅ 비로그인 사용자 → 키워드만 자동완성 (위도/경도 무시)
+            return ResponseEntity.ok(itemSearchService.autocomplete(keyword, null, null, null));
+        }
     }
-
-
 
 }

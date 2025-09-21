@@ -2,19 +2,18 @@ import { useState, useEffect } from "react";
 import ChatRoomList from "./ChatRoomList";
 import ChatRoom from "./ChatRoom";
 import { useChatContext } from "../../contexts/ChatContext";
+import "../../css/ChatSlider.css";
 
 interface ChatSliderProps {
     isOpen: boolean;
     onClose: () => void;
     activeRoomId?: number | null;
-    setUnreadCount: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export default function ChatSlider({
                                        isOpen,
                                        onClose,
                                        activeRoomId,
-                                       setUnreadCount,
                                    }: ChatSliderProps) {
     const [activeRoom, setActiveRoom] = useState<number | null>(null);
     const { setCurrentOpenRoomId } = useChatContext();
@@ -59,12 +58,12 @@ export default function ChatSlider({
             {/* 본문 */}
             <div className="chatroom-panel-body">
                 {activeRoom ? (
-                    <ChatRoom roomId={activeRoom} setUnreadCount={setUnreadCount} />
+                    <ChatRoom roomId={activeRoom} />
                 ) : (
                     <ChatRoomList
                         onRoomSelect={(id) => {
                             setActiveRoom(id);
-                            setCurrentOpenRoomId(id); // ✅ 채팅방 클릭 → Context 반영
+                            setCurrentOpenRoomId(id);
                         }}
                     />
                 )}

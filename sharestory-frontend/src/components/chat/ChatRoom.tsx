@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useLayoutEffect } from "react";
-import { connect, disconnect, sendMessage } from "../../services/socketClient";
+import { connect, disconnect, sendMessage,sendReadEvent } from "../../services/socketClient";
 import "../../css/chat.css";
 import { Image, MapPin, X } from "lucide-react";
 import LocationPickerModal from "../LocationPickerModal.tsx";
@@ -8,15 +8,16 @@ import { useChatContext } from "../../contexts/ChatContext";
 
 interface ChatRoomProps {
     roomId: number;
-    setUnreadCount: React.Dispatch<React.SetStateAction<number>>;
 }
 
 interface ChatMsg {
+    id: number;
     content: string;
     mine: boolean;
     time: string;
     rawTime: string;
     type: "TEXT" | "IMAGE" | "LOCATION_MAP" | "LOCATION_TEXT";
+    read: boolean;
 }
 
 interface ItemInfo {
@@ -28,11 +29,13 @@ interface ItemInfo {
 }
 
 interface ServerMessage {
+    id: number;
     roomId: number;
     senderId: number;
     content: string;
     type: "TEXT" | "IMAGE" | "LOCATION_MAP" | "LOCATION_TEXT";
     createdAt: string;
+    read: boolean;
 }
 
 // 날짜 구분선
@@ -40,7 +43,7 @@ const DateDivider = ({ date }: { date: string }) => (
     <div className="chat-date-divider">{date}</div>
 );
 
-export default function ChatRoom({ roomId, setUnreadCount }: ChatRoomProps) {
+export default function ChatRoom({ roomId }: ChatRoomProps) {
     const [messages, setMessages] = useState<ChatMsg[]>([]);
     const [input, setInput] = useState("");
     const [currentUserId, setCurrentUserId] = useState<number | null>(null);
@@ -54,16 +57,13 @@ export default function ChatRoom({ roomId, setUnreadCount }: ChatRoomProps) {
     const inputWrapperRef = useRef<HTMLDivElement | null>(null);
     const [bottomPadding, setBottomPadding] = useState(80);
 
-    const { setCurrentOpenRoomId } = useChatContext();
+    const { setCurrentOpenRoomId, setUnreadCounts } = useChatContext();
+    const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-    // ✅ 방 입장/퇴장 시 현재 열린 방 등록
+    // ✅ 방 입장/퇴장 시 현재 열린 방 등록 + 읽음 처리
     useEffect(() => {
         setCurrentOpenRoomId(roomId);
-        return () => setCurrentOpenRoomId(null);
-    }, [roomId, setCurrentOpenRoomId]);
 
-    // ✅ 방에 입장했을 때만 읽음 처리
-    useEffect(() => {
         if (roomId && currentUserId) {
             fetch(`${import.meta.env.VITE_API_URL}/api/chat/${roomId}/read`, {
                 method: "POST",
@@ -71,11 +71,27 @@ export default function ChatRoom({ roomId, setUnreadCount }: ChatRoomProps) {
             })
                 .then(() => {
                     console.log(`✅ Room #${roomId} 읽음 처리 완료`);
-                    setUnreadCount((prev) => Math.max(prev - 1, 0)); // 🔥 전체 unreadCount에서 하나 줄임
+                    setUnreadCounts((prev) => ({ ...prev, [roomId]: 0 })); // ✅ 방 unread 초기화
                 })
                 .catch((err) => console.error("읽음 처리 실패:", err));
+            console.log("123123123"); // ✅ 로그 추가
+            console.log("📤 sendReadEvent 호출:", { roomId, currentUserId }); // ✅ 로그 추가
+            sendReadEvent(roomId, currentUserId);
         }
-    }, [roomId, currentUserId, setUnreadCount]);
+
+        return () => setCurrentOpenRoomId(null);
+    }, [roomId, currentUserId, setCurrentOpenRoomId, setUnreadCounts]);
+
+    // 스크롤 맨 아래로 이동 함수
+    const scrollToBottom = (smooth: boolean = false) => {
+        messagesEndRef.current?.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
+    };
+    // ✅ 채팅 내역 불러온 직후, 맨 아래로 이동
+    useEffect(() => {
+        if (messages.length > 0) {
+            scrollToBottom(false); // 처음 입장 → auto (즉시 이동)
+        }
+    }, [messages]);
 
     // ✅ 입력창 높이 자동 반영
     useLayoutEffect(() => {
@@ -131,7 +147,9 @@ export default function ChatRoom({ roomId, setUnreadCount }: ChatRoomProps) {
                 );
                 if (res.ok) {
                     const data: ServerMessage[] = await res.json();
+                    console.log("📩 서버에서 내려온 메시지 데이터:", data); // ✅ 여기 추가
                     const formatted: ChatMsg[] = data.map((msg) => ({
+                        id: msg.id,
                         content: msg.content,
                         mine: msg.senderId === currentUserId,
                         time: new Date(msg.createdAt).toLocaleTimeString([], {
@@ -140,6 +158,7 @@ export default function ChatRoom({ roomId, setUnreadCount }: ChatRoomProps) {
                         }),
                         rawTime: msg.createdAt,
                         type: msg.type,
+                        read: msg.read,
                     }));
                     setMessages(formatted);
                 }
@@ -149,7 +168,7 @@ export default function ChatRoom({ roomId, setUnreadCount }: ChatRoomProps) {
         })();
     }, [roomId, currentUserId]);
 
-    // ✅ 실시간 메시지 수신
+// ✅ 실시간 메시지 수신
     useEffect(() => {
         if (!currentUserId) return;
 
@@ -159,6 +178,7 @@ export default function ChatRoom({ roomId, setUnreadCount }: ChatRoomProps) {
                 setMessages((prev) => [
                     ...prev,
                     {
+                        id: msg.id,
                         content: msg.content,
                         mine: msg.senderId === currentUserId,
                         time: new Date(msg.createdAt).toLocaleTimeString([], {
@@ -167,11 +187,33 @@ export default function ChatRoom({ roomId, setUnreadCount }: ChatRoomProps) {
                         }),
                         rawTime: msg.createdAt,
                         type: msg.type,
+                        read: msg.read ?? false,
                     },
                 ]);
+                // ✅ 내가 받은 메시지라면 즉시 읽음 이벤트 전송
+                if (msg.senderId !== currentUserId) {
+                    sendReadEvent(roomId, currentUserId!);
+                }
             },
             (update) => {
                 setItem(update);
+            },
+            (readEvent) => {
+                console.log("📖 읽음 이벤트 수신:", readEvent);
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        readEvent.readIds.includes(m.id) ? { ...m, read: true } : m
+                    )
+                );
+                setUnreadCounts((prev) => ({
+                    ...prev,
+                    [readEvent.roomId]: 0,
+                }));
+            },
+            () => {
+                // ✅ 연결 완료 후 읽음 이벤트 전송
+                console.log("📤 sendReadEvent 호출 (연결 이후):", { roomId, currentUserId });
+                sendReadEvent(roomId, currentUserId!);
             }
         );
 
@@ -291,11 +333,19 @@ export default function ChatRoom({ roomId, setUnreadCount }: ChatRoomProps) {
                                 ) : (
                                     m.content
                                 )}
-                                <div className="message-time">{m.time}</div>
+                                <div className="message-time">
+                                    {m.time}
+                                    {m.mine && (
+                                        <span className="read-indicator">
+                                            {m.read ? "✔읽음" : "안읽음"}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     );
                 })}
+                <div ref={messagesEndRef} />
             </div>
 
             {/* 입력창 */}

@@ -7,19 +7,16 @@ import logo from "../images/logo.png";
 import LocationSelector from "./LocationSelector";
 import ChatSlider from "./chat/ChatSlider";
 import PointModal from "./PointModal";
+import { useChatContext } from "../contexts/ChatContext";
 
 export default function Header({
                                    user,
                                    onLoginClick,
                                    setUser,
-                                   unreadCount,
-                                   setUnreadCount,
                                }: {
     user: User | null;
     onLoginClick: () => void;
     setUser: React.Dispatch<React.SetStateAction<User | null>>;
-    unreadCount: number;
-    setUnreadCount: React.Dispatch<React.SetStateAction<number>>;
 }) {
     const navigate = useNavigate();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -28,6 +25,12 @@ export default function Header({
 
     const [points, setPoints] = useState(0);
     const [isPointModalOpen, setIsPointModalOpen] = useState(false);
+
+    const { totalUnread } = useChatContext();
+    // ✅ 콘솔 확인
+    useEffect(() => {
+        console.log("🔔 Header totalUnread:", totalUnread);
+    }, [totalUnread]);
 
     const handleProductRegisterClick = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -44,6 +47,7 @@ export default function Header({
                 alert("로그아웃 되었습니다.");
                 setUser(null);
                 navigate("/");
+                window.location.reload();
             } else {
                 alert("로그아웃 실패");
             }
@@ -84,10 +88,6 @@ export default function Header({
         }
     }, [user]);
 
-    useEffect(() => {
-        console.log("🔔 Header에서 받은 unreadCount:", unreadCount);
-    }, [unreadCount]);
-
     return (
         <>
             <header className="header">
@@ -96,7 +96,7 @@ export default function Header({
                 </Link>
 
                 <div className="search-area">
-                    <LocationSelector />
+                    <LocationSelector onLoginClick={onLoginClick} />
                 </div>
 
                 <div className="menu-links">
@@ -107,18 +107,21 @@ export default function Header({
                                     className="chat-icon-container"
                                     onClick={(e) => {
                                         e.preventDefault();
-                                        setShowChat(true); // ✅ 리스트만 열림 → 읽음 처리 X
+                                        setShowChat(true);
                                     }}
                                 >
                                     <i className="bi-chat-dots"></i>
-                                    {unreadCount > 0 && <span className="chat-alert-dot">{unreadCount}</span>}
+
+                                    {totalUnread > 0 && (
+                                        <span className="chat-alert-dot">{totalUnread}</span>
+                                    )}
                                 </div>
 
                                 <a
                                     href="#"
                                     onClick={(e) => {
                                         e.preventDefault();
-                                        setShowChat(true); // ✅ 리스트만 열림
+                                        setShowChat(true);
                                     }}
                                 >
                                     채팅하기
@@ -169,7 +172,6 @@ export default function Header({
                                 isOpen={showChat}
                                 onClose={() => setShowChat(false)}
                                 activeRoomId={null}
-                                setUnreadCount={setUnreadCount}
                             />
                         </>
                     ) : (
@@ -206,17 +208,18 @@ export default function Header({
 
                             <div className="chat-link-wrapper" style={{ position: "relative" }}>
                                 <i className="bi-chat-dots"></i>
-                                {unreadCount > 0 && <span className="chat-alert-dot">{unreadCount}</span>}
+                                {/* ✅ 비로그인 상태 → 알림 뱃지 표시 안 함 */}
                                 <a
                                     href="#"
                                     onClick={(e) => {
                                         e.preventDefault();
-                                        setShowChat(true);
+                                        onLoginClick(); // 비로그인 → 채팅 클릭 시 로그인 모달 열기
                                     }}
                                 >
                                     채팅하기
                                 </a>
                             </div>
+
                         </>
                     )}
                 </div>

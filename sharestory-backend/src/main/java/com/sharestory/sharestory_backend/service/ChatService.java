@@ -94,17 +94,14 @@ public class ChatService {
 
         ChatMessage saved = chatMessageRepository.save(msg);
 
-        // ✅ 보낸 사람(senderId)이 아닌 상대방을 찾아서 안읽음 처리
-        Long receiverId;
-        if (room.getBuyerId().equals(dto.getSenderId())) {
-            receiverId = room.getSellerId();
-        } else {
-            receiverId = room.getBuyerId();
-        }
+        // ✅ 상대방에게 안읽음(ChatRead) 기록 생성
+        Long receiverId = room.getBuyerId().equals(dto.getSenderId())
+                ? room.getSellerId()
+                : room.getBuyerId();
 
         ChatRead chatRead = ChatRead.builder()
                 .message(saved)
-                .userId(receiverId) // User 엔티티 연결 대신 userId만 저장도 가능
+                .userId(receiverId)
                 .read(false)
                 .build();
 
@@ -117,12 +114,35 @@ public class ChatService {
     }
 
     @Transactional(readOnly = true)
-    public List<ChatMessageDto> getMessages(Long roomId) {
-        return chatMessageRepository.findByRoom_IdOrderByCreatedAtAsc(roomId)
-                .stream()
-                .map(ChatMessageDto::from)
+    public List<ChatMessageDto> getMessages(Long roomId, Long userId) {
+        ChatRoom room = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("채팅방 없음"));
+
+        Long buyerId = room.getBuyerId();
+        Long sellerId = room.getSellerId();
+
+        // 상대방 ID 계산 (내가 보낸 메시지 확인용)
+        Long opponentId = buyerId.equals(userId) ? sellerId : buyerId;
+
+        List<ChatMessage> messages = chatMessageRepository.findByRoom_IdOrderByCreatedAtAsc(roomId);
+
+        return messages.stream()
+                .map(msg -> {
+                    boolean read;
+
+                    if (msg.getSenderId().equals(userId)) {
+                        // ✅ 내가 보낸 메시지 → 상대방이 읽었는지 확인
+                        read = chatReadRepository.existsByMessage_IdAndUserIdAndReadTrue(msg.getId(), opponentId);
+                    } else {
+                        // ✅ 내가 받은 메시지 → 나는 이미 읽었음
+                        read = true;
+                    }
+
+                    return ChatMessageDto.from(msg, read);
+                })
                 .toList();
     }
+
 
     @Transactional(readOnly = true)
     public Map<String, Object> getItemByRoom(Long roomId) {
@@ -143,7 +163,41 @@ public class ChatService {
     public void markMessagesAsRead(Long roomId, Long userId) {
         chatReadRepository.markAllAsRead(roomId, userId);
     }
+
+
+    /**
+     * 유저의 전체 안읽은 메시지 합계
+     */
     public int getTotalUnreadCount(Long userId) {
-        return chatReadRepository.countUnreadByUser(userId);
+        return chatMessageRepository.countUnreadMessages(userId);
     }
+
+    /**
+     * 유저가 속한 방별 안읽은 메시지 수를 계산
+     */
+    public Map<Long, Integer> getUnreadCountPerRoom(Long userId) {
+        Map<Long, Integer> result = new HashMap<>();
+
+        // ✅ 유저가 속한 모든 채팅방 가져오기
+        List<ChatRoom> rooms = chatRoomRepository.findByBuyerIdOrSellerId(userId, userId);
+
+        for (ChatRoom room : rooms) {
+            int count = chatMessageRepository.countUnreadMessagesByRoom(room.getId(), userId);
+            result.put(room.getId(), count);
+        }
+
+        return result;
+    }
+
+    @Transactional(readOnly = true)
+    public ChatRoom findRoom(Long roomId) {
+        return chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("채팅방 없음"));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Long> getReadMessageIds(Long roomId, Long userId) {
+        return chatReadRepository.findReadMessageIds(roomId, userId);
+    }
+
 }
