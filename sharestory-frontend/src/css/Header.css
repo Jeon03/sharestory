@@ -1,6 +1,6 @@
 /* 헤더 */
 .header {
-    height: 80px;
+    height: 50px;
     position: sticky;
     padding-top: 30px;
     z-index: 1000;
@@ -53,26 +53,12 @@
     margin: 0 8px;
     color: #aaa;
 }
-.chat-alert-dot {
-    position: absolute;
-    top: -6px;
-    right: -6px;
-    background: red;
-    color: white;
-    font-size: 12px;
-    font-weight: bold;
-    border-radius: 50%;
-    padding: 2px 6px;
-    line-height: 1;
-    min-width: 18px;
-    text-align: center;
-}
 
 
 .chat-alert-dot {
     position: absolute;
     top: -6px;
-    right: -8px;
+    right: -4px;
     background-color: red;
     color: white;
     border-radius: 50%;
@@ -133,10 +119,10 @@
     background: #ffe5e5;
 }
 
-.chat-link-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 6px; /* 아이콘-텍스트 간격 */
+.chat-link-wrapper i {
+    font-size: 16px;      /* 다른 아이콘과 크기 맞추기 */
+    vertical-align: middle;
+    margin-right: 4px;    /* 아이콘과 텍스트 간격 */
 }
 
 .point-value2 {

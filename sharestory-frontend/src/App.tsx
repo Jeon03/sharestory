@@ -18,14 +18,10 @@ function AppLayout({
                        user,
                        onLoginClick,
                        setUser,
-                       unreadCount,
-                       setUnreadCount,
                    }: {
     user: User | null;
     onLoginClick: () => void;
     setUser: React.Dispatch<React.SetStateAction<User | null>>;
-    unreadCount: number;
-    setUnreadCount: React.Dispatch<React.SetStateAction<number>>;
 }) {
     return (
         <div className="App">
@@ -34,8 +30,6 @@ function AppLayout({
                     user={user}
                     onLoginClick={onLoginClick}
                     setUser={setUser}
-                    unreadCount={unreadCount}
-                    setUnreadCount={setUnreadCount}
                 />
                 <Navigation />
             </div>
@@ -54,9 +48,7 @@ function AppLayout({
 export default function App() {
     const [user, setUser] = useState<User | null>(null);
     const [isLoginOpen, setIsLoginOpen] = useState(false);
-    const [unreadCount, setUnreadCount] = useState(0);
-
-    const { currentOpenRoomId } = useChatContext(); // ✅ Context로 현재 열린 방 추적
+    const { currentOpenRoomId, setUnreadCounts, setLastMessages } = useChatContext();
     const API_URL = import.meta.env.VITE_API_URL || "";
 
     // ✅ 로그인 상태 + 서버에서 unreadCount 가져오기
@@ -70,13 +62,13 @@ export default function App() {
                     setUser(data);
 
                     try {
-                        const unreadRes = await fetch(`${API_URL}/api/chat/unreadCount`, {
+                        const unreadRes = await fetch(`${API_URL}/api/chat/unreadCounts`, {
                             credentials: "include",
                         });
                         if (unreadRes.ok) {
                             const unreadData = await unreadRes.json();
-                            console.log("📩 서버에서 가져온 unreadCount:", unreadData);
-                            setUnreadCount(unreadData.unreadCount || 0);
+                            console.log("📩 서버에서 가져온 unreadCounts:", unreadData);
+                            setUnreadCounts(unreadData.unreadCounts || {});
                         }
                     } catch (err) {
                         console.error("안읽음 카운트 가져오기 실패:", err);
@@ -100,12 +92,12 @@ export default function App() {
                     if (data2.authenticated) {
                         setUser(data2);
 
-                        const unreadRes = await fetch(`${API_URL}/api/chat/unreadCount`, {
+                        const unreadRes = await fetch(`${API_URL}/api/chat/unreadCounts`, {
                             credentials: "include",
                         });
                         if (unreadRes.ok) {
                             const unread = await unreadRes.json();
-                            setUnreadCount(unread.count || 0);
+                            setUnreadCounts(unread.unreadCounts || {});
                         }
                     } else {
                         setUser(null);
@@ -128,20 +120,42 @@ export default function App() {
     useEffect(() => {
         if (!user?.id) return;
 
-        connectGlobal(user.id, (msg) => {
-            console.log("📩 새 메시지 도착:", msg);
 
-            // 현재 열려 있는 방이 아니면 카운트 증가
-            if (msg.roomId !== currentOpenRoomId) {
-                setUnreadCount((prev) => prev + 1);
+        connectGlobal(
+            user.id,
+            (msg) => {
+                console.log("📩 글로벌 새 메시지:", msg);
+
+                const roomId = Number(msg.roomId);
+                const normalized =
+                    msg.type === "IMAGE" ? "[사진]" :
+                        msg.type === "LOCATION_MAP" ? "[지도]" :
+                            msg.content;
+
+                // ✅ 마지막 메시지 갱신
+                setLastMessages((prev) => {
+                    const updated = {
+                        ...prev,
+                        [roomId]: { content: normalized, updatedAt: msg.createdAt },
+                    };
+                    console.log("💾 lastMessages 업데이트:", updated);
+                    return updated;
+                });
+
+                // ✅ 현재 열려있지 않은 방이면 unread 증가
+                if (roomId !== currentOpenRoomId) {
+                    setUnreadCounts((prev) => ({
+                        ...prev,
+                        [roomId]: (prev[roomId] || 0) + 1,
+                    }));
+                }
             }
-            // 현재 방이면 → ChatRoom.tsx에서 직접 읽음 처리
-        });
+        );
 
         return () => {
             disconnect();
         };
-    }, [user?.id, currentOpenRoomId]);
+    }, [user?.id, currentOpenRoomId, setUnreadCounts, setLastMessages]);
 
     return (
         <Router>
@@ -152,8 +166,6 @@ export default function App() {
                             user={user}
                             onLoginClick={() => setIsLoginOpen(true)}
                             setUser={setUser}
-                            unreadCount={unreadCount}
-                            setUnreadCount={setUnreadCount}
                         />
                     }
                 >

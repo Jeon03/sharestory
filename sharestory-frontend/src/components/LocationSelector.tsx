@@ -14,6 +14,10 @@ interface KakaoAddress {
     y: string;
 }
 
+interface LocationSelectorProps {
+    onLoginClick: () => void; // 로그인 모달 열기 함수
+}
+
 interface UserMainResponse {
     id?: number;
     email?: string;
@@ -25,7 +29,7 @@ interface UserMainResponse {
     authenticated: boolean;
 }
 
-export default function LocationSelector() {
+export default function LocationSelector({ onLoginClick }: LocationSelectorProps) {
     const [searchResults, setSearchResults] = useState<KakaoAddress[]>([]);
     const [radius, setRadius] = useState(3);
     const [isOpen, setIsOpen] = useState(false);
@@ -288,6 +292,11 @@ export default function LocationSelector() {
             <button
                 className="select-button"
                 onClick={() => {
+                    if (!isAuthenticated) {
+                        onLoginClick(); // ✅ 바로 로그인 모달 열기
+                        return;
+                    }
+
                     // 지도/마커/원 무조건 초기화
                     mapRef.current = null;
                     markerRef.current = null;

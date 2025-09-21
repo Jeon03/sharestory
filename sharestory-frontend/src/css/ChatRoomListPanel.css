@@ -19,6 +19,7 @@
 
 /* 🔹 헤더 */
 .chatroom-panel-header {
+    margin-left: 10px;
     padding: 1rem;
     font-weight: bold;
     border-bottom: 1px solid #ddd;

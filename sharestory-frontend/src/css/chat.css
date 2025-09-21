@@ -404,7 +404,15 @@
 .btn.confirm:hover {
     background: #f5e166;
 }
+.read-indicator {
+    margin-left: 6px;
+    font-size: 11px;
+    color: #888;
+}
 
+.read-indicator::before {
+    content: "";
+}
 /* 애니메이션 */
 @keyframes fadeInUp {
     from {

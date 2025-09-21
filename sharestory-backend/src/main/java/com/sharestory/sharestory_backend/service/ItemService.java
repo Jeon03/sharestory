@@ -7,10 +7,7 @@ import com.sharestory.sharestory_backend.domain.ItemImage;
 import com.sharestory.sharestory_backend.dto.ItemRequestDto;
 import com.sharestory.sharestory_backend.dto.ItemStatus;
 import com.sharestory.sharestory_backend.dto.ItemUpdateMessage;
-import com.sharestory.sharestory_backend.repo.ChatRoomRepository;
-import com.sharestory.sharestory_backend.repo.FavoriteItemRepository;
-import com.sharestory.sharestory_backend.repo.ItemImageRepository;
-import com.sharestory.sharestory_backend.repo.ItemRepository;
+import com.sharestory.sharestory_backend.repo.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -37,6 +34,9 @@ public class ItemService {
     private final FavoriteItemRepository favoriteItemRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
+    private final ChatReadRepository chatReadRepository;
+    private final ChatMessageRepository chatMessageRepository;
+    private final PointHistoryRepository pointHistoryRepository;
 
     @Transactional
     public Item registerItem(ItemRequestDto dto, List<MultipartFile> images, Long userId) throws IOException {
@@ -186,8 +186,6 @@ public class ItemService {
         }
     }
 
-
-
     @Transactional
     public void deleteItem(Long itemId, Long userId) {
         // 1) 상품 조회
@@ -198,9 +196,10 @@ public class ItemService {
             throw new SecurityException("삭제 권한이 없습니다.");
         }
 
+        // 2) 채팅방 및 메시지 삭제 (읽음 기록 포함)
         List<ChatRoom> rooms = chatRoomRepository.findByItem_Id(itemId);
         for (ChatRoom room : rooms) {
-            // ✅ 채팅 메시지 중 IMAGE 타입은 S3에서도 삭제
+            // (1) 채팅 메시지 중 IMAGE 타입은 S3에서도 삭제
             for (ChatMessage msg : room.getMessages()) {
                 if (msg.getType() == ChatMessage.MessageType.IMAGE) {
                     try {
@@ -213,36 +212,45 @@ public class ItemService {
                     }
                 }
             }
-        }
-        // ✅ 채팅방(메시지 포함) 삭제
-        chatRoomRepository.deleteAll(rooms);
-        //관심상품 db 삭제
-        favoriteItemRepository.deleteAllByItemId(itemId);
 
-        // ✅ S3 이미지 삭제
+            // (2) 읽음 기록 제거
+            chatReadRepository.deleteAllByRoomId(room.getId());
+
+            // (3) 메시지 제거
+            chatMessageRepository.deleteAllByRoomId(room.getId());
+        }
+
+        // (4) 채팅방 제거
+        chatRoomRepository.deleteAll(rooms);
+
+
+        // 5) 상품 이미지 S3 제거
         if (item.getImages() != null && !item.getImages().isEmpty()) {
             for (ItemImage img : item.getImages()) {
                 try {
                     String key = s3Service.extractKeyFromUrl(img.getUrl());
                     if (key != null) {
                         s3Service.deleteByKey(key);
-                        System.out.println("[S3 DELETE SUCCESS] key=" + key);
+                        log.info("[S3 DELETE SUCCESS] key={}", key);
                     }
                 } catch (Exception e) {
-                    System.err.println("[S3 DELETE FAIL] url=" + img.getUrl() + " err=" + e.getMessage());
+                    log.error("[S3 DELETE FAIL] url={} err={}", img.getUrl(), e.getMessage());
                 }
             }
         }
 
-        //다중 이미지 db 삭제
+        // 6) 상품 이미지 DB 제거
         itemImageRepository.deleteAllByItemId(itemId);
-        
-        // 2) DB 삭제 (연관 이미지 함께 삭제됨: CascadeType.ALL + orphanRemoval = true)
+
+        // 7) 상품 자체 DB 제거
         itemRepository.delete(item);
 
-        // 3) ES 인덱스 삭제
+        // 8) ES 인덱스 제거
         itemSearchIndexer.deleteItem(itemId);
+
+        log.info("[ITEM DELETE COMPLETE] itemId={}", itemId);
     }
+
 
     @Transactional(readOnly = true)
     public List<String> getImageUrls(Long itemId) {
