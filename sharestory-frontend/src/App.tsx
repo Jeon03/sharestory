@@ -11,6 +11,7 @@ import ProductDetail from './pages/ProductDetail';
 import SearchPage from "./pages/SearchPage";  // 경로는 실제 위치에 맞게 수정
 import AuctionList from './pages/AuctionList';
 import UsedproductList from "./pages/UsedproductList.tsx";
+import AuctionItemPage from "./pages/AuctionItemPage.tsx";
 import './css/App.css';
 import type {User} from './types/user';
 
@@ -114,6 +115,9 @@ export default function App() {
                     <Route path="/registerItem" element={user ? <ItemRegister/> : <Navigate to="/" replace/>}/>
                     <Route path="/items/:id/edit" element={<ItemEdit/>}/>
                     <Route path="/search" element={<SearchPage/>}/>
+
+                    {/* ✅ 여기 추가: 특정 컴포넌트만 확인용 */}
+                    <Route path="/test-auction" element={<AuctionItemPage />} />
                 </Route>
             </Routes>
 
