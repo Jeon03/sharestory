@@ -12,4 +12,6 @@ export interface ItemSummary {
     latitude?: number;
     longitude?: number;
     location?: string; // 프론트에서 kakao api로 변환한 행정동 이름
+    modified?: boolean;
+    updatedDate?: string;
 }

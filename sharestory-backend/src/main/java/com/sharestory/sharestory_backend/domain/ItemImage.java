@@ -1,5 +1,6 @@
 package com.sharestory.sharestory_backend.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,6 +24,7 @@ public class ItemImage {
     @JoinColumn(name = "item_id")
     @ToString.Exclude   // ⚠️ 순환참조 방지
     @EqualsAndHashCode.Exclude
+    @JsonIgnore
     private Item item;
 }
 

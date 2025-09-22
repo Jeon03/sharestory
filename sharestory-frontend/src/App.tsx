@@ -13,6 +13,7 @@ import './css/App.css';
 import type { User } from './types/user';
 import { connectGlobal, disconnect } from "./services/socketClient.ts";
 import { useChatContext } from "./contexts/ChatContext";
+import ChatSlider from "./components/chat/ChatSlider";
 
 function AppLayout({
                        user,
@@ -44,6 +45,19 @@ function AppLayout({
         </div>
     );
 }
+
+// ✅ 전역 ChatSlider 렌더링
+function GlobalChat() {
+    const { isChatOpen, closeChat, currentOpenRoomId } = useChatContext();
+    return (
+        <ChatSlider
+            isOpen={isChatOpen}
+            onClose={closeChat}
+            activeRoomId={currentOpenRoomId}
+        />
+    );
+}
+
 
 export default function App() {
     const [user, setUser] = useState<User | null>(null);
@@ -176,7 +190,7 @@ export default function App() {
                     <Route path="/search" element={<SearchPage />} />
                 </Route>
             </Routes>
-
+            <GlobalChat />
             <Login isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
         </Router>
     );

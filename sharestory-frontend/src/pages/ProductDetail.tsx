@@ -1,12 +1,14 @@
-import {useEffect, useMemo, useState} from 'react';
-import {Link, useNavigate, useParams} from 'react-router-dom';
-import type {CustomArrowProps, Settings} from 'react-slick';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import type { CustomArrowProps, Settings } from 'react-slick';
 import Slider from 'react-slick';
 import '../css/productDetail.css';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import {Heart} from 'lucide-react';
-import ChatSlider from '../components/chat/ChatSlider.tsx';  // ✅ 채팅 슬라이더 import
+import { Heart } from "lucide-react";
+import { useChatContext } from "../contexts/ChatContext";
+import Select from "react-select";
+import ReserveModal from "../components/ReserveModal";
 
 type ItemStatus =
     | 'ON_SALE'
@@ -26,7 +28,10 @@ interface DealInfo {
     safeTrade?: boolean;
     shippingOption?: ShippingOption;
 }
-
+interface ImageDto {
+    id: number;
+    url: string;
+}
 interface ItemDetail {
     id: number;
     userId: number;
@@ -39,10 +44,12 @@ interface ItemDetail {
     condition: string;
     status?: string;
     imageUrl?: string;
-    images?: string[];
+    images?: ImageDto[];
     dealInfo?: DealInfo;
     modified?: boolean;
     updatedDate?: string;
+    viewCount: number;
+    chatRoomCount: number;
 }
 
 interface User {
@@ -68,16 +75,16 @@ export default function ProductDetailSimple() {
     const [err, setErr] = useState<string | null>(null);
 
     const [currentUser, setCurrentUser] = useState<User | null>(null);
-    const navigate = useNavigate();
-
-    // ❤️ 관심상품 상태
     const [isFavorite, setIsFavorite] = useState(false);
     const [favoriteCount, setFavoriteCount] = useState(0);
 
-    // ✅ 채팅 상태
-    const [showChat, setShowChat] = useState(false);
-    const [activeRoomId, setActiveRoomId] = useState<number | null>(null);
+    // ✅ 예약 모달 상태
+    const [showReserveModal, setShowReserveModal] = useState(false);
 
+    const navigate = useNavigate();
+    const { openChat } = useChatContext();
+
+    // ✅ 데이터 로딩
     useEffect(() => {
         if (!id) return;
         let aborted = false;
@@ -93,7 +100,7 @@ export default function ProductDetailSimple() {
                 const data = (await r.json()) as ItemDetail;
                 if (!aborted) setItem(data);
 
-                // 관심 여부 + 개수
+                // 관심 여부
                 const f = await fetch(`${API_BASE}/api/favorites/${id}`, { credentials: 'include' });
                 if (f.ok) {
                     const fav = await f.json();
@@ -103,7 +110,7 @@ export default function ProductDetailSimple() {
                     }
                 }
 
-                // 현재 로그인 사용자 정보
+                // 로그인 사용자 정보
                 const me = await fetch(`${API_BASE}/api/main`, { credentials: 'include' });
                 if (me.ok) {
                     const user = (await me.json()) as User;
@@ -121,7 +128,7 @@ export default function ProductDetailSimple() {
         };
     }, [id]);
 
-    // ❤️ 토글 함수
+    // ❤️ 관심상품 토글
     const toggleFavorite = async () => {
         if (!id) return;
         try {
@@ -138,6 +145,7 @@ export default function ProductDetailSimple() {
         }
     };
 
+    // 상품 삭제
     const handleDelete = async () => {
         if (!id) return;
         if (!window.confirm('정말로 이 상품을 삭제하시겠습니까?')) return;
@@ -158,18 +166,23 @@ export default function ProductDetailSimple() {
         }
     };
 
-    // ✅ 채팅 시작 함수
+    // 채팅 시작
     const handleStartChat = async () => {
-        if (!id) return;
+        if (!id || !currentUser || !item) return;
+
+        if (currentUser.id === item.userId) {
+            openChat();
+            return;
+        }
+
         try {
             const res = await fetch(`${API_BASE}/api/chat/room?itemId=${id}`, {
                 method: "POST",
                 credentials: "include",
             });
             if (res.ok) {
-                const room = await res.json(); // ChatRoomDto
-                setActiveRoomId(room.roomId);
-                setShowChat(true);
+                const room = await res.json();
+                openChat(room.roomId);
             } else {
                 alert("채팅방 생성 실패");
             }
@@ -178,15 +191,32 @@ export default function ProductDetailSimple() {
         }
     };
 
+    // ✅ 예약 확정
+    const handleReserveConfirm = async (roomId: number, buyerId: number) => {
+        if (!id) return;
+
+        try {
+            const res = await fetch(`${API_BASE}/api/items/${id}/reserve`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ roomId, buyerId }),
+            });
+            if (!res.ok) throw new Error("예약 실패");
+            setItem({ ...item!, itemStatus: "RESERVED" });
+            setShowReserveModal(false);
+            alert("예약이 완료되었습니다.");
+        } catch {
+            alert("예약 처리 중 오류 발생");
+        }
+    };
+
     const images = useMemo(() => {
-        if (!item) return [] as string[];
-        const arr =
-            Array.isArray(item.images) && item.images.length > 0
-                ? item.images
-                : item.imageUrl
-                    ? [item.imageUrl]
-                    : [];
-        return arr.filter(Boolean) as string[];
+        if (!item) return [];
+        if (Array.isArray(item.images) && item.images.length > 0) {
+            return item.images.map(img => img.url);
+        }
+        return item?.imageUrl ? [item.imageUrl] : [];
     }, [item]);
 
     const sliderSettings: Settings = {
@@ -206,19 +236,18 @@ export default function ProductDetailSimple() {
     };
 
     if (loading) return <div className="detail-loading">로딩 중…</div>;
-    if (err)
-        return (
-            <div className="detail-loading" style={{ color: 'crimson' }}>
-                에러: {err}
-            </div>
-        );
+    if (err) return <div className="detail-loading" style={{ color: 'crimson' }}>에러: {err}</div>;
     if (!item) return <div className="detail-loading">데이터가 없습니다.</div>;
 
     return (
         <div className="detail-container">
             {/* 브레드크럼 */}
             <nav className="breadcrumb">
-                <Link to="/">홈</Link> &gt; <Link to="/category">{item.category}</Link> &gt; <span>{item.title}</span>
+                <Link to="/">홈</Link>
+                <span>&gt;</span>
+                <Link to="/category">{item.category}</Link>
+                <span>&gt;</span>
+                <span>{item.title}</span>
             </nav>
 
             <div className="detail-main">
@@ -229,115 +258,148 @@ export default function ProductDetailSimple() {
                             {images.map((url, idx) => (
                                 <div key={idx} className="image-wrapper">
                                     <img src={url} alt={`${item.title} ${idx + 1}`} className="slide-image" />
-                                    {item.itemStatus === 'RESERVED' && <div className="status-overlay reserved">예약중</div>}
-                                    {item.itemStatus === 'SOLD_OUT' && <div className="status-overlay sold">판매완료</div>}
-                                    {['SAFE_DELIVERY', 'SAFE_DELIVERY_START', 'SAFE_DELIVERY_ING', 'SAFE_DELIVERY_COMPLETE'].includes(
-                                        item.itemStatus
-                                    ) && <div className="status-overlay in-progress">거래 진행중</div>}
-                                    {item.itemStatus === 'SAFE_DELIVERY_POINT_DONE' && <div className="status-overlay done">거래 완료</div>}
                                 </div>
                             ))}
                         </Slider>
                     ) : (
                         <div className="image-wrapper">
-                            <div
-                                className="slide-image"
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: '#888',
-                                }}
-                            >
+                            <div className="slide-image" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
                                 이미지가 없습니다
                             </div>
                         </div>
                     )}
                 </div>
 
-                {/* 상세 정보 */}
+                {/* 상품 정보 */}
                 <div className="detail-info">
-                    <h1 className="detail-title">{item.title}</h1>
-
-                    <div className="detail-meta-top">
-                        <span className="category">{item.category}</span>
-                        <span> · </span>
-                        <span className="time">
-                            {new Date(item.createdDate).toLocaleString()}
-                            {item.modified && (
-                                <span style={{ marginLeft: "6px", color: "#888", fontSize: "0.9em" }}>
-                                (수정됨)
-                                </span>
-                            )}
-                        </span>
-                    </div>
+                    <h1 className="detail-title">
+                        {item.itemStatus === "RESERVED" && <span className="detail-status-badge detail-status-badge-reserved">예약중</span>}
+                        {item.itemStatus === "SOLD_OUT" && <span className="detail-status-badge detail-status-badge-sold">판매완료</span>}
+                        {item.title}
+                    </h1>
 
                     <p className="detail-price">{item.price.toLocaleString()}원</p>
 
-                    {/* ❤️ 관심상품 버튼 */}
-                    <button onClick={toggleFavorite} className="favorite-btn">
-                        {isFavorite ? <Heart fill="red" stroke="red" size={24} /> : <Heart stroke="gray" size={24} />}
-                        <span style={{ marginLeft: 6 }}>{favoriteCount}</span>
-                    </button>
-
-                    <div className="detail-description">
-                        {(item.description || '').split('\n').map((line, i) => (
-                            <p key={i}>{line}</p>
-                        ))}
+                    <div className="detail-meta">
+                        <span>{new Date(item.createdDate).toLocaleDateString()}</span>
+                        <span> · </span>
+                        <span>조회 {item.viewCount}</span>
+                        <span> · </span>
+                        <span>채팅 {item.chatRoomCount}</span>
+                        <span> · </span>
+                        <span>찜 {favoriteCount}</span>
                     </div>
 
-                    <table className="detail-table">
-                        <tbody>
-                        <tr>
-                            <th>상품상태</th>
-                            <td>{item.condition ?? '-'}</td>
-                        </tr>
-                        <tr>
-                            <th>거래방식</th>
-                            <td>
-                                {[item.dealInfo?.parcel && '택배거래',
-                                    item.dealInfo?.direct && '직거래',
-                                    item.dealInfo?.safeTrade && '🔒안전거래',
-                                    item.dealInfo?.shippingOption &&
-                                    `(배송비: ${item.dealInfo.shippingOption === 'included' ? '포함' : '별도'})`]
-                                    .filter(Boolean)
-                                    .join(' · ')}
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
+                    <div className="detail-row">
+                        <span className="label">거래방법</span>
+                        <span className="value">
+                            {[
+                                item.dealInfo?.parcel &&
+                                (item.dealInfo.shippingOption === 'separate' ? '택배거래 (배송비 별도)' : '택배거래 (배송비 포함)'),
+                                item.dealInfo?.direct && '직거래',
+                                item.dealInfo?.safeTrade && '🔒 안전거래',
+                            ].filter(Boolean).join(' · ')}
+                        </span>
+                    </div>
 
-                    {/* ✅ 채팅하기 버튼 */}
-                    <button
-                        onClick={handleStartChat}
-                        className="chat-btn bg-blue-500 text-white px-4 py-2 rounded mt-4"
-                    >
-                        💬 채팅하기
-                    </button>
+                    <div className="detail-row">
+                        <span className="label">상품상태</span>
+                        <span className="value">{item.condition ?? '상태 미기재'} {item.status ?? ''}</span>
+                    </div>
 
-                    {/* ✅ 수정/삭제 버튼 (작성자만) */}
+                    <div className="detail-row description-row">
+                        <span className="label">상품설명</span>
+                        <div className="value">
+                            {(item.description || '').split('\n').map((line, i) => <p key={i}>{line}</p>)}
+                        </div>
+                    </div>
+
+                    {/* 액션 버튼 */}
+                    <div className="action-buttons">
+                        <button onClick={toggleFavorite} className="btn-fav">
+                            {isFavorite ? <Heart fill="red" stroke="red" size={28} /> : <Heart stroke="black" size={28} strokeWidth={1} />}
+                        </button>
+                        <button onClick={handleStartChat} className="btn-chat">채팅하기</button>
+                        <button className="btn-buy">구매하기</button>
+                    </div>
+
+                    {/* 판매자 전용 버튼 */}
                     {currentUser && item.userId === currentUser.id && (
                         <div className="owner-actions">
-                            <button
-                                className="edit-btn"
-                                onClick={() => navigate(`/items/${item.id}/edit`)}
-                            >
-                                수정하기
-                            </button>
-                            <button className="delete-btn" onClick={handleDelete}>
-                                삭제하기
-                            </button>
+                            <div className="owner-status">
+                                <span className="status-label">상품 판매상태</span>
+                                <Select
+                                    options={[
+                                        { value: "ON_SALE", label: "판매중" },
+                                        { value: "RESERVED", label: "예약중" },
+                                        { value: "SOLD_OUT", label: "거래완료" },
+                                    ]}
+                                    value={{
+                                        value: item.itemStatus,
+                                        label: item.itemStatus === "ON_SALE" ? "판매중" : item.itemStatus === "RESERVED" ? "예약중" : "거래완료",
+                                    }}
+                                    onChange={async (selected) => {
+                                        if (!selected) return;
+                                        if (selected.value === "RESERVED") {
+                                            setShowReserveModal(true);
+                                            return;
+                                        }
+                                        await fetch(`${API_BASE}/api/items/${item.id}/status?status=${selected.value}`, {
+                                            method: "PATCH",
+                                            credentials: "include",
+                                        });
+                                        setItem({ ...item, itemStatus: selected.value as ItemStatus });
+                                    }}
+                                    isSearchable={false}
+                                    styles={{
+                                        control: (provided, state) => ({
+                                            ...provided,
+                                            borderRadius: "8px",
+                                            borderColor: state.isFocused ? "gold" : "#ddd", // 포커스 시 오렌지
+                                            boxShadow: state.isFocused ? "0 0 0 2px rgba(255,126,54,0.2)" : "none",
+                                            "&:hover": { borderColor: "gold" },
+                                            minHeight: "40px",
+                                        }),
+                                        option: (provided, state) => ({
+                                            ...provided,
+                                            backgroundColor: state.isSelected
+                                                ? "#f5e166"
+                                                : state.isFocused
+                                                    ? ""
+                                                    : "#fff",
+                                            color: state.isSelected ? "black" : "#333",
+                                            padding: "10px 12px",
+                                            cursor: "pointer",
+                                        }),
+                                        singleValue: (provided) => ({
+                                            ...provided,
+                                            color: "#333",
+                                            fontWeight: 500,
+                                        }),
+                                        dropdownIndicator: (provided) => ({
+                                            ...provided,
+                                            color: "gray",
+                                            "&:hover": { color: "black" },
+                                        }),
+                                    }}
+                                />
+                            </div>
+
+                            <button className="btn-edit-link" onClick={() => navigate(`/items/${item.id}/edit`)}>✏️ 수정하기</button>
+                            <button className="btn-delete" onClick={handleDelete}>🗑 삭제하기</button>
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* ✅ ChatSlider 연결 */}
-            <ChatSlider
-                isOpen={showChat}
-                onClose={() => setShowChat(false)}
-                activeRoomId={activeRoomId}
-            />
+            {/* ✅ 예약자 선택 모달 */}
+            {showReserveModal && (
+                <ReserveModal
+                    itemId={item.id}
+                    onClose={() => setShowReserveModal(false)}
+                    onConfirm={handleReserveConfirm}
+                />
+            )}
         </div>
     );
 }

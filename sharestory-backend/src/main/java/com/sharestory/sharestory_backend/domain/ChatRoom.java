@@ -1,5 +1,6 @@
 package com.sharestory.sharestory_backend.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -18,6 +19,7 @@ public class ChatRoom {
 
     @ManyToOne(fetch = FetchType.LAZY) // 상품 기준
     @JoinColumn(name = "item_id")
+    @JsonIgnore
     private Item item;
 
     private Long buyerId;   // 구매자

@@ -24,7 +24,8 @@ public class ItemDetailResponse {
     private String itemStatus;    // ✅ Enum → 문자열 (예: "ON_SALE")
 
     private String imageUrl;      // 대표 이미지(옵션)
-    private List<String> images;  // 다중 이미지 URL
+    //private List<String> images;  // 다중 이미지 URL
+    private List<ImageDto> images;
 
     // 위치 표시용 (프론트에서 좌표→행정동 변환)
     private Double latitude;
@@ -34,4 +35,7 @@ public class ItemDetailResponse {
 
     private boolean modified;      // 수정 여부
     private String updatedDate;
+
+    private int viewCount;
+    private int chatRoomCount;
 }
