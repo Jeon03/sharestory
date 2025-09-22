@@ -1,5 +1,6 @@
 package com.sharestory.sharestory_backend.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,6 +21,7 @@ public class ChatMessage {
     // ✅ 채팅방과 N:1 관계
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id", nullable = false)
+    @JsonIgnore
     private ChatRoom room;
 
     private Long senderId;
@@ -29,7 +31,7 @@ public class ChatMessage {
 
     // ✅ 메시지 타입 (TEXT, IMAGE, LOCATION_MAP, LOCATION_TEXT)
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private MessageType type;
 
     private LocalDateTime createdAt;
@@ -37,6 +39,7 @@ public class ChatMessage {
     public enum MessageType {
         TEXT,
         IMAGE,
+        SYSTEM,
         LOCATION_MAP,
         LOCATION_TEXT
     }

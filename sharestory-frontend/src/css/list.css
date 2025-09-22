@@ -30,10 +30,11 @@
     transform-origin: center;
 }
 .product-info {
+    flex: 1; /* ✅ 남은 공간을 채움 */
     padding: 8px;
-    flex: 1;
     display: flex;
     flex-direction: column;
+    justify-content: flex-start;
 }
 
 /* 제목 */
@@ -166,6 +167,7 @@
     font-weight: bold;
     margin-bottom: 20px;
 }
+
 .banner-slider {
     width: 1200px;   /* 원하는 크기 */
     height: 300px;
@@ -183,4 +185,32 @@
     height: 100%;
     object-fit: cover;   /* 이미지를 꽉 채우면서 잘라냄 */
     object-position: center; /* 중앙 기준으로 잘라냄 */
+}
+
+/* 예약중 배지 (이미지 왼쪽 상단 고정) */
+.list-badge-reserved {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 3px 6px;
+    border-radius: 4px;
+    z-index: 10;
+
+    background-color: gold; /* 노랑 */
+    color: black;
+}
+
+.search-badge-reserved {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background-color: gold; /* 노랑 */
+    color: black;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 3px 6px;
+    border-radius: 4px;
+    z-index: 10;
 }

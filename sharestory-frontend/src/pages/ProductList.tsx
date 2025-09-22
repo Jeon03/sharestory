@@ -18,7 +18,8 @@ interface ProductItem {
     price: number;
     imageUrl: string;
     createdDate: string;
-    itemStatus: 'ON_SALE' | 'SOLD_OUT' | string;
+    itemStatus: 'ON_SALE' | 'RESERVED' | 'SOLD_OUT' | string;
+    status?: 'ON_SALE' | 'RESERVED' | 'SOLD_OUT';
     favoriteCount: number;
     viewCount: number;
     chatRoomCount: number;
@@ -103,6 +104,7 @@ export default function ProductList() {
                     fetchItems(`${API_BASE}/api/items/sorted/views`),
                     fetchItems(`${API_BASE}/api/allItems`),
                 ]);
+
                 setLatestItems(latest.slice(0, 12));
                 setFavorites(fav.slice(0, 12));
                 setViews(view.slice(0, 12));
@@ -129,8 +131,17 @@ export default function ProductList() {
                     <li className="product-card">
                         {item.safeTrade && <div className="badge-safe">안전거래</div>}
                         <Link to={`/items/${item.id}`} className="product-link">
-                            <img src={item.imageUrl} alt={item.title} className="product-image"
-                                 onError={(e) => { e.currentTarget.src = '/placeholder.png'; }} />
+                            <div className="image-wrapper">
+                                {item.itemStatus === "RESERVED" && (
+                                    <div className="list-badge-reserved">예약중</div>
+                                )}
+                                <img
+                                    src={item.imageUrl}
+                                    alt={item.title}
+                                    className="product-image"
+                                    onError={(e) => { e.currentTarget.src = '/placeholder.png'; }}
+                                />
+                            </div>
                             <div className="product-info">
                                 <div className="favorite-and-views">
                                     <span className="count"><MessageCircle size={16} style={{ marginRight: 4 }} /> {item.chatRoomCount}</span>
@@ -166,30 +177,44 @@ export default function ProductList() {
             <BannerSlider />
             <section>
                 <p className="textMain">최신 등록 상품</p>
-                {renderSwiper(latestItems.filter(i => i.itemStatus === 'ON_SALE'))}
+                {renderSwiper(latestItems.filter(i =>
+                    i.itemStatus === 'ON_SALE' || i.itemStatus === 'RESERVED'
+                ))}
             </section>
             <br/><br/><br/>
             <section>
                 <p className="textMain">관심이 많은 상품</p>
-                {renderSwiper(favorites.filter(i => i.itemStatus === 'ON_SALE'))}
+                {renderSwiper(favorites.filter(i =>
+                    i.itemStatus === 'ON_SALE' || i.itemStatus === 'RESERVED'
+                ))}
             </section>
             <br/><br/><br/>
             <section>
                 <p className="textMain">많이 본 상품</p>
-                {renderSwiper(views.filter(i => i.itemStatus === 'ON_SALE'))}
+                {renderSwiper(views.filter(i =>
+                    i.itemStatus === 'ON_SALE' || i.itemStatus === 'RESERVED'
+                ))}
             </section>
             <br/><br/><br/>
             <section>
                 <p className="textMain">전체 상품</p>
                 <ul className="grid">
                     {allItems
-                        .filter(i => i.itemStatus === 'ON_SALE')
+                        .filter(i => i.itemStatus === 'ON_SALE' || i.itemStatus === 'RESERVED')
                         .map(item => (
                             <li key={item.id} className="product-card">
-                                {item.safeTrade && <div className="badge-safe">안전거래</div>}
+                                {item.itemStatus === "RESERVED" && (
+                                    <div className="list-badge-reserved">예약중</div>
+                                )}
+                                <div className="image-wrapper">
+                                    <img
+                                        src={item.imageUrl}
+                                        alt={item.title}
+                                        className="product-image"
+                                        onError={(e) => { e.currentTarget.src = '/placeholder.png'; }}
+                                    />
+                                </div>
                                 <Link to={`/items/${item.id}`} className="product-link">
-                                    <img src={item.imageUrl} alt={item.title} className="product-image"
-                                         onError={(e) => { e.currentTarget.src = '/placeholder.png'; }} />
                                     <div className="product-info">
                                         <div className="favorite-and-views">
                                             <span className="count"><MessageCircle size={16} style={{ marginRight: 4 }} /> {item.chatRoomCount}</span>

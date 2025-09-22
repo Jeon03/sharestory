@@ -2,15 +2,15 @@
     position: fixed;
     top: 0;
     right: 0;
-    height: 100vh;               /* 화면 전체 높이 */
-    width: 35vw;                 /* 화면의 30% */
-    max-width: 500px;            /* 너무 넓어지지 않도록 제한 */
-    min-width: 280px;            /* 너무 좁아지지 않도록 제한 */
+    width: 35vw;
+    max-width: 500px;
+    min-width: 280px;
+    height: 100vh;
     background: #fff;
-    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+    box-shadow: -2px 0 8px rgba(0,0,0,0.15);
     display: flex;
     flex-direction: column;
-    z-index: 2000;
+    z-index: 99999 !important; /* ✅ 항상 헤더 위 */
     transition: transform 0.3s ease-in-out;
 }
 

@@ -59,6 +59,7 @@ public class SecurityConfig {
                                 "/api/users/location",
                                 "/registerItem"
 
+
                         ).authenticated()
                         .anyRequest().authenticated()
                 )

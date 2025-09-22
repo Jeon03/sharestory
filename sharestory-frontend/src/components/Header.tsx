@@ -5,7 +5,6 @@ import "../css/Header.css";
 import type { User } from "../types/user";
 import logo from "../images/logo.png";
 import LocationSelector from "./LocationSelector";
-import ChatSlider from "./chat/ChatSlider";
 import PointModal from "./PointModal";
 import { useChatContext } from "../contexts/ChatContext";
 
@@ -21,12 +20,11 @@ export default function Header({
     const navigate = useNavigate();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement | null>(null);
-    const [showChat, setShowChat] = useState(false);
 
     const [points, setPoints] = useState(0);
     const [isPointModalOpen, setIsPointModalOpen] = useState(false);
 
-    const { totalUnread } = useChatContext();
+    const { totalUnread, openChat } = useChatContext();
     // ✅ 콘솔 확인
     useEffect(() => {
         console.log("🔔 Header totalUnread:", totalUnread);
@@ -107,7 +105,7 @@ export default function Header({
                                     className="chat-icon-container"
                                     onClick={(e) => {
                                         e.preventDefault();
-                                        setShowChat(true);
+                                        openChat();
                                     }}
                                 >
                                     <i className="bi-chat-dots"></i>
@@ -121,7 +119,7 @@ export default function Header({
                                     href="#"
                                     onClick={(e) => {
                                         e.preventDefault();
-                                        setShowChat(true);
+                                        openChat();
                                     }}
                                 >
                                     채팅하기
@@ -168,11 +166,6 @@ export default function Header({
                                 )}
                             </div>
 
-                            <ChatSlider
-                                isOpen={showChat}
-                                onClose={() => setShowChat(false)}
-                                activeRoomId={null}
-                            />
                         </>
                     ) : (
                         <>

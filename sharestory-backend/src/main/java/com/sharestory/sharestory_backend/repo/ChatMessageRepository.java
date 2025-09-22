@@ -1,11 +1,13 @@
 package com.sharestory.sharestory_backend.repo;
 
 import com.sharestory.sharestory_backend.domain.ChatMessage;
+import com.sharestory.sharestory_backend.domain.ChatRoom;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
     List<ChatMessage> findByRoom_IdOrderByCreatedAtAsc(Long roomId);
@@ -31,4 +33,5 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
 
     void deleteAllByRoomId(Long roomId);
 
+    Optional<ChatMessage> findTopByRoomOrderByCreatedAtDesc(ChatRoom room);
 }

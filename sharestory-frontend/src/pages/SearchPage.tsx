@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
 import api from "../api/axios";
 import { Eye, Heart, MessageCircle } from "lucide-react";
-import "../css/list.css"; // ProductList에서 쓰던 CSS 재사용
-import type { ItemSummary } from "../types/item"; // ✅ DTO 기반 타입 import
+import "../css/list.css";
+import type { ItemSummary } from "../types/item";
 
 const API_BASE = import.meta?.env?.VITE_API_BASE || "";
 
+// 상대시간 포맷
 const formatTimeAgo = (dateStr: string | null | undefined): string => {
     if (!dateStr) return "";
     const created = new Date(dateStr).getTime();
@@ -59,7 +60,6 @@ export default function SearchPage() {
                     params: { keyword, lat, lon, distance },
                 });
 
-                // ✅ 위치 이름 변환 추가
                 const mapped = await Promise.all(
                     (response.data || []).map(async (item) => {
                         let location = "알 수 없음";
@@ -85,8 +85,7 @@ export default function SearchPage() {
     }, [keyword, lat, lon, distance]);
 
     if (loading) return <div className="product-list">로딩 중...</div>;
-    if (!items.length)
-        return <div className="product-list">검색 결과가 없습니다.</div>;
+    if (!items.length) return <div className="product-list">검색 결과가 없습니다.</div>;
 
     return (
         <div className="product-list container">
@@ -96,10 +95,13 @@ export default function SearchPage() {
 
             <ul className="grid">
                 {items
-                    .filter((i) => i.itemStatus === "ON_SALE")
+                    .filter((i) => i.itemStatus === "ON_SALE" || i.itemStatus === "RESERVED")
                     .map((item) => (
                         <li key={item.id} className="product-card">
-                            <Link to={`/items/${item.id}`} className="product-link">
+                            {item.itemStatus === "RESERVED" && (
+                                <div className="list-badge-reserved">예약중</div>
+                            )}
+                            <div className="image-wrapper">
                                 <img
                                     src={item.imageUrl || "/placeholder.png"}
                                     alt={item.title}
@@ -108,6 +110,8 @@ export default function SearchPage() {
                                         e.currentTarget.src = "/placeholder.png";
                                     }}
                                 />
+                            </div>
+                            <Link to={`/items/${item.id}`} className="product-link">
                                 <div className="product-info">
                                     <div className="favorite-and-views">
                     <span className="count">
@@ -129,14 +133,23 @@ export default function SearchPage() {
                     </span>
                                     </div>
                                     <h3 className="product-title">{item.title}</h3>
-                                    <p className="product-price">
-                                        {item.price?.toLocaleString()} 원
-                                    </p>
+                                    <p className="product-price">{item.price?.toLocaleString()} 원</p>
                                     <div className="product-meta">
                                         <span className="location">{item.location}</span>
                                         <span> · </span>
                                         <span className="product-date">
                       {formatTimeAgo(item.createdDate)}
+                                            {item.modified && (
+                                                <span
+                                                    style={{
+                                                        marginLeft: "4px",
+                                                        fontSize: "0.85em",
+                                                        color: "#888",
+                                                    }}
+                                                >
+                          (수정됨)
+                        </span>
+                                            )}
                     </span>
                                     </div>
                                 </div>
