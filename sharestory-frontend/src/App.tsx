@@ -14,6 +14,8 @@ import type { User } from './types/user';
 import { connectGlobal, disconnect } from "./services/socketClient.ts";
 import { useChatContext } from "./contexts/ChatContext";
 import ChatSlider from "./components/chat/ChatSlider";
+import MyPage from "./pages/MyPage";
+import OAuth2Redirect from "./pages/OAuth2Redirect.tsx";
 
 function AppLayout({
                        user,
@@ -188,6 +190,11 @@ export default function App() {
                     <Route path="/registerItem" element={user ? <ItemRegister /> : <Navigate to="/" replace />} />
                     <Route path="/items/:id/edit" element={<ItemEdit />} />
                     <Route path="/search" element={<SearchPage />} />
+                    <Route
+                        path="/mypage"
+                        element={<MyPage user={user} setUser={setUser} />}
+                    />
+                    <Route path="/oauth2/redirect" element={<OAuth2Redirect onLogin={fetchMe} />} />
                 </Route>
             </Routes>
             <GlobalChat />

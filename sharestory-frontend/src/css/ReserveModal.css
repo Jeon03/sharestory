@@ -16,7 +16,7 @@
     background: #fff;
     padding: 20px 24px;
     border-radius: 10px;
-    width: 400px;
+    width: 600px;
     max-width: 90%;
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
     animation: fadeIn 0.3s ease-in-out;
@@ -28,6 +28,7 @@
     font-weight: bold;
     color: #333;
     text-align: center;
+
 }
 
 /* 구매자 리스트 */
@@ -45,6 +46,7 @@
     padding: 10px 12px;
     cursor: pointer;
     transition: background 0.2s;
+
 }
 
 .reserve-modal li:hover {
@@ -101,4 +103,20 @@
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+.mymodal-chatroom-item {
+    display: flex;
+    justify-content: space-between; /* 좌-우 끝으로 */
+    align-items: center;
+}
+
+.mymodal-chatroom-item .mymodal-last-message {
+    color: black;
+    font-size: 0.9em;
+    max-width: 400px; /* 적절히 조정 */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: right;
 }

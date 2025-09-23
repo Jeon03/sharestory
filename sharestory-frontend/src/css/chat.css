@@ -424,3 +424,14 @@
         opacity: 1;
     }
 }
+.chat-system-message {
+    background-color: #fff7cc; /* 연노랑 */
+    color: #333;
+    text-align: center;
+    font-weight: bold;
+    padding: 8px 12px;
+    margin: 10px auto;
+    border-radius: 6px;
+    max-width: 80%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}

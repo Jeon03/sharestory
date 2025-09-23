@@ -1,5 +1,6 @@
 import {useEffect, useState} from 'react';
 import '../css/list.css';
+import '../css/productCard.css';
 import {Link} from 'react-router-dom';
 import {Eye, Heart, MessageCircle} from 'lucide-react';
 import {Navigation, Pagination} from 'swiper/modules';
@@ -122,9 +123,16 @@ export default function ProductList() {
             modules={[Navigation, Pagination]}
             navigation
             spaceBetween={20}
-            slidesPerView={6}
+            slidesPerView={5}
             pagination={{ clickable: true }}
             className="product-swiper"
+            breakpoints={{
+                1200: { slidesPerView: 5 },
+                992: { slidesPerView: 4 },
+                768: { slidesPerView: 3 },
+                480: { slidesPerView: 2 },
+                0: { slidesPerView: 1 },
+            }}
         >
             {items.map(item => (
                 <SwiperSlide key={item.id}>
@@ -198,7 +206,7 @@ export default function ProductList() {
             <br/><br/><br/>
             <section>
                 <p className="textMain">전체 상품</p>
-                <ul className="grid">
+                <ul className="product-grid">
                     {allItems
                         .filter(i => i.itemStatus === 'ON_SALE' || i.itemStatus === 'RESERVED')
                         .map(item => (

@@ -9,13 +9,13 @@ interface ChatRoomInfo {
     lastMessage?: string;
 }
 
-interface ReserveModalProps {
+interface CompleteModalProps {
     itemId: number;
     onClose: () => void;
     onConfirm: (roomId: number, buyerId: number) => void;
 }
 
-export default function ReserveModal({ itemId, onClose, onConfirm }: ReserveModalProps) {
+export default function CompleteModal({ itemId, onClose, onConfirm }: CompleteModalProps) {
     const [rooms, setRooms] = useState<ChatRoomInfo[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedRoom, setSelectedRoom] = useState<number | null>(null);
@@ -46,7 +46,7 @@ export default function ReserveModal({ itemId, onClose, onConfirm }: ReserveModa
     return (
         <div className="reserve-modal-overlay">
             <div className="reserve-modal">
-                <h2>예약할 구매자 선택</h2>
+                <h2>거래 완료할 구매자 선택</h2>
                 <ul>
                     {rooms.map((room) => (
                         <li
@@ -56,7 +56,7 @@ export default function ReserveModal({ itemId, onClose, onConfirm }: ReserveModa
                         >
                             <span>{room.buyerName}</span>
                             <span className="mymodal-last-message">
-    최근 메세지: {room.lastMessage ?? "메시지 없음"}
+    최근 메세지: {room.lastMessage ?? "메시지 없음"} )
   </span>
                         </li>
                     ))}
@@ -72,11 +72,11 @@ export default function ReserveModal({ itemId, onClose, onConfirm }: ReserveModa
                         onClick={() => {
                             const room = rooms.find((r) => r.roomId === selectedRoom);
                             if (room) {
-                                onConfirm(room.roomId, room.buyerId); // 부모에게 전달
+                                onConfirm(room.roomId, room.buyerId); // 부모 컴포넌트로 전달
                             }
                         }}
                     >
-                        확인
+                        거래 완료
                     </button>
                 </div>
             </div>

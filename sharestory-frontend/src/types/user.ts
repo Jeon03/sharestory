@@ -3,4 +3,10 @@ export interface User {
     email: string;
     nickname: string;
     role: string;
+
+    myLatitude?: number;
+    myLongitude?: number;
+    addressName?: string;
+    points?: number;
+    authenticated?: boolean;
 }

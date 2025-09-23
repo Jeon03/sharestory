@@ -85,6 +85,12 @@
 .chatroom-last {
     font-size: 0.85rem;
     color: gray;
+
+    max-width: 180px;       /* 👉 적절히 조절 (px 단위) */
+    white-space: nowrap;    /* 줄바꿈 방지 */
+    overflow: hidden;       /* 넘친 글자 숨기기 */
+    text-overflow: ellipsis; /* ... 표시 */
+    text-align: right;      /* 오른쪽 정렬 */
 }
 
 /* 가격 강조 */
@@ -107,9 +113,7 @@
     font-size: 0.75rem;
     color: #888;
 }
-.chatroom-last {
-    font-size: 1.0rem;
-}
+
 .chatroom-panel-body {
     display: flex;
     flex-direction: column;

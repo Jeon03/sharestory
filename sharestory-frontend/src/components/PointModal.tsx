@@ -9,7 +9,7 @@ interface PointModalProps {
     onClose: () => void;
     points: number;
     user: User | null;
-    setPoints: React.Dispatch<React.SetStateAction<number>>;
+    setPoints: (balance: number) => void; // ✅ number만 받도록 변경
 }
 
 const PointModal: React.FC<PointModalProps> = ({ isOpen, onClose, points , user, setPoints }) => {

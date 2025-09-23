@@ -4,7 +4,7 @@ import type { Message } from "stompjs";
 
 let stompClient: Client | null = null;
 
-export type MessageType = "TEXT" | "IMAGE" | "LOCATION_MAP" | "LOCATION_TEXT";
+export type MessageType = "TEXT" | "IMAGE" | "LOCATION_MAP" | "LOCATION_TEXT" | "SYSTEM";
 
 export interface ChatMessage {
     id: number;
@@ -89,7 +89,7 @@ export const connect = (
 export const sendReadEvent = (roomId: number, userId: number, readIds: number[] = []) => {
     if (stompClient && stompClient.connected) {
         const payload: ReadEvent = { roomId, userId, readIds };
-        console.log("📤 보내는 읽음 이벤트:", payload); // ✅ 로그 찍어보기
+        console.log("📤 보내는 읽음 이벤트:", payload);
         stompClient.send("/pub/read", {}, JSON.stringify(payload));
     }
 };

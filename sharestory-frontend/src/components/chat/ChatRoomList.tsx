@@ -108,10 +108,10 @@ export default function ChatRoomList({ onRoomSelect }: ChatRoomListProps) {
                                     hour: "2-digit",
                                     minute: "2-digit",
                                 })}
+                                {room.unreadCount > 0 && (
+                                    <span className="chat-unread-badge">{room.unreadCount}</span>
+                                )}
                             </div>
-                            {room.unreadCount > 0 && (
-                                <span className="chat-unread-badge">{room.unreadCount}</span>
-                            )}
                         </div>
                     </div>
                 ))

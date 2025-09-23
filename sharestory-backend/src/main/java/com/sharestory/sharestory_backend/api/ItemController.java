@@ -210,4 +210,29 @@ public class ItemController {
             return ResponseEntity.badRequest().body("예약 실패: " + e.getMessage());
         }
     }
+    //판매 확정
+    @PostMapping("/items/{id}/complete")
+    public ResponseEntity<?> completeSale(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestBody ReserveRequest request  // ✅ 재사용 가능 (buyerId, roomId 포함)
+    ) {
+        try {
+            itemService.completeSale(id, user.getId(), request.getBuyerId(), request.getRoomId());
+            return ResponseEntity.ok("판매 완료");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("판매 완료 실패: " + e.getMessage());
+        }
+    }
+
+    // 내 상품 조회 (마이페이지)
+    @GetMapping("/mypage/items")
+    public List<ItemSummaryDto> getMyItems(@AuthenticationPrincipal CustomUserDetails user) {
+        if (user == null) {
+            throw new RuntimeException("로그인이 필요합니다.");
+        }
+        return itemService.getMyItems(user.getId());
+    }
+
 }
