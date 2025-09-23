@@ -18,7 +18,7 @@ public interface ChatReadRepository extends JpaRepository<ChatRead, Long> {
     // 특정 유저의 전체 안읽은 메시지 수
     @Query("SELECT COUNT(cr) FROM ChatRead cr WHERE cr.userId = :userId AND cr.read = false")
     int countUnreadByUser(@Param("userId") Long userId);
-
+    List<ChatRead> findByMessage_Room_IdAndUserIdAndReadFalse(Long roomId, Long userId);
     // 특정 방의 안읽은 메시지를 모두 읽음 처리
     @Modifying
     @Query("UPDATE ChatRead cr " +

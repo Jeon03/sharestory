@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -112,6 +113,7 @@ public class ChatService {
 
         return saved;
     }
+
 
     @Transactional(readOnly = true)
     public List<ChatMessageDto> getMessages(Long roomId, Long userId) {

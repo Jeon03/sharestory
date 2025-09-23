@@ -20,8 +20,6 @@ export default function Header({
     const navigate = useNavigate();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement | null>(null);
-
-    const [points, setPoints] = useState(0);
     const [isPointModalOpen, setIsPointModalOpen] = useState(false);
 
     const { totalUnread, openChat } = useChatContext();
@@ -64,27 +62,6 @@ export default function Header({
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
-
-    useEffect(() => {
-        if (user) {
-            const fetchPoints = async () => {
-                try {
-                    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/points`, {
-                        credentials: "include",
-                    });
-                    if (response.ok) {
-                        const data = await response.json();
-                        setPoints(data.points || 0);
-                    } else {
-                        console.error("Failed to fetch points.");
-                    }
-                } catch (error) {
-                    console.error("Error fetching points:", error);
-                }
-            };
-            fetchPoints();
-        }
-    }, [user]);
 
     return (
         <>
@@ -157,7 +134,7 @@ export default function Header({
                                             className="dropdown-item"
                                         >
                                             <div className="point-label">보유 포인트</div>
-                                            <div className="point-value2">{points.toLocaleString()} P</div>
+                                            <div className="point-value2">{(user?.points ?? 0).toLocaleString()} P</div>
                                         </button>
                                         <button onClick={handleLogout} className="dropdown-item logout">
                                             로그아웃
@@ -221,9 +198,11 @@ export default function Header({
             <PointModal
                 isOpen={isPointModalOpen}
                 onClose={() => setIsPointModalOpen(false)}
-                points={points}
+                points={user?.points ?? 0}
                 user={user}
-                setPoints={setPoints}
+                setPoints={(newBalance: number) => {
+                    setUser((prev) => prev ? { ...prev, points: newBalance } : prev);
+                }}
             />
         </>
     );

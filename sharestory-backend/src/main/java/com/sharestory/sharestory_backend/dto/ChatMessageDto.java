@@ -15,7 +15,7 @@ public class ChatMessageDto {
     private Long roomId;
     private Long senderId;
     private String content;
-    private ChatMessage.MessageType type;   // ✅ 메시지 타입 추가
+    private ChatMessage.MessageType type;
     private LocalDateTime createdAt;
     private boolean read;
 
@@ -31,7 +31,7 @@ public class ChatMessageDto {
                 .build();
     }
 
-    // ✅ 단순 변환 (읽음 여부는 기본 false)
+
     public static ChatMessageDto from(ChatMessage msg) {
         return from(msg, false);
     }

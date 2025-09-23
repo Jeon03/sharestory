@@ -1,9 +1,7 @@
 package com.sharestory.sharestory_backend.service;
 
 import com.sharestory.sharestory_backend.domain.*;
-import com.sharestory.sharestory_backend.dto.ItemRequestDto;
-import com.sharestory.sharestory_backend.dto.ItemStatus;
-import com.sharestory.sharestory_backend.dto.ItemUpdateMessage;
+import com.sharestory.sharestory_backend.dto.*;
 import com.sharestory.sharestory_backend.repo.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -320,15 +318,18 @@ public class ItemService {
         if (!item.getUserId().equals(sellerId)) {
             throw new SecurityException("판매자만 예약할 수 있습니다.");
         }
-        // ✅ SYSTEM 메시지 전송 (닉네임 포함)
+
+        // ✅ 구매자 조회
         User buyer = userRepository.findById(buyerId)
                 .orElseThrow(() -> new IllegalArgumentException("구매자가 존재하지 않습니다."));
+
+        // ✅ 상태 변경
         item.setStatus(ItemStatus.RESERVED);
 
         ChatRoom room = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
 
-        // ✅ SYSTEM 메시지 전송
+        // ✅ SYSTEM 메시지 저장
         ChatMessage systemMsg = ChatMessage.builder()
                 .room(room)
                 .senderId(sellerId)
@@ -336,12 +337,99 @@ public class ItemService {
                 .type(ChatMessage.MessageType.SYSTEM)
                 .createdAt(LocalDateTime.now())
                 .build();
-        chatMessageRepository.save(systemMsg);
 
-        // WebSocket 알림 전송도 가능
+        ChatMessage saved = chatMessageRepository.save(systemMsg);
+
+        // ✅ SYSTEM 메시지는 구매자만 안읽음 처리
+        ChatRead chatRead = ChatRead.builder()
+                .message(saved)
+                .userId(buyerId)   // 구매자만 읽음 대상
+                .read(false)
+                .build();
+        chatReadRepository.save(chatRead);
+
+        // ✅ 마지막 메시지 시간 갱신
+        room.setUpdatedAt(LocalDateTime.now());
+
+        // ✅ WebSocket 브로드캐스트
         simpMessagingTemplate.convertAndSend(
                 "/sub/chat/room/" + roomId,
-                systemMsg
+                ChatMessageDto.from(saved)   // DTO로 변환해서 내려주는 게 프론트에서 받기 편함
         );
     }
+
+    @Transactional
+    public void completeSale(Long itemId, Long sellerId, Long buyerId, Long roomId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다."));
+
+        if (!item.getUserId().equals(sellerId)) {
+            throw new SecurityException("판매자만 판매완료 처리할 수 있습니다.");
+        }
+
+        // ✅ 구매자 조회
+        User buyer = userRepository.findById(buyerId)
+                .orElseThrow(() -> new IllegalArgumentException("구매자가 존재하지 않습니다."));
+
+        // ✅ 상태 변경
+        item.setStatus(ItemStatus.SOLD_OUT);
+
+        ChatRoom room = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
+
+        // ✅ SYSTEM 메시지 저장
+        ChatMessage systemMsg = ChatMessage.builder()
+                .room(room)
+                .senderId(sellerId)
+                .content("판매가 완료되었습니다. 구매자: " + buyer.getNickname() + "님")
+                .type(ChatMessage.MessageType.SYSTEM)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        ChatMessage saved = chatMessageRepository.save(systemMsg);
+
+        // ✅ SYSTEM 메시지는 구매자만 안읽음 처리
+        ChatRead chatRead = ChatRead.builder()
+                .message(saved)
+                .userId(buyerId)   // 구매자만 읽음 대상
+                .read(false)
+                .build();
+        chatReadRepository.save(chatRead);
+
+        // ✅ 마지막 메시지 시간 갱신
+        room.setUpdatedAt(LocalDateTime.now());
+
+        // ✅ WebSocket 브로드캐스트
+        simpMessagingTemplate.convertAndSend(
+                "/sub/chat/room/" + roomId,
+                ChatMessageDto.from(saved)
+        );
+    }
+
+
+
+
+
+    public List<ItemSummaryDto> getMyItems(Long userId) {
+        List<Item> items = itemRepository.findByUserId(userId);
+
+        return items.stream()
+                .map(item -> ItemSummaryDto.builder()
+                        .id(item.getId())
+                        .title(item.getTitle())
+                        .price(item.getPrice())
+                        .imageUrl(item.getImageUrl())
+                        .createdDate(item.getCreatedDate().toString())
+                        .itemStatus(item.getStatus().name())
+                        .favoriteCount(item.getFavoriteCount())
+                        .viewCount(item.getViewCount())
+                        .chatRoomCount(item.getChatRoomCount())
+                        .latitude(item.getLatitude())
+                        .longitude(item.getLongitude())
+                        .modified(item.isModified())
+                        .updatedDate(item.getUpdatedDate() != null ? item.getUpdatedDate().toString() : null)
+                        .build())
+                .toList();
+    }
+
 }

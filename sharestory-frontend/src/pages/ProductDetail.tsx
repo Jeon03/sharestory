@@ -9,6 +9,7 @@ import { Heart } from "lucide-react";
 import { useChatContext } from "../contexts/ChatContext";
 import Select from "react-select";
 import ReserveModal from "../components/ReserveModal";
+import CompleteModal from "../components/CompleteModal";
 
 type ItemStatus =
     | 'ON_SALE'
@@ -80,6 +81,7 @@ export default function ProductDetailSimple() {
 
     // ✅ 예약 모달 상태
     const [showReserveModal, setShowReserveModal] = useState(false);
+    const [showCompleteModal, setShowCompleteModal] = useState(false);
 
     const navigate = useNavigate();
     const { openChat } = useChatContext();
@@ -208,6 +210,25 @@ export default function ProductDetailSimple() {
             alert("예약이 완료되었습니다.");
         } catch {
             alert("예약 처리 중 오류 발생");
+        }
+    };
+
+    const handleCompleteConfirm = async (roomId: number, buyerId: number) => {
+        if (!id) return;
+
+        try {
+            const res = await fetch(`${API_BASE}/api/items/${id}/complete`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ roomId, buyerId }),
+            });
+            if (!res.ok) throw new Error("거래완료 실패");
+            setItem({ ...item!, itemStatus: "SOLD_OUT" });
+            setShowCompleteModal(false);
+            alert("거래가 완료되었습니다.");
+        } catch {
+            alert("거래완료 처리 중 오류 발생");
         }
     };
 
@@ -344,6 +365,10 @@ export default function ProductDetailSimple() {
                                             setShowReserveModal(true);
                                             return;
                                         }
+                                        if (selected.value === "SOLD_OUT") {
+                                            setShowCompleteModal(true);
+                                            return;
+                                        }
                                         await fetch(`${API_BASE}/api/items/${item.id}/status?status=${selected.value}`, {
                                             method: "PATCH",
                                             credentials: "include",
@@ -392,12 +417,18 @@ export default function ProductDetailSimple() {
                 </div>
             </div>
 
-            {/* ✅ 예약자 선택 모달 */}
             {showReserveModal && (
                 <ReserveModal
                     itemId={item.id}
                     onClose={() => setShowReserveModal(false)}
                     onConfirm={handleReserveConfirm}
+                />
+            )}
+            {showCompleteModal && (
+                <CompleteModal
+                    itemId={item.id}
+                    onClose={() => setShowCompleteModal(false)}
+                    onConfirm={handleCompleteConfirm}
                 />
             )}
         </div>

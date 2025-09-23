@@ -1,111 +1,4 @@
-.product-list .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* 카드 너비를 180→160px로 줄이고 */
-    gap: 16px;                                                 /* 간격도 30→16px로 축소 */
-    padding: 0;
-    list-style: none;
-    /*border: 2px solid;*/
-}
-
-.product-card {
-    position: relative;
-    /*border: 2px solid red;*/
-    background: #fff;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 6px rgba(0.1,0.1,0.1,0.1);
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-.product-image {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    /*width: 80%;*/
-    /*height: 120px;*/
-    /*object-fit: cover;*/
-    object-position: center;
-    transform: scale(0.9);
-    transform-origin: center;
-}
-.product-info {
-    flex: 1; /* ✅ 남은 공간을 채움 */
-    padding: 8px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-}
-
-/* 제목 */
-.product-title {
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 1.1rem;   /* 1rem→0.95rem */
-    font-weight: 500;
-    color: #333;
-    margin-top: 7px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.2;
-    height: 2.4em; /* 두 줄로 고정 (1.2 * 2) */
-}
-
-/* 가격 */
-.product-price {
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 1.2rem;    /* 강조를 위해 조금 키움 */
-    font-weight: 700;
-    color: #000;
-    margin-top: -15px;
-    /*margin: 0 0 6px;*/
-}
-
-/* 위치·날짜 */
-.product-date {
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 0.9rem;    /* 0.9→0.8rem */
-    color: #333;
-    margin-top: auto;     /* 하단으로 밀어내기 */
-}
-
-.favorite-and-views {
-    display: flex;
-    justify-content: right;
-    gap: 10px;
-    font-size: 13px;
-    color: #777;
-    margin-bottom: 4px;
-    min-height: 18px; /* 높이 고정 (여러 줄 방지) */
-    padding: 0 4px;   /* 좌우 정렬 간격 */
-    box-sizing: border-box;
-}
-.count {
-    display: inline-flex;
-    align-items: center;
-    font-size: 13px;
-    color: #777;
-}
-
-.image-wrapper {
-    position: relative;
-    width: 100%;
-    height: 100%;
-}
-
-.badge-safe {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    background-color: #f5e166;
-    color: black;
-    font-size: 12px;
-    font-weight: bold;
-    padding: 3px 6px;
-    border-radius: 4px;
-    z-index: 10;
-}
-
+/* ===== 리스트 전용 레이아웃 (배너, 섹션 제목, 슬라이더) ===== */
 
 .slider-section {
     margin-bottom: 40px;
@@ -114,28 +7,25 @@
 .swiper-button-prev,
 .swiper-button-next {
     color: #f0e273;
-    font-size: 20px;      /* ✅ 화살표 크기 증가 */
-    font-weight: bold;    /* ✅ 더 두껍게 보이도록 */
+    font-size: 20px;      /* 화살표 크기 */
+    font-weight: bold;
     z-index: 10;
     pointer-events: auto;
 }
 
 .product-swiper {
     padding-bottom: 40px !important; /* 하단 공간 확보 */
-    /*border: 2px solid black;*/
 }
-
 
 .product-swiper .swiper-pagination {
     position: absolute;
-    bottom: 0;             /* ✅ 이게 위치를 아래로 고정하는 부분 */
+    bottom: 0;
     left: 0;
     width: 100%;
     text-align: center;
-    /*border: 2px solid black;*/
 }
 
-/* ✅ 기본 점 스타일 */
+/* 기본 점 스타일 */
 .product-swiper .swiper-pagination-bullet {
     width: 6px;
     height: 6px;
@@ -146,71 +36,47 @@
     transition: all 0.3s ease;
 }
 
-/* ✅ 현재 활성된 점 스타일 */
+/* 현재 활성된 점 스타일 */
 .product-swiper .swiper-pagination-bullet-active {
     width: 24px;
     height: 6px;
     background-color: #000;
     border-radius: 4px;
 }
+
 .product-swiper {
     padding-bottom: 48px;
-
 }
+
 .swiper-button-disabled {
     opacity: 0.3;
     pointer-events: none;
     cursor: default;
 }
-.textMain{
+
+.textMain {
     font-size: 25px;
     font-weight: bold;
     margin-bottom: 20px;
 }
 
+/* ===== 배너 ===== */
 .banner-slider {
-    width: 1200px;   /* 원하는 크기 */
+    width: 1155px;
     height: 300px;
     margin: 0 auto 30px;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     display: flex;
-    align-items: center;   /* 세로 중앙 */
-    justify-content: center; /* 가로 중앙 */
+    align-items: center;
+    justify-content: center;
+
 }
 
 .banner-image {
     width: 100%;
     height: 100%;
-    object-fit: cover;   /* 이미지를 꽉 채우면서 잘라냄 */
-    object-position: center; /* 중앙 기준으로 잘라냄 */
-}
-
-/* 예약중 배지 (이미지 왼쪽 상단 고정) */
-.list-badge-reserved {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    font-size: 12px;
-    font-weight: bold;
-    padding: 3px 6px;
-    border-radius: 4px;
-    z-index: 10;
-
-    background-color: gold; /* 노랑 */
-    color: black;
-}
-
-.search-badge-reserved {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    background-color: gold; /* 노랑 */
-    color: black;
-    font-size: 12px;
-    font-weight: bold;
-    padding: 3px 6px;
-    border-radius: 4px;
-    z-index: 10;
+    object-fit: cover;
+    object-position: center;
 }

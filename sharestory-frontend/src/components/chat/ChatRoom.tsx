@@ -5,6 +5,7 @@ import { Image, MapPin, X } from "lucide-react";
 import LocationPickerModal from "../LocationPickerModal.tsx";
 import kakaomapIcon from "../../images/kakaomap_basic.png";
 import { useChatContext } from "../../contexts/ChatContext";
+import type { MessageType } from "../../services/socketClient";
 
 interface ChatRoomProps {
     roomId: number;
@@ -16,7 +17,7 @@ interface ChatMsg {
     mine: boolean;
     time: string;
     rawTime: string;
-    type: "TEXT" | "IMAGE" | "LOCATION_MAP" | "LOCATION_TEXT";
+    type: MessageType
     read: boolean;
 }
 
@@ -33,7 +34,7 @@ interface ServerMessage {
     roomId: number;
     senderId: number;
     content: string;
-    type: "TEXT" | "IMAGE" | "LOCATION_MAP" | "LOCATION_TEXT";
+    type: MessageType
     createdAt: string;
     read: boolean;
 }
@@ -74,7 +75,6 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                     setUnreadCounts((prev) => ({ ...prev, [roomId]: 0 })); // ✅ 방 unread 초기화
                 })
                 .catch((err) => console.error("읽음 처리 실패:", err));
-            console.log("123123123"); // ✅ 로그 추가
             console.log("📤 sendReadEvent 호출:", { roomId, currentUserId }); // ✅ 로그 추가
             sendReadEvent(roomId, currentUserId);
         }
@@ -157,7 +157,7 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                             minute: "2-digit",
                         }),
                         rawTime: msg.createdAt,
-                        type: msg.type,
+                        type: msg.type as MessageType,
                         read: msg.read,
                     }));
                     setMessages(formatted);
@@ -279,12 +279,12 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
             <div className="chat-messages" style={{ paddingBottom: bottomPadding }}>
                 {messages.map((m, i) => {
                     const msgDate = new Date(m.rawTime).toDateString();
-                    const prevDate =
-                        i > 0 ? new Date(messages[i - 1].rawTime).toDateString() : null;
+                    const prevDate = i > 0 ? new Date(messages[i - 1].rawTime).toDateString() : null;
                     const showDivider = msgDate !== prevDate;
 
                     return (
-                        <div key={i}>
+                        <div key={m.id}>
+                            {/* 날짜 구분선 */}
                             {showDivider && (
                                 <DateDivider
                                     date={new Date(m.rawTime).toLocaleDateString("ko-KR", {
@@ -295,58 +295,57 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                                     })}
                                 />
                             )}
-                            <div className={`chat-bubble ${m.mine ? "mine" : "other"}`}>
-                                {m.type === "LOCATION_MAP" ? (
-                                    <div
-                                        className="location-map-preview"
-                                        onClick={() => {
-                                            const { lat, lng, address } = JSON.parse(m.content);
-                                            window.open(
-                                                `https://map.kakao.com/link/map/${encodeURIComponent(
-                                                    address
-                                                )},${lat},${lng}`,
-                                                "_blank"
-                                            );
-                                        }}
-                                        style={{
-                                            cursor: "pointer",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: "6px",
-                                        }}
-                                    >
+
+                            {/* SYSTEM 메시지 → 노란 배너 */}
+                            {m.type === "SYSTEM" ? (
+                                <div className="chat-system-message">📢 {m.content}</div>
+                            ) : (
+                                <div className={`chat-bubble ${m.mine ? "mine" : "other"}`}>
+                                    {m.type === "LOCATION_MAP" ? (
+                                        <div
+                                            className="location-map-preview"
+                                            onClick={() => {
+                                                const { lat, lng, address } = JSON.parse(m.content);
+                                                window.open(
+                                                    `https://map.kakao.com/link/map/${encodeURIComponent(address)},${lat},${lng}`,
+                                                    "_blank"
+                                                );
+                                            }}
+                                        >
+                                            <img
+                                                src={kakaomapIcon}
+                                                alt="카카오맵"
+                                                style={{ width: "28px", height: "28px" }}
+                                            />
+                                            <span style={{ color: "#007aff", fontWeight: "bold" }}>위치 보기</span>
+                                        </div>
+                                    ) : m.type === "IMAGE" ? (
                                         <img
-                                            src={kakaomapIcon}
-                                            alt="카카오맵"
-                                            style={{ width: "28px", height: "28px" }}
+                                            src={m.content}
+                                            alt="chat-img"
+                                            style={{ maxWidth: "200px", borderRadius: "8px" }}
                                         />
-                                        <span style={{ color: "#007aff", fontWeight: "bold" }}>
-                      위치 보기
-                    </span>
-                                    </div>
-                                ) : m.type === "IMAGE" ? (
-                                    <img
-                                        src={m.content}
-                                        alt="chat-img"
-                                        style={{ maxWidth: "200px", borderRadius: "8px" }}
-                                    />
-                                ) : (
-                                    m.content
-                                )}
-                                <div className="message-time">
-                                    {m.time}
-                                    {m.mine && (
-                                        <span className="read-indicator">
-                                            {m.read ? "✔읽음" : "안읽음"}
-                                        </span>
+                                    ) : (
+                                        m.content
                                     )}
+
+                                    {/* ✅ SYSTEM 제외 → 시간 + 읽음 표시 */}
+                                    <div className="message-time">
+                                        {m.time}
+                                        {m.mine && (
+                                            <span className="read-indicator">
+                  {m.read ? "✔읽음" : "안읽음"}
+                </span>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     );
                 })}
                 <div ref={messagesEndRef} />
             </div>
+
 
             {/* 입력창 */}
             <div className="chat-input-wrapper" ref={inputWrapperRef}>

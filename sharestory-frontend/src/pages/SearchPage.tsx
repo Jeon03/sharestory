@@ -3,6 +3,7 @@ import { useLocation, Link } from "react-router-dom";
 import api from "../api/axios";
 import { Eye, Heart, MessageCircle } from "lucide-react";
 import "../css/list.css";
+import "../css/productCard.css";
 import type { ItemSummary } from "../types/item";
 
 const API_BASE = import.meta?.env?.VITE_API_BASE || "";
@@ -93,7 +94,8 @@ export default function SearchPage() {
                 {keyword ? `"${keyword}" 검색 결과` : "검색 결과"}
             </h1>
 
-            <ul className="grid">
+            {/* ✅ 공통 product-grid 적용 */}
+            <ul className="product-grid">
                 {items
                     .filter((i) => i.itemStatus === "ON_SALE" || i.itemStatus === "RESERVED")
                     .map((item) => (
@@ -101,7 +103,11 @@ export default function SearchPage() {
                             {item.itemStatus === "RESERVED" && (
                                 <div className="list-badge-reserved">예약중</div>
                             )}
-                            <div className="image-wrapper">
+                            {item.itemStatus === "SOLD_OUT" && (
+                                <div className="list-badge-sold">거래완료</div>
+                            )}
+
+                            <div className="product-image-wrapper">
                                 <img
                                     src={item.imageUrl || "/placeholder.png"}
                                     alt={item.title}
@@ -111,34 +117,38 @@ export default function SearchPage() {
                                     }}
                                 />
                             </div>
+
                             <Link to={`/items/${item.id}`} className="product-link">
                                 <div className="product-info">
                                     <div className="favorite-and-views">
-                    <span className="count">
-                      <MessageCircle size={16} style={{ marginRight: 4 }} />{" "}
-                        {item.chatRoomCount}
-                    </span>
                                         <span className="count">
-                      <Heart
-                          size={16}
-                          fill="#999999"
-                          color="#999999"
-                          style={{ marginRight: 4 }}
-                      />{" "}
+                                            <MessageCircle size={16} style={{ marginRight: 4 }} />{" "}
+                                            {item.chatRoomCount}
+                                        </span>
+                                        <span className="count">
+                                            <Heart
+                                                size={16}
+                                                fill="#999999"
+                                                color="#999999"
+                                                style={{ marginRight: 4 }}
+                                            />{" "}
                                             {item.favoriteCount}
-                    </span>
+                                        </span>
                                         <span className="count">
-                      <Eye size={16} style={{ marginRight: 4 }} />{" "}
+                                            <Eye size={16} style={{ marginRight: 4 }} />{" "}
                                             {item.viewCount}
-                    </span>
+                                        </span>
                                     </div>
+
                                     <h3 className="product-title">{item.title}</h3>
-                                    <p className="product-price">{item.price?.toLocaleString()} 원</p>
+                                    <p className="product-price">
+                                        {item.price?.toLocaleString()} 원
+                                    </p>
                                     <div className="product-meta">
                                         <span className="location">{item.location}</span>
                                         <span> · </span>
                                         <span className="product-date">
-                      {formatTimeAgo(item.createdDate)}
+                                            {formatTimeAgo(item.createdDate)}
                                             {item.modified && (
                                                 <span
                                                     style={{
@@ -147,10 +157,10 @@ export default function SearchPage() {
                                                         color: "#888",
                                                     }}
                                                 >
-                          (수정됨)
-                        </span>
+                                                    (수정됨)
+                                                </span>
                                             )}
-                    </span>
+                                        </span>
                                     </div>
                                 </div>
                             </Link>
