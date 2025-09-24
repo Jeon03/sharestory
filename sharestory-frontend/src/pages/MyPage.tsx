@@ -9,7 +9,7 @@ interface MyPageProps {
     user: User | null;
     setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
-
+//test
 export default function MyPage({ user, setUser }: MyPageProps) {
     const [showPointModal, setShowPointModal] = useState(false);
     const [points, setPoints] = useState(user?.points ?? 0);
