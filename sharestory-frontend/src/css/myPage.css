@@ -225,3 +225,40 @@
     font-weight: bold;
     color: #000;
 }
+.point-list {
+    margin-top: 20px;
+}
+
+.point-list h3 {
+    margin-bottom: 12px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.point-list table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.point-list th,
+.point-list td {
+    border-bottom: 1px solid #ddd;
+    padding: 8px 10px;
+    text-align: center;
+}
+
+.point-list .plus {
+    color: green;
+    font-weight: bold;
+}
+
+.point-list .minus {
+    color: red;
+    font-weight: bold;
+}
+
+.point-empty {
+    margin-top: 20px;
+    color: #888;
+}

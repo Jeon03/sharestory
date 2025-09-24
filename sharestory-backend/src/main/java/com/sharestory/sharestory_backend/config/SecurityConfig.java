@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -37,7 +38,9 @@ public class SecurityConfig {
 
                 // CORS: 프론트엔드 도메인 허용
                 .cors(c -> c.configurationSource(corsSource()))
-
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 // 인가 정책
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -57,7 +60,8 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(
                                 "/api/users/location",
-                                "/registerItem"
+                                "/registerItem",
+                                "/mypage/**"
 
 
                         ).authenticated()
@@ -84,8 +88,8 @@ public class SecurityConfig {
                             Cookie access = new Cookie("ACCESS_TOKEN", null);
                             access.setMaxAge(0);
                             access.setPath("/");
-                            access.setHttpOnly(true); // ✅ JWT는 HttpOnly 쿠키
-                            access.setSecure(true);   // ✅ HTTPS 배포 환경이면 필수
+                            access.setHttpOnly(true);
+                            access.setSecure(true);
                             res.addCookie(access);
 
                             Cookie refresh = new Cookie("REFRESH_TOKEN", null);
