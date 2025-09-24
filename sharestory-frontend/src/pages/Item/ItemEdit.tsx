@@ -155,7 +155,11 @@ export default function ItemEdit() {
             credentials: "include",
             body: formData,
         });
-
+        if (res.status === 401) {
+            // ✅ 토큰 만료 처리
+            alert('로그인이 만료되었습니다. 다시 로그인 후 시도해주세요.');
+            return;
+        }
         if (res.ok) {
             alert("상품이 수정되었습니다.");
             navigate(`/items/${id}`);

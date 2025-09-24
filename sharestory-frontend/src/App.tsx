@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { BrowserRouter as Router, Navigate, Outlet, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Outlet, Route, Routes } from 'react-router-dom';
 import Header from './components/Header';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
@@ -16,6 +16,11 @@ import { useChatContext } from "./contexts/ChatContext";
 import ChatSlider from "./components/chat/ChatSlider";
 import MyPage from "./pages/MyPage";
 import OAuth2Redirect from "./pages/OAuth2Redirect.tsx";
+import {useAuth} from "./contexts/useAuth.ts";
+import ProtectedRoute from "./components/ProtectedRoute";
+import PointList from "./components/mypage/PointList";
+import MyItems from "./components/mypage/MyItems.tsx";
+import ProfileCard from "./components/mypage/ProfileCard.tsx";
 
 function AppLayout({
                        user,
@@ -66,70 +71,63 @@ export default function App() {
     const [isLoginOpen, setIsLoginOpen] = useState(false);
     const { currentOpenRoomId, setUnreadCounts, setLastMessages } = useChatContext();
     const API_URL = import.meta.env.VITE_API_URL || "";
+    const { openLogin } = useAuth();
 
-    // ✅ 로그인 상태 + 서버에서 unreadCount 가져오기
-    const fetchMe = useCallback(async () => {
-        try {
-            const res = await fetch(`${API_URL}/api/main`, { credentials: 'include' });
-            if (res.ok) {
-                const data = await res.json();
+    const fetchMe = useCallback(
+        async (forceLogin = false) => {
+            try {
+                // 1) 사용자 정보 조회
+                const res = await fetch(`${API_URL}/api/main`, { credentials: "include" });
+                if (res.ok) {
+                    const data = await res.json();
 
-                if (data.authenticated) {
-                    setUser(data);
-
-                    try {
-                        const unreadRes = await fetch(`${API_URL}/api/chat/unreadCounts`, {
-                            credentials: "include",
-                        });
-                        if (unreadRes.ok) {
-                            const unreadData = await unreadRes.json();
-                            console.log("📩 서버에서 가져온 unreadCounts:", unreadData);
-                            setUnreadCounts(unreadData.unreadCounts || {});
-                        }
-                    } catch (err) {
-                        console.error("안읽음 카운트 가져오기 실패:", err);
+                    if (data.authenticated) {
+                        setUser(data);
+                        return;
+                    } else {
+                        setUser(null);
+                        if (forceLogin) openLogin();
+                        return;
                     }
-                } else {
-                    setUser(null);
                 }
+            } catch (err) {
+                console.error("❌ /api/main 요청 실패:", err);
+                setUser(null);
+                if (forceLogin) openLogin();
                 return;
             }
 
-            // ❌ 실패 → 토큰 리프레시 한번 시도
-            const rf = await fetch(`${API_URL}/auth/token/refresh`, {
-                method: 'POST',
-                credentials: 'include',
-            });
+            // 2) Access 만료 → Refresh 시도
+            try {
+                const rf = await fetch(`${API_URL}/auth/token/refresh`, {
+                    method: "POST",
+                    credentials: "include",
+                });
 
-            if (rf.ok) {
-                const res2 = await fetch(`${API_URL}/api/main`, { credentials: 'include' });
-                if (res2.ok) {
-                    const data2 = await res2.json();
-                    if (data2.authenticated) {
-                        setUser(data2);
-
-                        const unreadRes = await fetch(`${API_URL}/api/chat/unreadCounts`, {
-                            credentials: "include",
-                        });
-                        if (unreadRes.ok) {
-                            const unread = await unreadRes.json();
-                            setUnreadCounts(unread.unreadCounts || {});
+                if (rf.ok) {
+                    const res2 = await fetch(`${API_URL}/api/main`, { credentials: "include" });
+                    if (res2.ok) {
+                        const data2 = await res2.json();
+                        if (data2.authenticated) {
+                            setUser(data2);
+                            return;
                         }
-                    } else {
-                        setUser(null);
                     }
-                    return;
                 }
+            } catch (err) {
+                console.error("❌ /auth/token/refresh 요청 실패:", err);
             }
 
+            // 3) Refresh 실패 → 무조건 로그아웃 처리
             setUser(null);
-        } catch {
-            setUser(null);
-        }
-    }, [API_URL]);
+            if (forceLogin) openLogin();
+        },
+        [API_URL, openLogin]
+    );
+
 
     useEffect(() => {
-        fetchMe();
+        fetchMe(); // 기본값 false → 로그인 안 해도 모달 안뜸
     }, [fetchMe]);
 
     // ✅ 전역 WebSocket 연결
@@ -185,18 +183,42 @@ export default function App() {
                         />
                     }
                 >
+                    {/* 게스트 접근 가능 라우트 */}
                     <Route index element={<ProductList />} />
                     <Route path="/items/:id" element={<ProductDetail />} />
-                    <Route path="/registerItem" element={user ? <ItemRegister /> : <Navigate to="/" replace />} />
-                    <Route path="/items/:id/edit" element={<ItemEdit />} />
                     <Route path="/search" element={<SearchPage />} />
+
+                    {/* 로그인 필수 라우트 */}
+                    <Route path="/registerItem" element={<ProtectedRoute user={user}><ItemRegister /></ProtectedRoute>} />
+                    <Route path="/items/:id/edit" element={<ProtectedRoute user={user}><ItemEdit /></ProtectedRoute>} />
+
                     <Route
                         path="/mypage"
-                        element={<MyPage user={user} setUser={setUser} />}
-                    />
+                        element={<ProtectedRoute user={user}><MyPage user={user} setUser={setUser} /></ProtectedRoute>}
+                    >
+                        <Route
+                            index
+                            element={
+                                <ProfileCard
+                                    username={user?.nickname ?? ""}
+                                    email={user?.email ?? ""}
+                                    provider={user?.role ?? ""}
+                                    point={user?.points ?? 0}
+                                    totalTrades={0}
+                                    onChargeClick={() => setIsLoginOpen(true)}
+                                    onEditClick={() => alert("프로필 수정")}
+                                />
+                            }
+                        />
+                        <Route path="items" element={<MyItems />} />
+                        <Route path="points" element={<ProtectedRoute user={user}><PointList userId={user?.id ?? 0} /></ProtectedRoute>} />
+                    </Route>
+
+                    {/* 로그인 직후 리다이렉트 */}
                     <Route path="/oauth2/redirect" element={<OAuth2Redirect onLogin={fetchMe} />} />
                 </Route>
             </Routes>
+
             <GlobalChat />
             <Login isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
         </Router>

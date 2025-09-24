@@ -21,12 +21,8 @@ export default function Header({
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement | null>(null);
     const [isPointModalOpen, setIsPointModalOpen] = useState(false);
-
     const { totalUnread, openChat } = useChatContext();
-    // ✅ 콘솔 확인
-    useEffect(() => {
-        console.log("🔔 Header totalUnread:", totalUnread);
-    }, [totalUnread]);
+
 
     const handleProductRegisterClick = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -41,15 +37,16 @@ export default function Header({
             });
             if (res.ok) {
                 alert("로그아웃 되었습니다.");
-                setUser(null);
-                navigate("/");
+                setUser(null);     // ✅ 상태 초기화
+                navigate("/");     // ✅ 홈으로 이동
                 window.location.reload();
             } else {
                 alert("로그아웃 실패");
             }
         } catch (err) {
-            console.error(err);
-            alert("로그아웃 중 오류 발생");
+            console.error("❌ 로그아웃 중 오류:", err);
+            setUser(null);       // ✅ 실패해도 상태 초기화
+            navigate("/");
         }
     };
 
