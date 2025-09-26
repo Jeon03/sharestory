@@ -12,6 +12,7 @@ import SearchPage from "./pages/SearchPage";  // 경로는 실제 위치에 맞�
 import AuctionList from './pages/AuctionList';
 import UsedproductList from "./pages/UsedproductList.tsx";
 import AuctionItemPage from "./pages/AuctionItemPage.tsx";
+import AuctionItemRegister from "./pages/Item/AuctionItemRegister.tsx";
 import './css/App.css';
 import type {User} from './types/user';
 
@@ -111,6 +112,7 @@ export default function App() {
                     <Route index element={<ProductList/>}/>
                     <Route path="/items/:id" element={<ProductDetail/>}/>
                     <Route path="/auction" element={<AuctionList/>}/>
+                    <Route path="/auctionItemRegister" element={<AuctionItemRegister/>}/>
                     <Route path="/usedproduct" element={<UsedproductList/>}/>
                     <Route path="/registerItem" element={user ? <ItemRegister/> : <Navigate to="/" replace/>}/>
                     <Route path="/items/:id/edit" element={<ItemEdit/>}/>

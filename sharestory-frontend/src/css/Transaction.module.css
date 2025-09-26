@@ -21,6 +21,7 @@
     flex-direction: row;
     align-items: center;
     gap: 20px;
+    flex-wrap: wrap; /* ✨ 이 한 줄을 추가해주세요! */
 }
 
 .radiostyle label {

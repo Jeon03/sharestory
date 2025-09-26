@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import styles from "../../css/SalesPage.module.css";
+import styles from "../../css/ItemSalesPage.module.css";
 import AgreeModal from "../../components/AgreeModal";
 import Category from "../../components/Category";
-import Transaction from "../../components/Transaction";
+import Transaction_item from "../../components/Transaction_item.tsx";
 import type { DealInfo } from "../../types/dealInfo";
 
 type FormState = {
@@ -290,7 +290,7 @@ export default function ItemEdit() {
 
           {/* 거래 방식 + 위치 */}
           <div className={styles.exchangeMethod}>
-            <Transaction
+            <Transaction_item
                 onLocationSelect={({ lat, lng }) =>
                     setForm((prev) => ({ ...prev, latitude: lat, longitude: lng }))
                 }

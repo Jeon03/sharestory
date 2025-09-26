@@ -1,140 +1,100 @@
-import {useEffect, useRef, useState} from 'react';
-import styles from '../../css/ItemSalesPage.module.css';
+import { useEffect, useRef, useState } from 'react';
+import styles from '../../css/AuctionSalesPage.module.css';
 import AgreeModal from '../../components/AgreeModal';
 import Category from '../../components/Category';
-import Transaction_item from "../../components/Transaction_item.tsx";
-import {useNavigate} from 'react-router-dom';
-import type {DealInfo} from '../../types/dealInfo';
+import { useNavigate } from 'react-router-dom';
+import type { DealInfo } from '../../types/dealInfo';
 
 type FormState = {
-    latitude: number;
-    longitude: number;
-    dealInfo?: string;
+    latitude?: number;
+    longitude?: number;
 };
 
 const MAX_IMAGES = 3;
 const ACCEPTED = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
-const ItemRegister = () => {
-    const [form, setForm] = useState<FormState>({ latitude: 0, longitude: 0 });
-    const [dealInfo, setDealInfo] = useState<DealInfo>({
-        parcel: false,
-        direct: false,
-        auction: false,
-        shippingOption: '',
-    });
+const AuctionItemRegister = () => {
+    const [form, setForm] = useState<FormState>({});
 
-    // 1) 단일 → 다중 파일 상태
     const [images, setImages] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
-
     const [selectedCondition, setSelectedCondition] = useState('중고상품');
     const [selectedCategory, setSelectedCategory] = useState('');
     const [productName, setProductName] = useState('');
-    const [price, setPrice] = useState('');
     const [productExplain, setProductExplain] = useState('');
     const [showAgreeModal, setShowAgreeModal] = useState(false);
+
+    // 경매 관련 상태
+    const [price, setPrice] = useState('');           // 경매 시작가
+    const [bidUnit, setBidUnit] = useState('');       // 입찰 단위
+    const [isImmediatePurchase, setIsImmediatePurchase] = useState<'yes' | 'no'>('no');
+    const [immediatePrice, setImmediatePrice] = useState(''); // 즉시구매 가격
+    const [endDateTime, setEndDateTime] = useState('');
+
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const navigate = useNavigate();
 
-    const hasValidDealMethod = Boolean(dealInfo.parcel || dealInfo.direct || dealInfo.auction);
-    const hasValidShippingOption = !dealInfo.parcel || !!dealInfo.shippingOption;
-
-    // 이미지가 최소 1장 있어야 등록 가능
+    // 등록 버튼 활성화 조건 (경매 관련 필드만)
     const isFormValid = Boolean(
         productName &&
         selectedCategory &&
         images.length > 0 &&
         selectedCondition &&
         price &&
+        bidUnit &&
         productExplain &&
-        form.latitude &&
-        form.longitude &&
-        hasValidDealMethod &&
-        hasValidShippingOption
+        endDateTime &&
+        (isImmediatePurchase === 'no' || (isImmediatePurchase === 'yes' && immediatePrice))
     );
 
-    const handleDealInfoChange = (info: DealInfo) => {
-        setDealInfo(info);
-        setForm(prev => ({ ...prev, dealInfo: JSON.stringify(info) }));
-    };
-
-    // 2) 파일 선택(여러 장) + 필터링 + 최대 3장 제한
+    // 이미지 업로드 처리
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selected = Array.from(e.target.files ?? []);
-
-        // 포맷 필터링
         const valid = selected.filter(f => ACCEPTED.includes(f.type));
-        if (valid.length !== selected.length) {
-            alert('이미지 파일(jpeg/png/webp/gif)만 업로드할 수 있어요.');
-        }
+        if (valid.length !== selected.length) alert('이미지 파일(jpeg/png/webp/gif)만 업로드할 수 있어요.');
 
-        // 중복 제거(이름+크기)
         const merged = [...images, ...valid].filter(
             (f, idx, arr) => arr.findIndex(x => x.name === f.name && x.size === f.size) === idx
         );
 
-        // 최대 3장으로 자르기
         const limited = merged.slice(0, MAX_IMAGES);
-        if (merged.length > MAX_IMAGES) {
-            alert(`이미지는 최대 ${MAX_IMAGES}장까지 업로드할 수 있어요.`);
-        }
+        if (merged.length > MAX_IMAGES) alert(`이미지는 최대 ${MAX_IMAGES}장까지 업로드할 수 있어요.`);
 
         setImages(limited);
-
-        // 같은 파일 다시 선택 가능하도록 초기화
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    // 3) 미리보기 URL 갱신 및 정리
     useEffect(() => {
         const urls = images.map(f => URL.createObjectURL(f));
         setPreviews(urls);
         return () => urls.forEach(u => URL.revokeObjectURL(u));
     }, [images]);
 
-    // 🗑️ 썸네일 삭제
     const removeAt = (idx: number) => {
         const next = [...images];
         next.splice(idx, 1);
         setImages(next);
     };
 
-    const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handlePriceChange = (setter: (value: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value.replace(/\D/g, '');
-        if (!value) {
-            setPrice('');
-            return;
-        }
-        const formattedValue = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        setPrice(formattedValue);
+        setter(value ? value.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '');
     };
 
     const handleSubmit = async () => {
-        if (dealInfo.parcel) {
-            const phone = dealInfo.phoneNumber || '';
-            const isValidPhone = /^010-?\d{4}-?\d{4}$/.test(phone);
-            if (!isValidPhone) {
-                alert('택배 거래를 선택한 경우 올바른 전화번호를 입력해야 합니다.\n예: 010-1234-5678');
-                return;
-            }
-        }
-
         const formData = new FormData();
         formData.append('title', productName);
         formData.append('category', selectedCategory);
-
         images.forEach(file => formData.append('images', file));
-
         formData.append('condition', selectedCondition);
         formData.append('price', price.replace(/,/g, ''));
+        formData.append('bidUnit', bidUnit.replace(/,/g, ''));
         formData.append('description', productExplain);
-        formData.append('dealInfo', JSON.stringify(dealInfo));
-        formData.append('latitude', String(form.latitude));
-        formData.append('longitude', String(form.longitude));
+        formData.append('isImmediatePurchase', isImmediatePurchase);
+        if (isImmediatePurchase === 'yes') formData.append('immediatePrice', immediatePrice.replace(/,/g, ''));
+        formData.append('endDateTime', endDateTime);
 
         const API_BASE = import.meta.env.VITE_API_BASE || '';
-
         try {
             const res = await fetch(`${API_BASE}/api/registerItem`, {
                 method: 'POST',
@@ -151,13 +111,14 @@ const ItemRegister = () => {
                 alert('등록 실패' + (msg ? `: ${msg}` : ''));
             }
         } catch (err: unknown) {
-            if (err instanceof Error) {
-                alert('오류 발생: ' + err.message);
-            } else {
-                alert('알 수 없는 오류 발생');
-            }
+            if (err instanceof Error) alert('오류 발생: ' + err.message);
+            else alert('알 수 없는 오류 발생');
         }
     };
+
+    const now = new Date();
+    const maxDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const formatDate = (d: Date) => d.toISOString().slice(0, 16);
 
     return (
         <section className={styles.saleProduct}>
@@ -165,16 +126,12 @@ const ItemRegister = () => {
             <hr className={styles.hr_bold} />
 
             <form
-                onSubmit={(e) => {
-                    e.preventDefault();
-                    setShowAgreeModal(true);
-                }}
+                onSubmit={(e) => { e.preventDefault(); setShowAgreeModal(true); }}
                 encType="multipart/form-data"
             >
                 {/* 이미지 업로드 */}
                 <div className={styles.productImage}>
                     <h4>상품이미지</h4>
-
                     <div className={styles.previewGrid}>
                         {images.length < MAX_IMAGES && (
                             <>
@@ -192,30 +149,16 @@ const ItemRegister = () => {
                                 </label>
                             </>
                         )}
-
-                        {/* 미리보기 타일 */}
                         {previews.map((src, i) => (
                             <div key={i} className={styles.previewItem}>
                                 <img src={src} alt={`미리보기-${i}`} className={styles.userimg} />
-                                <button
-                                    type="button"
-                                    className={styles.removeBtn}
-                                    onClick={() => removeAt(i)}
-                                    aria-label={`이미지 ${i + 1} 삭제`}
-                                >
-                                    ✕
-                                </button>
+                                <button type="button" className={styles.removeBtn} onClick={() => removeAt(i)}>✕</button>
                             </div>
                         ))}
-
-                        {/* (선택) 빈 슬롯: 총 3칸 유지하되, 업로드 버튼과 미리보기 제외한 나머지만 표시 */}
                         {Array.from({
                             length: Math.max(0, MAX_IMAGES - (images.length + (images.length < MAX_IMAGES ? 1 : 0))),
-                        }).map((_, i) => (
-                            <div key={`empty-${i}`} className={styles.emptySlot} />
-                        ))}
+                        }).map((_, i) => <div key={`empty-${i}`} className={styles.emptySlot} />)}
                     </div>
-
                     <p className={styles.helperText}>jpeg/png/webp/gif, 최대 {MAX_IMAGES}장 업로드</p>
                 </div>
 
@@ -223,12 +166,7 @@ const ItemRegister = () => {
                 <hr className={styles.hr} />
                 <div className={styles.productName}>
                     <h4>상품명</h4>
-                    <input
-                        maxLength={50}
-                        placeholder="상품명을 입력해 주세요."
-                        value={productName}
-                        onChange={(e) => setProductName(e.target.value)}
-                    />
+                    <input maxLength={50} placeholder="상품명을 입력해 주세요." value={productName} onChange={(e) => setProductName(e.target.value)} />
                     <p className={styles.characterCount}>{productName.length}/50</p>
                 </div>
 
@@ -237,11 +175,7 @@ const ItemRegister = () => {
                 <div className={styles.category}>
                     <h4>카테고리</h4>
                     <div className={styles.categoryContainer}>
-                        <Category
-                            selectedCategory={selectedCategory}
-                            setSelectedCategory={setSelectedCategory}
-                            enableNavigation={false}
-                        />
+                        <Category selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} enableNavigation={false} />
                     </div>
                 </div>
 
@@ -250,12 +184,7 @@ const ItemRegister = () => {
                 <div className={styles.productCondition}>
                     <h4>상품상태</h4>
                     {['중고상품', '새상품(미사용)', '고장·파손상품'].map((condition) => (
-                        <button
-                            key={condition}
-                            type="button"
-                            className={selectedCondition === condition ? styles.selected : ''}
-                            onClick={() => setSelectedCondition(condition)}
-                        >
+                        <button key={condition} type="button" className={selectedCondition === condition ? styles.selected : ''} onClick={() => setSelectedCondition(condition)}>
                             {condition}
                         </button>
                     ))}
@@ -265,63 +194,92 @@ const ItemRegister = () => {
                 <hr className={styles.hr} />
                 <div className={styles.productExplain}>
                     <h4>상품설명</h4>
-                    <textarea
-                        maxLength={2000}
-                        placeholder="브랜드, 모델명, 구매 시기, 하자 유무 등"
-                        value={productExplain}
-                        onChange={(e) => setProductExplain(e.target.value)}
-                    />
+                    <textarea maxLength={2000} placeholder="브랜드, 모델명, 구매 시기, 하자 유무 등" value={productExplain} onChange={(e) => setProductExplain(e.target.value)} />
                     <p>{productExplain.length}/2000</p>
                 </div>
 
-                {/* 가격 */}
-                <h2 className={styles.h2}>가격</h2>
+                {/* 경매 */}
+                <h2 className={styles.h2}>경매</h2>
                 <hr className={styles.hr_bold} />
+
+                {/* 경매 시작가 */}
                 <div className={styles.price}>
-                    <h4>판매가격</h4>
+                    <h4>경매시작가</h4>
                     <div className={styles.priceInputWrapper}>
-                        <input
-                            type="text"
-                            placeholder="가격을 입력해주세요."
-                            value={price}
-                            maxLength={12}
-                            onChange={handlePriceChange}
-                        />
+                        <input type="text" placeholder="가격을 입력해주세요." value={price} maxLength={12} onChange={handlePriceChange(setPrice)} />
                         <span className={styles.won}>원</span>
                     </div>
                 </div>
 
-                {/* 거래 방식 + 위치 */}
-                <h2 className={styles.h2}>거래</h2>
-                <hr className={styles.hr_bold} />
-                <h4>거래방법</h4>
-                <div className={styles.exchangeMethod}>
-                    <div className={styles.transactionStyle}>
-                        <Transaction_item
-                            onLocationSelect={({ lat, lng }) =>
-                                setForm((prev) => ({ ...prev, latitude: lat, longitude: lng }))
-                            }
-                            onDealInfoChange={handleDealInfoChange}
-                        />
+                <hr className={styles.hr}/>
+                <div className={styles.immediatePurchase}>
+                    <h4>즉시구매여부</h4>
+                    <div className={styles.immediatePurchaseRadio}>
+                        <label>
+                            <input
+                                type="radio"
+                                name="immediatePurchase"
+                                value="yes"
+                                checked={isImmediatePurchase === 'yes'}
+                                onChange={() => setIsImmediatePurchase('yes')}
+                            />
+                            예
+                        </label>
+                        <label>
+                            <input
+                                type="radio"
+                                name="immediatePurchase"
+                                value="no"
+                                checked={isImmediatePurchase === 'no'}
+                                onChange={() => setIsImmediatePurchase('no')}
+                            />
+                            아니오
+                        </label>
                     </div>
+
+                    <div className={`${styles.immediatePriceWrapper} ${isImmediatePurchase === 'yes' ? styles.active : ''}`}>
+                        <div className={styles.immediatePrice}>
+                            <input
+                                type="number"
+                                placeholder="즉시구매가 입력"
+                                value={immediatePrice}
+                                onChange={(e) => setImmediatePrice(e.target.value)}
+                            />
+                            <span>원</span>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                {/* 입찰 단위 */}
+                <hr className={styles.hr} />
+                <div className={styles.bidUnit}>
+                    <h4>입찰단위</h4>
+                    <div className={styles.bidUnitInputWrapper}>
+                        <input type="text" placeholder="단위를 입력해주세요." value={bidUnit} maxLength={12} onChange={handlePriceChange(setBidUnit)} />
+                        <span className={styles.bidUnitwon}>원</span>
+                    </div>
+                </div>
+
+                {/* 경매 종료일시 */}
+                <hr className={styles.hr} />
+                <div className={styles.endDateTime}>
+                    <h4>경매종료일시</h4>
+                    <input type="datetime-local" value={endDateTime} onChange={(e) => setEndDateTime(e.target.value)} min={formatDate(now)} max={formatDate(maxDate)} />
+                    <p className={styles.helperText}>최대 1주일 이내로 설정할 수 있습니다.</p>
                 </div>
 
                 {/* 등록 버튼 */}
                 <hr className={styles.hr_bold} />
                 <div className={styles.submitOption}>
-                    <button type="submit" className={styles.submitOptionButton} disabled={!isFormValid}>
-                        등록하기
-                    </button>
+                    <button type="submit" className={styles.submitOptionButton} disabled={!isFormValid}>등록하기</button>
                 </div>
             </form>
 
-            {/* 위치 동의 모달 */}
             {showAgreeModal && (
                 <AgreeModal
-                    onAgree={() => {
-                        setShowAgreeModal(false);
-                        handleSubmit();
-                    }}
+                    onAgree={() => { setShowAgreeModal(false); handleSubmit(); }}
                     onCancel={() => setShowAgreeModal(false)}
                 />
             )}
@@ -329,4 +287,4 @@ const ItemRegister = () => {
     );
 };
 
-export default ItemRegister;
+export default AuctionItemRegister;

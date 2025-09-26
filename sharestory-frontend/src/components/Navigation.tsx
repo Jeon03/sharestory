@@ -72,6 +72,7 @@ function Navigation() {
 
                 <Link to="/usedproduct">중고거래</Link>
                 <Link to="/auction">물품경매</Link>
+                <Link to="/auctionItemRegister">경매등록</Link>
             </div>
         </nav>
     );
