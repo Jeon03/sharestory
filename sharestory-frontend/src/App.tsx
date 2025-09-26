@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import { BrowserRouter as Router, Outlet, Route, Routes } from 'react-router-dom';
+import { Outlet, Route, Routes } from 'react-router-dom';
 import Header from './components/Header';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
 import ProductList from './pages/ProductList';
-import Login from './pages/Login';
 import ItemRegister from "./pages/Item/ItemRegister";
 import ItemEdit from "./pages/Item/ItemEdit";
 import ProductDetail from './pages/ProductDetail';
@@ -24,19 +23,18 @@ import ProfileCard from "./components/mypage/ProfileCard.tsx";
 
 function AppLayout({
                        user,
-                       onLoginClick,
                        setUser,
                    }: {
     user: User | null;
-    onLoginClick: () => void;
     setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }) {
+    const { openLogin } = useAuth();
     return (
         <div className="App">
             <div className="heaerset">
                 <Header
                     user={user}
-                    onLoginClick={onLoginClick}
+                    onLoginClick={openLogin}
                     setUser={setUser}
                 />
                 <Navigation />
@@ -68,7 +66,7 @@ function GlobalChat() {
 
 export default function App() {
     const [user, setUser] = useState<User | null>(null);
-    const [isLoginOpen, setIsLoginOpen] = useState(false);
+
     const { currentOpenRoomId, setUnreadCounts, setLastMessages } = useChatContext();
     const API_URL = import.meta.env.VITE_API_URL || "";
     const { openLogin } = useAuth();
@@ -133,8 +131,6 @@ export default function App() {
     // ✅ 전역 WebSocket 연결
     useEffect(() => {
         if (!user?.id) return;
-
-
         connectGlobal(
             user.id,
             (msg) => {
@@ -171,14 +167,37 @@ export default function App() {
         };
     }, [user?.id, currentOpenRoomId, setUnreadCounts, setLastMessages]);
 
+
+    useEffect(() => {
+        const fetchUnreadCounts = async () => {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/chat/rooms`, {
+                credentials: "include",
+            });
+            if (res.ok) {
+                const rooms = await res.json();
+                const counts: Record<number, number> = {};
+                rooms.forEach((room: { roomId: number; unreadCount: number }) => {
+                    counts[room.roomId] = room.unreadCount;
+                });
+                setUnreadCounts(counts);
+            }
+        };
+
+        // 로그인 성공 시 unreadCounts 초기화
+        const handler = () => fetchUnreadCounts();
+        window.addEventListener("login-success", handler);
+
+        return () => window.removeEventListener("login-success", handler);
+    }, [setUnreadCounts]);
+
+
     return (
-        <Router>
+        <>
             <Routes>
                 <Route
                     element={
                         <AppLayout
                             user={user}
-                            onLoginClick={() => setIsLoginOpen(true)}
                             setUser={setUser}
                         />
                     }
@@ -189,12 +208,22 @@ export default function App() {
                     <Route path="/search" element={<SearchPage />} />
 
                     {/* 로그인 필수 라우트 */}
-                    <Route path="/registerItem" element={<ProtectedRoute user={user}><ItemRegister /></ProtectedRoute>} />
-                    <Route path="/items/:id/edit" element={<ProtectedRoute user={user}><ItemEdit /></ProtectedRoute>} />
+                    <Route
+                        path="/registerItem"
+                        element={<ProtectedRoute user={user}><ItemRegister /></ProtectedRoute>}
+                    />
+                    <Route
+                        path="/items/:id/edit"
+                        element={<ProtectedRoute user={user}><ItemEdit /></ProtectedRoute>}
+                    />
 
                     <Route
                         path="/mypage"
-                        element={<ProtectedRoute user={user}><MyPage user={user} setUser={setUser} /></ProtectedRoute>}
+                        element={
+                            <ProtectedRoute user={user}>
+                                <MyPage user={user} setUser={setUser} />
+                            </ProtectedRoute>
+                        }
                     >
                         <Route
                             index
@@ -205,22 +234,32 @@ export default function App() {
                                     provider={user?.role ?? ""}
                                     point={user?.points ?? 0}
                                     totalTrades={0}
-                                    onChargeClick={() => setIsLoginOpen(true)}
+                                    onChargeClick={openLogin}
                                     onEditClick={() => alert("프로필 수정")}
                                 />
                             }
                         />
                         <Route path="items" element={<MyItems />} />
-                        <Route path="points" element={<ProtectedRoute user={user}><PointList userId={user?.id ?? 0} /></ProtectedRoute>} />
+                        <Route
+                            path="points"
+                            element={
+                                <ProtectedRoute user={user}>
+                                    <PointList userId={user?.id ?? 0} />
+                                </ProtectedRoute>
+                            }
+                        />
                     </Route>
 
                     {/* 로그인 직후 리다이렉트 */}
-                    <Route path="/oauth2/redirect" element={<OAuth2Redirect onLogin={fetchMe} />} />
+                    <Route
+                        path="/oauth2/redirect"
+                        element={<OAuth2Redirect onLogin={fetchMe} />}
+                    />
                 </Route>
             </Routes>
 
             <GlobalChat />
-            <Login isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-        </Router>
+        </>
     );
+
 }

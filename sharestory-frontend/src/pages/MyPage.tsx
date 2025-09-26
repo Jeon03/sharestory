@@ -1,9 +1,9 @@
 import "../css/myPage.css";
-
-
+import { useState } from "react";
 import type { User } from "../types/user";
 
 import {Link, Outlet} from "react-router-dom";
+import FavoriteSlider from "../components/favorite/FavoriteSlider.tsx";
 
 interface MyPageProps {
     user: User | null;
@@ -11,6 +11,8 @@ interface MyPageProps {
 }
 
 export default function MyPage({ user, setUser }: MyPageProps) {
+
+    const [isFavoriteOpen, setFavoriteOpen] = useState(false);
 
     if (!user) {
         return <div className="mypage-container">로그인이 필요합니다.</div>;
@@ -27,7 +29,12 @@ export default function MyPage({ user, setUser }: MyPageProps) {
                         <li><Link to="/mypage">판매내역</Link></li>
                         <li><Link to="/mypage">구매내역</Link></li>
                         <li><Link to="/mypage">경매내역</Link></li>
-                        <li><Link to="/mypage">관심상품</Link></li>
+                        <li
+                            onClick={() => setFavoriteOpen(true)}
+                            style={{ cursor: "pointer" }}
+                        >
+                            관심상품
+                        </li>
                         <li><Link to="/mypage/points">포인트내역</Link></li>
                     </ul>
                     <h4>내 정보</h4>
@@ -42,6 +49,11 @@ export default function MyPage({ user, setUser }: MyPageProps) {
             <main className="mypage-main">
                 <Outlet context={{ user, setUser }} />
             </main>
+            {/* 관심상품 슬라이더 */}
+            <FavoriteSlider
+                isOpen={isFavoriteOpen}
+                onClose={() => setFavoriteOpen(false)}
+            />
         </div>
     );
 }

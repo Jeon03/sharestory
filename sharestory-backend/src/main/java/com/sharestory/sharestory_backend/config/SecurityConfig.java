@@ -26,6 +26,7 @@ public class SecurityConfig {
     private final CustomOAuth2UserService oAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final JwtAuthenticationFilter jwtFilter;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Value("${app.frontend-url:http://localhost:5173}")
     private String frontendUrl;
@@ -46,9 +47,9 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/health",
                                 "/error",
-                                "/oauth2/**",        // 소셜 로그인 진입
-                                "/login/**",         // OAuth2 Callback
-                                "/auth/**",         //토큰 재발급, 로그아웃 API
+                                "/oauth2/**",
+                                "/login/**",
+                                "/auth/**",
                                 "/actuator/**",
                                 "/api/allItems",
                                 "/api/items/sorted/**",
@@ -56,7 +57,8 @@ public class SecurityConfig {
                                 "/api/map/**",
                                 "/api/favorites/**",
                                 "/api/main",
-                                "/api/items/autocomplete"
+                                "/api/items/autocomplete",
+                                "/ws-connect/**"
                         ).permitAll()
                         .requestMatchers(
                                 "/api/users/location",
@@ -67,7 +69,9 @@ public class SecurityConfig {
                         ).authenticated()
                         .anyRequest().authenticated()
                 )
-
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(customAuthenticationEntryPoint) // ✅ JSON 응답
+                )
                 // 기본 로그인/HTTP Basic 비활성화
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)

@@ -39,7 +39,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 path.startsWith("/login/") ||
                 path.startsWith("/auth/") ||
                 path.equals("/error") ||
-                path.equals("/api/health")) {
+                path.equals("/api/health") ||
+                path.startsWith("/ws-connect/")) {   // 🔥 SockJS 경로 추가
             chain.doFilter(req, res);
             return;
         }

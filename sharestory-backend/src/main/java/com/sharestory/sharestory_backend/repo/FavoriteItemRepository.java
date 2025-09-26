@@ -10,4 +10,5 @@ public interface FavoriteItemRepository extends JpaRepository<FavoriteItem, Long
     Optional<FavoriteItem> findByUserIdAndItemId(Long userId, Long itemId);
     void deleteByUserIdAndItemId(Long userId, Long itemId);
     void deleteAllByItemId(Long itemId);
+    List<FavoriteItem> findByUserId(Long userId);
 }
