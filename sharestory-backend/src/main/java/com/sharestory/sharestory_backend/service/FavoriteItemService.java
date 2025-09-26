@@ -3,12 +3,14 @@ package com.sharestory.sharestory_backend.service;
 import com.sharestory.sharestory_backend.domain.FavoriteItem;
 import com.sharestory.sharestory_backend.domain.Item;
 import com.sharestory.sharestory_backend.domain.User;
+import com.sharestory.sharestory_backend.dto.ItemSummaryDto;
 import com.sharestory.sharestory_backend.repo.FavoriteItemRepository;
 import com.sharestory.sharestory_backend.repo.ItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -53,5 +55,31 @@ public class FavoriteItemService {
         return itemRepo.findById(itemId)
                 .map(Item::getFavoriteCount)
                 .orElse(0);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ItemSummaryDto> getFavorites(Long userId) {
+        return favoriteRepo.findByUserId(userId).stream()
+                .map(fav -> {
+                    var item = fav.getItem();
+
+                    // 대표 이미지 1개만 선택 (없으면 null)
+                    String imageUrl = (item.getImages() != null && !item.getImages().isEmpty())
+                            ? item.getImages().get(0).getUrl()
+                            : null;
+
+                    return ItemSummaryDto.builder()
+                            .id(item.getId())
+                            .title(item.getTitle())
+                            .price(item.getPrice())
+                            .imageUrl(imageUrl)
+                            .itemStatus(item.getStatus().name())
+                            .favoriteCount(item.getFavoriteCount())
+                            .latitude(item.getLatitude())
+                            .longitude(item.getLongitude())
+                            .modified(item.isModified())
+                            .build();
+                })
+                .toList();
     }
 }

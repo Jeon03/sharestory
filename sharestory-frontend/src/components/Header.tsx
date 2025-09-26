@@ -21,8 +21,9 @@ export default function Header({
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement | null>(null);
     const [isPointModalOpen, setIsPointModalOpen] = useState(false);
-    const { totalUnread, openChat } = useChatContext();
 
+    // 🔹 toggleChat 사용
+    const { totalUnread, toggleChat } = useChatContext();
 
     const handleProductRegisterClick = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -37,15 +38,15 @@ export default function Header({
             });
             if (res.ok) {
                 alert("로그아웃 되었습니다.");
-                setUser(null);     // ✅ 상태 초기화
-                navigate("/");     // ✅ 홈으로 이동
+                setUser(null);
+                navigate("/");
                 window.location.reload();
             } else {
                 alert("로그아웃 실패");
             }
         } catch (err) {
             console.error("❌ 로그아웃 중 오류:", err);
-            setUser(null);       // ✅ 실패해도 상태 초기화
+            setUser(null);
             navigate("/");
         }
     };
@@ -74,16 +75,16 @@ export default function Header({
                 <div className="menu-links">
                     {user ? (
                         <>
+                            {/* 🔹 채팅 */}
                             <div className="chat-link-wrapper">
                                 <div
                                     className="chat-icon-container"
                                     onClick={(e) => {
                                         e.preventDefault();
-                                        openChat();
+                                        toggleChat(); // ✅ 열기/닫기 토글
                                     }}
                                 >
                                     <i className="bi-chat-dots"></i>
-
                                     {totalUnread > 0 && (
                                         <span className="chat-alert-dot">{totalUnread}</span>
                                     )}
@@ -93,7 +94,7 @@ export default function Header({
                                     href="#"
                                     onClick={(e) => {
                                         e.preventDefault();
-                                        openChat();
+                                        toggleChat(); // ✅ 열기/닫기 토글
                                     }}
                                 >
                                     채팅하기
@@ -102,6 +103,7 @@ export default function Header({
 
                             <span className="divider">|</span>
 
+                            {/* 🔹 판매하기 */}
                             <div className="menu-item">
                                 <i className="bi-bag-dash"></i>
                                 <a href="/registerItem" onClick={handleProductRegisterClick}>
@@ -111,6 +113,7 @@ export default function Header({
 
                             <span className="divider">|</span>
 
+                            {/* 🔹 사용자 메뉴 */}
                             <div className="header-dropdown" ref={dropdownRef}>
                                 <button
                                     className="dropdown-toggle"
@@ -131,7 +134,9 @@ export default function Header({
                                             className="dropdown-item"
                                         >
                                             <div className="point-label">보유 포인트</div>
-                                            <div className="point-value2">{(user?.points ?? 0).toLocaleString()} P</div>
+                                            <div className="point-value2">
+                                                {(user?.points ?? 0).toLocaleString()} P
+                                            </div>
                                         </button>
                                         <button onClick={handleLogout} className="dropdown-item logout">
                                             로그아웃
@@ -139,7 +144,6 @@ export default function Header({
                                     </div>
                                 )}
                             </div>
-
                         </>
                     ) : (
                         <>
@@ -175,7 +179,6 @@ export default function Header({
 
                             <div className="chat-link-wrapper" style={{ position: "relative" }}>
                                 <i className="bi-chat-dots"></i>
-                                {/* ✅ 비로그인 상태 → 알림 뱃지 표시 안 함 */}
                                 <a
                                     href="#"
                                     onClick={(e) => {
@@ -186,19 +189,19 @@ export default function Header({
                                     채팅하기
                                 </a>
                             </div>
-
                         </>
                     )}
                 </div>
             </header>
 
+            {/* 🔹 포인트 모달 */}
             <PointModal
                 isOpen={isPointModalOpen}
                 onClose={() => setIsPointModalOpen(false)}
                 points={user?.points ?? 0}
                 user={user}
                 setPoints={(newBalance: number) => {
-                    setUser((prev) => prev ? { ...prev, points: newBalance } : prev);
+                    setUser((prev) => (prev ? { ...prev, points: newBalance } : prev));
                 }}
             />
         </>

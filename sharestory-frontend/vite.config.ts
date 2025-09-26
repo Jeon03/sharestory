@@ -12,6 +12,10 @@ export default defineConfig({
       '/oauth2': { target: 'http://localhost:8081', changeOrigin: true },
       '/login':  { target: 'http://localhost:8081', changeOrigin: true }, // login/oauth2/*
       '/logout': { target: 'http://localhost:8081', changeOrigin: true },
+        "/ws": {target: "http://localhost:8081", changeOrigin: true, ws: true, // ✅ WebSocket 프록시 활성화
+        },
+        "/ws-connect": {target: "http://localhost:8081", changeOrigin: true, ws: true, // ✅ WebSocket 프록시 활성화
+        },
     },
   },
   define: {

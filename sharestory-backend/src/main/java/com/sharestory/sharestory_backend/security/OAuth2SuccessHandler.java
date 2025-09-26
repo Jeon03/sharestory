@@ -67,7 +67,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         // 로그인 성공 후 프론트엔드로 리다이렉트
         res.setStatus(HttpServletResponse.SC_FOUND);
-        res.setHeader("Location", FRONT + "/");
+        res.setHeader("Location", FRONT + "/?login=success");
     }
 
 

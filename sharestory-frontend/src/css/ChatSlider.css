@@ -1,33 +1,47 @@
+/* 오버레이: 페이드 애니메이션 */
+.chatroom-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 9999;
+    opacity: 0;
+
+    pointer-events: none;
+    transition: opacity 0.3s ease-in-out;
+}
+.chatroom-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* 패널: 슬라이드 애니메이션 */
 .chatroom-panel {
     position: fixed;
-    top: 0;
-    right: 0;
-    width: 35vw;
-    max-width: 500px;
-    min-width: 280px;
+    top: 0; right: 0;
+    width: 35vw; max-width: 580px; min-width: 280px;
     height: 100vh;
     background: #fff;
     box-shadow: -2px 0 8px rgba(0,0,0,0.15);
-    display: flex;
-    flex-direction: column;
-    z-index: 99999 !important; /* ✅ 항상 헤더 위 */
+    display: flex; flex-direction: column;
+    z-index: 10000;
+    transform: translateX(100%);                 /* 시작: 화면 밖 */
     transition: transform 0.3s ease-in-out;
+    will-change: transform;
+}
+.chatroom-panel.open {
+    transform: translateX(0);                    /* 열릴 때 진입 */
 }
 
-/* 패널 헤더 */
 .chatroom-panel-header {
     padding: 10px;
     font-weight: bold;
     border-bottom: 1px solid #ddd;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: flex; justify-content: space-between; align-items: center;
 }
 
-/* 작은 화면 (모바일)에서는 80% */
+.chatroom-panel-body {
+    flex: 1; overflow-y: auto;
+}
+
 @media (max-width: 768px) {
-    .chatroom-panel {
-        width: 80vw;
-        max-width: none;
-    }
+    .chatroom-panel { width: 80vw; max-width: none; }
 }

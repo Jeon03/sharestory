@@ -44,7 +44,7 @@
 .chat-input-wrapper {
     position: sticky;   /* ✅ 부모(.chat-container) 기준으로 하단 고정 */
     bottom: 0;
-      /* 채팅창 폭에 맞춤 */
+    /* 채팅창 폭에 맞춤 */
     background: #fff;
     border-top: 1px solid #ddd;
     padding: 6px 10px;
@@ -57,7 +57,7 @@
     gap: 8px;
     padding: 10px;
     background: #fff;
-     /* 채팅창 폭에 맞춤 */
+    /* 채팅창 폭에 맞춤 */
 }
 
 /* 아이콘 버튼 */
