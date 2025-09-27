@@ -46,6 +46,8 @@ const DateDivider = ({ date }: { date: string }) => (
 );
 
 export default function ChatRoom({ roomId }: ChatRoomProps) {
+    const { setCurrentOpenRoomId, setUnreadCounts } = useChatContext();
+
     const [messages, setMessages] = useState<ChatMsg[]>([]);
     const [input, setInput] = useState("");
     const [currentUserId, setCurrentUserId] = useState<number | null>(null);
@@ -59,12 +61,21 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
     const inputWrapperRef = useRef<HTMLDivElement | null>(null);
     const [bottomPadding, setBottomPadding] = useState(80);
 
-    const { setCurrentOpenRoomId, setUnreadCounts } = useChatContext();
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
-
     const { openLogin } = useAuth();
 
-    // ✅ 방 입장/퇴장 시 현재 열린 방 등록 + 읽음 처리
+    /** ✅ 세션스토리지 → 프리셋 메시지 로드 */
+    useEffect(() => {
+        const key = `chat:preset:${roomId}`;
+        const draft = sessionStorage.getItem(key);
+        if (draft) {
+            console.log("📩 [ChatRoom] sessionStorage preset 로드:", draft);
+            setInput(draft);
+            sessionStorage.removeItem(key); // 1회성
+        }
+    }, [roomId]);
+
+    /** ✅ 방 입장/퇴장 + 읽음 처리 */
     useEffect(() => {
         setCurrentOpenRoomId(roomId);
 
@@ -73,10 +84,10 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                 method: "POST",
             })
                 .then(() => {
-                    console.log(`✅ Room #${roomId} 읽음 처리 완료`);
+                    console.log(`✅ [ChatRoom] Room #${roomId} 읽음 처리 완료`);
                     setUnreadCounts((prev) => ({ ...prev, [roomId]: 0 }));
                 })
-                .catch((err) => console.error("읽음 처리 실패:", err));
+                .catch((err) => console.error("❌ 읽음 처리 실패:", err));
 
             sendReadEvent(roomId, currentUserId);
         }
@@ -84,11 +95,10 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
         return () => setCurrentOpenRoomId(null);
     }, [roomId, currentUserId, setCurrentOpenRoomId, setUnreadCounts]);
 
-    // 스크롤 맨 아래로 이동
+    /** ✅ 스크롤 맨 아래로 이동 */
     const scrollToBottom = (smooth = false) => {
         messagesEndRef.current?.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
     };
-
     useEffect(() => {
         if (messages.length > 0) scrollToBottom(false);
     }, [messages]);
@@ -99,20 +109,21 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
         }
     }, [previewImage, input]);
 
-    // ✅ 로그인 사용자 정보
+    /** ✅ 로그인 사용자 정보 */
     useEffect(() => {
         (async () => {
             try {
                 const res = await fetchWithAuth(`${import.meta.env.VITE_API_URL}/api/main`);
                 const user = await res.json();
                 setCurrentUserId(user.id);
+                console.log("🙋 로그인 사용자 ID:", user.id);
             } catch (e) {
-                console.error("사용자 정보 불러오기 실패:", e);
+                console.error("❌ 사용자 정보 불러오기 실패:", e);
             }
         })();
     }, []);
 
-    // ✅ 채팅방 상품 정보
+    /** ✅ 채팅방 상품 정보 */
     useEffect(() => {
         (async () => {
             try {
@@ -122,12 +133,12 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                 const data: ItemInfo = await res.json();
                 setItem(data);
             } catch (err) {
-                console.error("상품 정보 불러오기 실패:", err);
+                console.error("❌ 상품 정보 불러오기 실패:", err);
             }
         })();
     }, [roomId]);
 
-    // ✅ 채팅 내역
+    /** ✅ 채팅 내역 불러오기 */
     useEffect(() => {
         if (!currentUserId) return;
         (async () => {
@@ -150,14 +161,16 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                 }));
                 setMessages(formatted);
             } catch (e) {
-                console.error("채팅 내역 불러오기 실패:", e);
+                console.error("❌ 채팅 내역 불러오기 실패:", e);
             }
         })();
     }, [roomId, currentUserId]);
 
-    // ✅ 실시간 메시지 수신
+    /** ✅ 실시간 메시지 수신 */
     useEffect(() => {
-        if (!currentUserId) return;
+        if (!roomId || !currentUserId) return; // ✅ 조건: 유저ID 준비된 후에만 connect
+
+        console.log("🔌 [ChatRoom] connect 실행, roomId =", roomId, "userId =", currentUserId);
 
         connect(
             roomId,
@@ -205,10 +218,13 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
             }
         );
 
-        return () => disconnect();
-    }, [roomId, currentUserId, openLogin]);
+        return () => {
+            console.log("🔌 [ChatRoom] cleanup → disconnect()");
+            disconnect();
+        };
+    }, [roomId, currentUserId]);
 
-    // ✅ 메시지 전송
+    /** ✅ 메시지 전송 */
     const handleSend = async () => {
         if (!currentUserId) {
             openLogin();
@@ -228,7 +244,7 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                 const data = await res.json();
                 sendMessage(roomId, data.url, currentUserId, "IMAGE");
             } catch (err) {
-                console.error("이미지 업로드 실패:", err);
+                console.error("❌ 이미지 업로드 실패:", err);
             } finally {
                 setPreviewImage(null);
                 setPreviewFile(null);
@@ -239,19 +255,11 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
         if (input.trim() !== "") {
             try {
                 sendMessage(roomId, input, currentUserId, "TEXT");
-                setInput("");
+                setInput(""); // 전송 후 비우기
             } catch (err) {
-                console.error("메시지 전송 실패:", err);
+                console.error("❌ 메시지 전송 실패:", err);
                 openLogin();
             }
-        }
-    };
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setPreviewFile(file);
-            setPreviewImage(URL.createObjectURL(file));
         }
     };
 
@@ -324,8 +332,8 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                                         {m.time}
                                         {m.mine && (
                                             <span className="read-indicator">
-                        {m.read ? "✔읽음" : "안읽음"}
-                      </span>
+                                                {m.read ? "✔읽음" : "안읽음"}
+                                            </span>
                                         )}
                                     </div>
                                 </div>
@@ -359,7 +367,13 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                         accept="image/*"
                         ref={fileInputRef}
                         style={{ display: "none" }}
-                        onChange={handleFileChange}
+                        onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                                setPreviewFile(file);
+                                setPreviewImage(URL.createObjectURL(file));
+                            }
+                        }}
                     />
 
                     <button className="icon-button" onClick={() => fileInputRef.current?.click()}>

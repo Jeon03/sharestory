@@ -1,5 +1,6 @@
 package com.sharestory.sharestory_backend.dto;
 
+import com.sharestory.sharestory_backend.domain.DealInfo;
 import lombok.*;
 
 @Getter @Setter
@@ -21,5 +22,5 @@ public class ItemSummaryDto {
     private boolean modified;     // 수정 여부
     private String updatedDate;   // 수정 시간 (optional)
 
-
+    private DealInfo dealInfo;
 }

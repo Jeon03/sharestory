@@ -71,18 +71,39 @@
     border-radius: 5px;
 }
 
+
+@font-face {
+    font-family: 'NanumGothicBold';
+    src: url('../../public/fonts/NanumGothicBold.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
 /* 상태 배지 */
 .list-badge-reserved {
+    font-family: 'NanumGothicBold', sans-serif;
     position: absolute;
     top: 9px;
     left: 11px;
     font-size: 12px;
-    font-weight: bold;
-    padding: 3px 6px;
+    font-weight: bolder;
+    padding: 4px 8px;
     border-radius: 4px;
-    background-color: gold;
-    color: black;
+    background-color: black;
+    color: gold;
     z-index: 10;
+}
+.list-badge-safe {
+    font-family: 'NanumGothicBold', sans-serif;
+    position: absolute;
+    bottom: -40px;
+    left: 10px;
+    background: #ee7023;
+    color: white;
+    font-size: 11px;
+    font-weight: 550;
+    padding: 4px 8px;
+    border-radius: 4px;
+    z-index: 2;
 }
 .list-badge-sold {
     position: absolute;
@@ -96,18 +117,7 @@
     color: white;
     z-index: 10;
 }
-.badge-safe {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    background-color: #f5e166;
-    color: black;
-    font-size: 12px;
-    font-weight: bold;
-    padding: 3px 6px;
-    border-radius: 4px;
-    z-index: 10;
-}
+
 
 /* 카드 내부 */
 .product-info {

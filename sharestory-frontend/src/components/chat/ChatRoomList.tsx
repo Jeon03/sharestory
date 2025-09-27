@@ -95,9 +95,10 @@ export default function ChatRoomList({ onRoomSelect, onRequireLogin  }: ChatRoom
             unreadCount: unreadCounts[room.roomId] ?? room.unreadCount,
         };
     });
+    const filteredRooms = enrichedRooms.filter((room) => room.lastMessage && room.lastMessage.trim() !== "");
 
     // ✅ updatedAt 기준 최신순 정렬
-    const sortedRooms = [...enrichedRooms].sort(
+    const sortedRooms = [...filteredRooms].sort(
         (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
     );
 

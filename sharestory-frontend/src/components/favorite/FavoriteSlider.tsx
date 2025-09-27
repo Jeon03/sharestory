@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
+import { AnimatePresence, motion } from "framer-motion";
 import "../../css/favorite.css";
+import { useFavorites } from "../../contexts/useFavorites";
+import { Heart } from "lucide-react";
+import Toast from "../common/Toast";
 
 interface FavoriteItem {
     id: number;
@@ -22,7 +25,6 @@ interface FavoriteSliderProps {
     onClose: () => void;
 }
 
-// ✅ 위치 캐시
 const locationCache = new Map<string, string>();
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
@@ -31,10 +33,9 @@ const fetchRegionName = async (lat: number, lng: number): Promise<string> => {
     if (locationCache.has(key)) return locationCache.get(key)!;
 
     try {
-        const res = await fetch(
-            `${API_BASE}/api/map/region?lat=${lat}&lng=${lng}`,
-            { credentials: "include" }
-        );
+        const res = await fetch(`${API_BASE}/api/map/region?lat=${lat}&lng=${lng}`, {
+            credentials: "include",
+        });
         if (!res.ok) return "알 수 없음";
 
         const data = await res.json();
@@ -47,32 +48,31 @@ const fetchRegionName = async (lat: number, lng: number): Promise<string> => {
 };
 
 export default function FavoriteSlider({ isOpen, onClose }: FavoriteSliderProps) {
-    const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
+    const [favoriteItems, setFavoriteItems] = useState<FavoriteItem[]>([]);
     const [locations, setLocations] = useState<Record<number, string>>({});
     const navigate = useNavigate();
 
-    // ✅ 관심상품 불러오기
-    const fetchFavorites = async () => {
-        try {
-            const res = await fetchWithAuth("/api/favorites");
-            const data: FavoriteItem[] = await res.json();
-            setFavorites(data);
-            console.log("관심상품:", data);
-        } catch (err) {
-            console.error("관심상품 불러오기 실패", err);
-        }
-    };
+    const { setFavorites, removeFavorite } = useFavorites();
+    const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-    // ✅ 슬라이더 열릴 때마다 관심상품 목록 가져오기
+    // ✅ 관심상품 불러오기
     useEffect(() => {
-        if (isOpen) fetchFavorites();
-    }, [isOpen]);
+        if (isOpen) {
+            fetchWithAuth("/api/favorites")
+                .then((res) => res.json())
+                .then((data: FavoriteItem[]) => {
+                    setFavoriteItems(data);
+                    setFavorites(data.map((i) => i.id)); // Context에도 업데이트
+                })
+                .catch((err) => console.error("관심상품 불러오기 실패", err));
+        }
+    }, [isOpen, setFavorites]);
 
     // ✅ 위치 정보 불러오기
     useEffect(() => {
         const loadLocations = async () => {
             const locs: Record<number, string> = {};
-            for (const item of favorites) {
+            for (const item of favoriteItems) {
                 if (item.latitude && item.longitude) {
                     const region = await fetchRegionName(item.latitude, item.longitude);
                     locs[item.id] = region;
@@ -80,71 +80,108 @@ export default function FavoriteSlider({ isOpen, onClose }: FavoriteSliderProps)
             }
             setLocations(locs);
         };
-        if (favorites.length > 0) loadLocations();
-    }, [favorites]);
+        if (favoriteItems.length > 0) loadLocations();
+    }, [favoriteItems]);
 
+    // ✅ ESC 닫기
     useEffect(() => {
-        const handleEsc = (e: KeyboardEvent) => {
-            if (e.key === "Escape") onClose();
-        };
+        const handleEsc = (e: KeyboardEvent) => e.key === "Escape" && onClose();
         window.addEventListener("keydown", handleEsc);
         return () => window.removeEventListener("keydown", handleEsc);
     }, [onClose]);
 
-    // ✅ 아이템 클릭 → 상세페이지 이동
+    // ✅ 상세페이지 이동
     const handleClick = (id: number) => {
-        onClose(); // 슬라이더 닫기
+        onClose();
         navigate(`/items/${id}`);
     };
 
-    if (!isOpen) return null;
+    // ✅ 찜 해제
+    const handleRemove = async (id: number) => {
+        try {
+            const res = await fetch(`${API_BASE}/api/favorites/${id}/toggle`, {
+                method: "POST",
+                credentials: "include",
+            });
+            if (res.ok) {
+                setFavoriteItems((prev) => prev.filter((item) => item.id !== id));
+                removeFavorite(id); // Context에서도 제거
+
+                setToastMsg("관심상품이 해제되었습니다");
+                setTimeout(() => setToastMsg(null), 2000);
+            }
+        } catch {
+            alert("찜 해제 실패");
+        }
+    };
 
     return (
-        <>
-            {/* 오버레이 */}
-            <div className="favorite-overlay" onClick={onClose}/>
+        <AnimatePresence>
+            {isOpen && (
+                <>
+                    {/* 오버레이 */}
+                    <motion.div
+                        className="favorite-overlay"
+                        onClick={onClose}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.25 }}
+                    />
 
-            {/* 패널 */}
-            <div className="favorite-panel">
-                <div className="favorite-panel-header">
-                    <h2>내 관심</h2>
-                    <button onClick={onClose}><X/></button>
-                </div>
+                    {/* 패널 */}
+                    <motion.div
+                        className="favorite-panel"
+                        initial={{ x: "100%" }}
+                        animate={{ x: 0 }}
+                        exit={{ x: "100%" }}
+                        transition={{ type: "tween", duration: 0.3 }}
+                    >
+                        <div className="favorite-panel-header">
+                            <h2>나의 관심상품</h2>
+                            <button onClick={onClose}>❌</button>
+                        </div>
 
-                <div className="favorite-tab">찜한 상품</div>
-
-                <div className="favorite-list">
-                    {favorites.length === 0 ? (
-                        <p className="empty-text">관심상품이 없습니다.</p>
-                    ) : (
-                        favorites.map((item) => (
-                            <div
-                                key={item.id}
-                                className="favorite-card"
-                                onClick={() => handleClick(item.id)}
-                            >
-                                <div className="favorite-thumb-wrap">
-                                    <img
-                                        src={item.imageUrl || "/no-image.png"}
-                                        alt={item.title}
-                                        className="favorite-thumb"
-                                    />
-                                    <span className="favorite-heart">❤️</span>
-                                </div>
-                                <div className="favorite-info">
-                                    <div className="favorite-title">{item.title}</div>
-                                    <div className="favorite-price">
-                                        {item.price.toLocaleString()}원
+                        <div className="favorite-list">
+                            {favoriteItems.length === 0 ? (
+                                <p className="empty-text">관심상품이 없습니다.</p>
+                            ) : (
+                                favoriteItems.map((item) => (
+                                    <div key={item.id} className="favorite-card">
+                                        <div
+                                            className="favorite-thumb-wrap"
+                                            onClick={() => handleClick(item.id)}
+                                        >
+                                            <img
+                                                src={item.imageUrl || "/no-image.png"}
+                                                alt={item.title}
+                                                className="favorite-thumb"
+                                            />
+                                        </div>
+                                        <div className="favorite-info">
+                                            <div className="favorite-title">{item.title}</div>
+                                            <div className="favorite-price">
+                                                {item.price.toLocaleString()}원
+                                            </div>
+                                            <div className="favorite-meta">
+                                                {locations[item.id] || "위치 불명"}
+                                            </div>
+                                        </div>
+                                        {/* 해제 버튼 */}
+                                        <button
+                                            className="favorite-remove-btn"
+                                            onClick={() => handleRemove(item.id)}
+                                        >
+                                            <Heart fill="red" stroke="red" size={30} />
+                                        </button>
                                     </div>
-                                    <div className="favorite-meta">
-                                        {locations[item.id] || "위치 불명"}
-                                    </div>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-            </div>
-        </>
+                                ))
+                            )}
+                        </div>
+                    </motion.div>
+                    <Toast message={toastMsg} />
+                </>
+            )}
+        </AnimatePresence>
     );
-};
+}

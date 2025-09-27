@@ -10,6 +10,9 @@ import { useChatContext } from "../contexts/ChatContext";
 import Select from "react-select";
 import ReserveModal from "../components/ReserveModal";
 import CompleteModal from "../components/CompleteModal";
+import { useFavorites } from "../contexts/useFavorites";
+import Toast from "../components/common/Toast";
+import PurchaseSlider from "../components/PurchaseSlider";
 
 type ItemStatus =
     | 'ON_SALE'
@@ -28,6 +31,7 @@ interface DealInfo {
     direct?: boolean;
     safeTrade?: boolean;
     shippingOption?: ShippingOption;
+    phoneNumber?: string | null;
 }
 interface ImageDto {
     id: number;
@@ -51,6 +55,8 @@ interface ItemDetail {
     updatedDate?: string;
     viewCount: number;
     chatRoomCount: number;
+    latitude?: number;
+    longitude?: number;
 }
 
 interface User {
@@ -86,6 +92,12 @@ export default function ProductDetailSimple() {
     const navigate = useNavigate();
     const { openChat } = useChatContext();
 
+    const { addFavorite, removeFavorite } = useFavorites();
+    const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+    const [showPurchaseSlider, setShowPurchaseSlider] = useState(false);
+    const [presetMessage, setPresetMessage] = useState<string>("");
+
     // ✅ 데이터 로딩
     useEffect(() => {
         if (!id) return;
@@ -101,7 +113,7 @@ export default function ProductDetailSimple() {
                 if (!r.ok) throw new Error(await r.text());
                 const data = (await r.json()) as ItemDetail;
                 if (!aborted) setItem(data);
-
+                console.log(data);
                 // 관심 여부
                 const f = await fetch(`${API_BASE}/api/favorites/${id}`, { credentials: 'include' });
                 if (f.ok) {
@@ -135,15 +147,28 @@ export default function ProductDetailSimple() {
         if (!id) return;
         try {
             const res = await fetch(`${API_BASE}/api/favorites/${id}/toggle`, {
-                method: 'POST',
-                credentials: 'include',
+                method: "POST",
+                credentials: "include",
             });
             if (!res.ok) throw new Error(await res.text());
             const data = await res.json();
+
+            //로컬 상태 업데이트
             setIsFavorite(data.isFavorite);
             setFavoriteCount(data.favoriteCount);
+
+            //Context 업데이트
+            if (data.isFavorite) {
+                addFavorite(Number(id));
+                setToastMsg("관심상품에 등록되었습니다");
+            } else {
+                removeFavorite(Number(id));
+                setToastMsg("관심상품이 해제되었습니다");
+            }
+            // 2초 후 자동 사라짐
+            setTimeout(() => setToastMsg(null), 2000);
         } catch {
-            alert('관심상품 처리 중 오류 발생');
+            alert("관심상품 처리 중 오류 발생");
         }
     };
 
@@ -185,6 +210,7 @@ export default function ProductDetailSimple() {
             if (res.ok) {
                 const room = await res.json();
                 openChat(room.roomId);
+                setPresetMessage(presetMessage || "");
             } else {
                 alert("채팅방 생성 실패");
             }
@@ -338,10 +364,32 @@ export default function ProductDetailSimple() {
                     {/* 액션 버튼 */}
                     <div className="action-buttons">
                         <button onClick={toggleFavorite} className="btn-fav">
-                            {isFavorite ? <Heart fill="red" stroke="red" size={28} /> : <Heart stroke="black" size={28} strokeWidth={1} />}
+                            {isFavorite ? (
+                                <Heart fill="red" stroke="red" size={28} />
+                            ) : (
+                                <Heart stroke="black" size={28} strokeWidth={1} />
+                            )}
                         </button>
-                        <button onClick={handleStartChat} className="btn-chat">채팅하기</button>
-                        <button className="btn-buy">구매하기</button>
+
+                        {currentUser && item.userId === currentUser.id ? (
+                            // ✅ 판매자 → "구매하기" 제거, 채팅하기 버튼만 길게
+                            <button onClick={handleStartChat} className="btn-chat full-width">
+                                채팅하기
+                            </button>
+                        ) : (
+                            // ✅ 구매자 → 채팅 + 구매하기 둘 다 표시
+                            <>
+                                <button onClick={handleStartChat} className="btn-chat">
+                                    채팅하기
+                                </button>
+                                <button
+                                    className="btn-buy"
+                                    onClick={() => setShowPurchaseSlider(true)}
+                                >
+                                    구매하기
+                                </button>
+                            </>
+                        )}
                     </div>
 
                     {/* 판매자 전용 버튼 */}
@@ -431,6 +479,46 @@ export default function ProductDetailSimple() {
                     onConfirm={handleCompleteConfirm}
                 />
             )}
+            <PurchaseSlider
+                isOpen={showPurchaseSlider}
+                onClose={() => setShowPurchaseSlider(false)}
+                price={item.price}
+                dealInfo={item.dealInfo || {}}
+                latitude={item.latitude}
+                longitude={item.longitude}
+                onChatStart={async (presetMessage) => {
+                    if (!id) return;
+
+                    try {
+                        const res = await fetch(`${API_BASE}/api/chat/room?itemId=${id}`, {
+                            method: "POST",
+                            credentials: "include",
+                        });
+
+                        if (!res.ok) {
+                            console.error("채팅방 생성 실패", await res.text());
+                            return;
+                        }
+
+                        const room = await res.json();
+
+                        // ✅ 프리셋을 세션스토리지에 먼저 저장 (roomId 기준)
+                        if (presetMessage) {
+                            sessionStorage.setItem(`chat:preset:${room.roomId}`, presetMessage);
+                            console.log("[Detail] preset 저장:", presetMessage);
+                        }
+
+                        // ✅ 채팅 슬라이더 열기
+                        openChat(room.roomId);
+                    } catch (e) {
+                        console.error("채팅 시작 실패:", e);
+                    }
+                }}
+                onPaymentStart={() => {
+                    console.log("💳 [Detail] 결제 실행 로직 연결 예정");
+                }}
+            />
+            <Toast message={toastMsg} />
         </div>
     );
 }
