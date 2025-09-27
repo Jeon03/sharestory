@@ -11,6 +11,7 @@ interface ChatContextType {
     openChat: (roomId?: number | null) => void;
     closeChat: () => void;
     toggleChat: () => void;
+
     // 🔹 읽음/안읽음/마지막 메시지
     unreadCounts: { [roomId: number]: number };
     setUnreadCounts: React.Dispatch<React.SetStateAction<{ [roomId: number]: number }>>;
@@ -18,6 +19,7 @@ interface ChatContextType {
     setLastMessages: React.Dispatch<
         React.SetStateAction<{ [roomId: number]: { content: string; updatedAt: string } }>
     >;
+
     // 🔹 전체 안읽음
     totalUnread: number;
     fetchUnreadCounts: () => Promise<void>;
@@ -27,7 +29,6 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
     const [currentOpenRoomId, setCurrentOpenRoomId] = useState<number | null>(null);
-
     const [isChatOpen, setIsChatOpen] = useState(false);
 
     const [unreadCounts, setUnreadCounts] = useState<{ [roomId: number]: number }>({});
@@ -87,6 +88,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             setCurrentOpenRoomId(null);
         }
     };
+
     useEffect(() => {
         console.log("📊 unreadCounts:", unreadCounts);
         console.log("📝 lastMessages:", lastMessages);
@@ -107,7 +109,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
                 lastMessages,
                 setLastMessages,
                 totalUnread,
-                fetchUnreadCounts
+                fetchUnreadCounts,
             }}
         >
             {children}

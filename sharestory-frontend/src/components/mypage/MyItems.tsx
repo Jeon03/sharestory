@@ -54,20 +54,28 @@ const fetchRegionName = async (lat: number, lng: number): Promise<string> => {
         return "알 수 없음";
     }
 };
-
+console.log("✅ MyItems 파일 실행됨");
 export default function MyItems() {
     const [selectedTab, setSelectedTab] = useState("ALL");
     const [items, setItems] = useState<Item[]>([]);
     const [loading, setLoading] = useState(true);
 
+
+    useEffect(() => {
+        console.log("✅ MyItems 마운트됨");
+    }, []);
     useEffect(() => {
         const fetchMyItems = async () => {
             try {
                 const res = await fetch(`${API_BASE}/api/mypage/items`, {
                     credentials: "include",
                 });
+
+                console.log("내 상품 응답 상태:", res.status);
+
                 if (res.ok) {
                     const data: Item[] = await res.json();
+                    console.log("내 상품 데이터:", data); // ✅ 서버에서 받은 원본 데이터 찍기
                     const withLocation = await Promise.all(
                         data.map(async (item) => {
                             let location = "위치 정보 없음";
@@ -132,18 +140,19 @@ export default function MyItems() {
                                 <div className="list-badge-sold">거래완료</div>
                             )}
 
-                            <div className="product-image-wrapper">
-                                <img
-                                    src={item.imageUrl}
-                                    alt={item.title}
-                                    className="product-image"
-                                    onError={(e) =>
-                                        (e.currentTarget.src = "/placeholder.png")
-                                    }
-                                />
-                            </div>
+
 
                             <Link to={`/items/${item.id}`} className="product-link">
+                                <div className="product-image-wrapper">
+                                    <img
+                                        src={item.imageUrl}
+                                        alt={item.title}
+                                        className="product-image"
+                                        onError={(e) =>
+                                            (e.currentTarget.src = "/placeholder.png")
+                                        }
+                                    />
+                                </div>
                                 <div className="product-info">
                                     <div className="favorite-and-views">
                                         <span className="count">

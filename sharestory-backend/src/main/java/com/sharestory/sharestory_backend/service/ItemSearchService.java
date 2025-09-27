@@ -206,6 +206,7 @@ public class ItemSearchService {
                 .chatRoomCount(item.getChatRoomCount())
                 .latitude(item.getLatitude())
                 .longitude(item.getLongitude())
+                .dealInfo(item.getDealInfo())
                 .build();
     }
 }

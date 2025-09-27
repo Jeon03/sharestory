@@ -15,11 +15,12 @@ import { useChatContext } from "./contexts/ChatContext";
 import ChatSlider from "./components/chat/ChatSlider";
 import MyPage from "./pages/MyPage";
 import OAuth2Redirect from "./pages/OAuth2Redirect.tsx";
-import {useAuth} from "./contexts/useAuth.ts";
+import { useAuth } from "./contexts/useAuth.ts";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PointList from "./components/mypage/PointList";
 import MyItems from "./components/mypage/MyItems.tsx";
 import ProfileCard from "./components/mypage/ProfileCard.tsx";
+import PointModal from "./components/PointModal.tsx";
 
 function AppLayout({
                        user,
@@ -32,11 +33,7 @@ function AppLayout({
     return (
         <div className="App">
             <div className="heaerset">
-                <Header
-                    user={user}
-                    onLoginClick={openLogin}
-                    setUser={setUser}
-                />
+                <Header user={user} onLoginClick={openLogin} setUser={setUser} />
                 <Navigation />
             </div>
             <main className="main-content">
@@ -63,18 +60,19 @@ function GlobalChat() {
     );
 }
 
-
 export default function App() {
     const [user, setUser] = useState<User | null>(null);
+    const [isAuthLoading, setIsAuthLoading] = useState(true); // ✅ 추가
 
     const { currentOpenRoomId, setUnreadCounts, setLastMessages } = useChatContext();
     const API_URL = import.meta.env.VITE_API_URL || "";
     const { openLogin } = useAuth();
+    const [isPointModalOpen, setIsPointModalOpen] = useState(false);
 
     const fetchMe = useCallback(
         async (forceLogin = false) => {
             try {
-                // 1) 사용자 정보 조회
+                setIsAuthLoading(true); // 👈 시작
                 const res = await fetch(`${API_URL}/api/main`, { credentials: "include" });
                 if (res.ok) {
                     const data = await res.json();
@@ -116,57 +114,56 @@ export default function App() {
                 console.error("❌ /auth/token/refresh 요청 실패:", err);
             }
 
-            // 3) Refresh 실패 → 무조건 로그아웃 처리
+            // 3) Refresh 실패
             setUser(null);
             if (forceLogin) openLogin();
         },
         [API_URL, openLogin]
     );
 
-
     useEffect(() => {
-        fetchMe(); // 기본값 false → 로그인 안 해도 모달 안뜸
+        (async () => {
+            await fetchMe(false);
+            setIsAuthLoading(false); // 👈 끝
+        })();
     }, [fetchMe]);
 
     // ✅ 전역 WebSocket 연결
     useEffect(() => {
         if (!user?.id) return;
-        connectGlobal(
-            user.id,
-            (msg) => {
-                console.log("📩 글로벌 새 메시지:", msg);
+        connectGlobal(user.id, (msg) => {
+            console.log("📩 글로벌 새 메시지:", msg);
 
-                const roomId = Number(msg.roomId);
-                const normalized =
-                    msg.type === "IMAGE" ? "[사진]" :
-                        msg.type === "LOCATION_MAP" ? "[지도]" :
-                            msg.content;
+            const roomId = Number(msg.roomId);
+            const normalized =
+                msg.type === "IMAGE"
+                    ? "[사진]"
+                    : msg.type === "LOCATION_MAP"
+                        ? "[지도]"
+                        : msg.content;
 
-                // ✅ 마지막 메시지 갱신
-                setLastMessages((prev) => {
-                    const updated = {
-                        ...prev,
-                        [roomId]: { content: normalized, updatedAt: msg.createdAt },
-                    };
-                    console.log("💾 lastMessages 업데이트:", updated);
-                    return updated;
-                });
+            // ✅ 마지막 메시지 갱신
+            setLastMessages((prev) => {
+                const updated = {
+                    ...prev,
+                    [roomId]: { content: normalized, updatedAt: msg.createdAt },
+                };
+                return updated;
+            });
 
-                // ✅ 현재 열려있지 않은 방이면 unread 증가
-                if (roomId !== currentOpenRoomId) {
-                    setUnreadCounts((prev) => ({
-                        ...prev,
-                        [roomId]: (prev[roomId] || 0) + 1,
-                    }));
-                }
+            // ✅ 현재 열려있지 않은 방이면 unread 증가
+            if (roomId !== currentOpenRoomId) {
+                setUnreadCounts((prev) => ({
+                    ...prev,
+                    [roomId]: (prev[roomId] || 0) + 1,
+                }));
             }
-        );
+        });
 
         return () => {
             disconnect();
         };
     }, [user?.id, currentOpenRoomId, setUnreadCounts, setLastMessages]);
-
 
     useEffect(() => {
         const fetchUnreadCounts = async () => {
@@ -183,25 +180,16 @@ export default function App() {
             }
         };
 
-        // 로그인 성공 시 unreadCounts 초기화
         const handler = () => fetchUnreadCounts();
         window.addEventListener("login-success", handler);
 
         return () => window.removeEventListener("login-success", handler);
     }, [setUnreadCounts]);
 
-
     return (
         <>
             <Routes>
-                <Route
-                    element={
-                        <AppLayout
-                            user={user}
-                            setUser={setUser}
-                        />
-                    }
-                >
+                <Route element={<AppLayout user={user} setUser={setUser} />}>
                     {/* 게스트 접근 가능 라우트 */}
                     <Route index element={<ProductList />} />
                     <Route path="/items/:id" element={<ProductDetail />} />
@@ -210,17 +198,25 @@ export default function App() {
                     {/* 로그인 필수 라우트 */}
                     <Route
                         path="/registerItem"
-                        element={<ProtectedRoute user={user}><ItemRegister /></ProtectedRoute>}
+                        element={
+                            <ProtectedRoute user={user} isAuthLoading={isAuthLoading}>
+                                <ItemRegister />
+                            </ProtectedRoute>
+                        }
                     />
                     <Route
                         path="/items/:id/edit"
-                        element={<ProtectedRoute user={user}><ItemEdit /></ProtectedRoute>}
+                        element={
+                            <ProtectedRoute user={user} isAuthLoading={isAuthLoading}>
+                                <ItemEdit />
+                            </ProtectedRoute>
+                        }
                     />
 
                     <Route
                         path="/mypage"
                         element={
-                            <ProtectedRoute user={user}>
+                            <ProtectedRoute user={user} isAuthLoading={isAuthLoading}>
                                 <MyPage user={user} setUser={setUser} />
                             </ProtectedRoute>
                         }
@@ -228,38 +224,47 @@ export default function App() {
                         <Route
                             index
                             element={
-                                <ProfileCard
-                                    username={user?.nickname ?? ""}
-                                    email={user?.email ?? ""}
-                                    provider={user?.role ?? ""}
-                                    point={user?.points ?? 0}
-                                    totalTrades={0}
-                                    onChargeClick={openLogin}
-                                    onEditClick={() => alert("프로필 수정")}
-                                />
+                                <>
+                                    <ProfileCard
+                                        username={user?.nickname ?? ""}
+                                        email={user?.email ?? ""}
+                                        provider={user?.role ?? ""}
+                                        point={user?.points ?? 0}
+                                        totalTrades={0}
+                                        onChargeClick={() => setIsPointModalOpen(true)}
+                                        onEditClick={() => alert("프로필 수정")}
+                                    />
+                                    <MyItems />   {/* ✅ 프로필 밑에 바로 출력 */}
+                                </>
                             }
                         />
                         <Route path="items" element={<MyItems />} />
                         <Route
                             path="points"
                             element={
-                                <ProtectedRoute user={user}>
+                                <ProtectedRoute user={user} isAuthLoading={isAuthLoading}>
                                     <PointList userId={user?.id ?? 0} />
                                 </ProtectedRoute>
                             }
                         />
                     </Route>
 
-                    {/* 로그인 직후 리다이렉트 */}
                     <Route
                         path="/oauth2/redirect"
                         element={<OAuth2Redirect onLogin={fetchMe} />}
                     />
                 </Route>
             </Routes>
-
+            <PointModal
+                isOpen={isPointModalOpen}
+                onClose={() => setIsPointModalOpen(false)}
+                points={user?.points ?? 0}
+                user={user}
+                setPoints={(newBalance: number) => {
+                    setUser((prev) => (prev ? { ...prev, points: newBalance } : prev));
+                }}
+            />
             <GlobalChat />
         </>
     );
-
 }

@@ -123,7 +123,6 @@ public class ItemQueryService {
                 .condition(item.getCondition())
                 .itemStatus(item.getStatus().name())
                 .imageUrl(cover)
-                // ✅ images를 [{id, url}]로 내려줌
                 .images(item.getImages() == null ? List.of()
                         : item.getImages().stream()
                         .map(img -> new ImageDto(img.getId(), img.getUrl()))
@@ -156,8 +155,9 @@ public class ItemQueryService {
                 .chatRoomCount(item.getChatRoomCount())
                 .latitude(item.getLatitude())
                 .longitude(item.getLongitude())
-                .modified(item.isModified())   // ✅ 수정 여부
+                .modified(item.isModified())
                 .updatedDate(item.getUpdatedDate() != null ? item.getUpdatedDate().toString() : null)
+                .dealInfo(item.getDealInfo())
                 .build();
     }
 }

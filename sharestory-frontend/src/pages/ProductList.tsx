@@ -13,6 +13,14 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import BannerSlider from "../components/BannerSlider.tsx";
 
+interface DealInfo {
+    parcel?: boolean;              // 택배거래 가능 여부
+    direct?: boolean;              // 직거래 가능 여부
+    safeTrade?: boolean;           // 안전거래 여부
+    shippingOption?: 'included' | 'separate'; // 배송비 포함 여부
+    phoneNumber?: string | null;   // 판매자 연락처 (옵션)
+}
+
 interface ProductItem {
     id: number;
     title: string;
@@ -24,11 +32,11 @@ interface ProductItem {
     favoriteCount: number;
     viewCount: number;
     chatRoomCount: number;
-    safeTrade: boolean;
+    dealInfo?: DealInfo;   // ✅ safeTrade 대신 dealInfo 전체 받기
     latitude?: number;
     longitude?: number;
     location?: string;
-    modified?: boolean;      // 수정 여부
+    modified?: boolean;
     updatedDate?: string;
 }
 
@@ -74,6 +82,7 @@ const fetchItems = async (url: string): Promise<ProductItem[]> => {
     const res = await fetch(url, { credentials: 'include' });
     if (!res.ok) throw new Error(`${url} 실패`);
     const data: ProductItem[] = await res.json();
+    console.log(data);
     return await Promise.all(
         data.map(async (item) => {
             let location = '알 수 없음';
@@ -137,11 +146,14 @@ export default function ProductList() {
             {items.map(item => (
                 <SwiperSlide key={item.id}>
                     <li className="product-card">
-                        {item.safeTrade && <div className="badge-safe">안전거래</div>}
                         <Link to={`/items/${item.id}`} className="product-link">
                             <div className="image-wrapper">
+                                {/* 예약중 배너 */}
                                 {item.itemStatus === "RESERVED" && (
                                     <div className="list-badge-reserved">예약중</div>
+                                )}
+                                {item.dealInfo?.safeTrade && (
+                                    <div className="list-badge-safe">안전거래</div>
                                 )}
                                 <img
                                     src={item.imageUrl}
@@ -211,18 +223,23 @@ export default function ProductList() {
                         .filter(i => i.itemStatus === 'ON_SALE' || i.itemStatus === 'RESERVED')
                         .map(item => (
                             <li key={item.id} className="product-card">
+                                {/* 예약중 배너 */}
                                 {item.itemStatus === "RESERVED" && (
                                     <div className="list-badge-reserved">예약중</div>
                                 )}
-                                <div className="image-wrapper">
-                                    <img
-                                        src={item.imageUrl}
-                                        alt={item.title}
-                                        className="product-image"
-                                        onError={(e) => { e.currentTarget.src = '/placeholder.png'; }}
-                                    />
-                                </div>
+                                {/* 안전거래 배너 */}
+                                {item.dealInfo?.safeTrade && (
+                                    <div className="list-badge-safe">안전거래</div>
+                                )}
                                 <Link to={`/items/${item.id}`} className="product-link">
+                                    <div className="image-wrapper">
+                                        <img
+                                            src={item.imageUrl}
+                                            alt={item.title}
+                                            className="product-image"
+                                            onError={(e) => { e.currentTarget.src = '/placeholder.png'; }}
+                                        />
+                                    </div>
                                     <div className="product-info">
                                         <div className="favorite-and-views">
                                             <span className="count"><MessageCircle size={16} style={{ marginRight: 4 }} /> {item.chatRoomCount}</span>

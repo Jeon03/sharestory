@@ -26,7 +26,7 @@ export default function MyPage({ user, setUser }: MyPageProps) {
                 <div>
                     <h4>거래정보</h4>
                     <ul>
-                        <li><Link to="/mypage">판매내역</Link></li>
+                        <li><Link to="/mypage/items">판매내역</Link></li>
                         <li><Link to="/mypage">구매내역</Link></li>
                         <li><Link to="/mypage">경매내역</Link></li>
                         <li
