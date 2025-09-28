@@ -241,7 +241,8 @@ public class ItemService {
 
         // 6) 상품 이미지 DB 제거
         itemImageRepository.deleteAllByItemId(itemId);
-
+        // 6.5) 관심상품 제거
+        favoriteItemRepository.deleteAllByItemId(itemId);
         // 7) 상품 자체 DB 제거
         itemRepository.delete(item);
 
@@ -303,7 +304,10 @@ public class ItemService {
 
                     // ✅ 최근 메시지
                     chatMessageRepository.findTopByRoomOrderByCreatedAtDesc(room)
-                            .ifPresent(msg -> dto.put("lastMessage", msg.getContent()));
+                            .ifPresent(msg -> {
+                                dto.put("lastMessage", msg.getContent());
+                                dto.put("lastMessageType", msg.getType().name()); // TEXT / IMAGE / LOCATION
+                            });
 
                     return dto;
                 })
@@ -406,10 +410,6 @@ public class ItemService {
         );
     }
 
-
-
-
-
     public List<ItemSummaryDto> getMyItems(Long userId) {
         List<Item> items = itemRepository.findByUserId(userId);
 
@@ -430,6 +430,55 @@ public class ItemService {
                         .updatedDate(item.getUpdatedDate() != null ? item.getUpdatedDate().toString() : null)
                         .build())
                 .toList();
+    }
+
+    public List<ItemSummaryDto> getSafeTradeItemsForBuyer(Long buyerId) {
+        List<ItemStatus> statuses = List.of(
+                ItemStatus.SAFE_PENDING,
+                ItemStatus.SAFE_READY,
+                ItemStatus.SAFE_START,
+                ItemStatus.SAFE_ING,
+                ItemStatus.SAFE_COMPLETE
+        );
+
+        return itemRepository.findByBuyerIdAndStatusIn(buyerId, statuses)
+                .stream()
+                .map(this::toSummaryDto)
+                .toList();
+    }
+
+    public List<ItemSummaryDto> getSafeTradeItemsForSeller(Long sellerId) {
+        List<ItemStatus> statuses = List.of(
+                ItemStatus.SAFE_PENDING,
+                ItemStatus.SAFE_READY,
+                ItemStatus.SAFE_START,
+                ItemStatus.SAFE_ING,
+                ItemStatus.SAFE_COMPLETE
+        );
+
+        return itemRepository.findBySellerIdAndStatusIn(sellerId, statuses)
+                .stream()
+                .map(this::toSummaryDto)
+                .toList();
+    }
+
+    private ItemSummaryDto toSummaryDto(Item item) {
+        return ItemSummaryDto.builder()
+                .id(item.getId())
+                .title(item.getTitle())
+                .price(item.getPrice())
+                .imageUrl(item.getImageUrl())
+                .createdDate(item.getCreatedDate() != null ? item.getCreatedDate().toString() : null)
+                .itemStatus(item.getStatus().name())
+                .favoriteCount(item.getFavoriteCount())
+                .viewCount(item.getViewCount())
+                .chatRoomCount(item.getChatRoomCount())
+                .latitude(item.getLatitude())
+                .longitude(item.getLongitude())
+                .modified(item.isModified())
+                .updatedDate(item.getUpdatedDate() != null ? item.getUpdatedDate().toString() : null)
+                .dealInfo(item.getDealInfo())
+                .build();
     }
 
 }

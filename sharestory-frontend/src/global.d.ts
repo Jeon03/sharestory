@@ -29,6 +29,14 @@ declare global {
                 };
             };
         };
+
+        daum: {
+            Postcode: new (options: {
+                oncomplete: (data: DaumPostcodeData) => void;
+            }) => {
+                open: () => void;
+            };
+        };
     }
 
     namespace kakao.maps {
@@ -45,7 +53,7 @@ declare global {
 
         interface Marker {
             setPosition(position: LatLng): void;
-            getPosition(): LatLng; // ✅ 추가
+            getPosition(): LatLng;
             setMap(map: Map | null): void;
         }
 
@@ -84,6 +92,17 @@ declare global {
                 ): void;
             }
         }
+    }
+
+    interface DaumPostcodeData {
+        address: string;
+        zonecode: string;
+        roadAddress: string;
+        jibunAddress: string;
+        buildingName?: string;
+        bname?: string;
+        sido?: string;
+        sigungu?: string;
     }
 }
 

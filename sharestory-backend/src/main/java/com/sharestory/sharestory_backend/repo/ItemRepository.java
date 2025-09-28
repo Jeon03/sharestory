@@ -28,4 +28,13 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     List<Item> findByUserId(Long userId);
 
+
+    // 로그인한 유저가 구매자로 참여 중인 안전거래
+    List<Item> findByBuyerIdAndStatusIn(Long buyerId, List<ItemStatus> statuses);
+
+    // 로그인한 유저가 판매자로 참여 중인 안전거래
+    List<Item> findBySellerIdAndStatusIn(Long sellerId, List<ItemStatus> statuses);
+
+    List<Item> findByBuyerIdOrSellerIdAndStatusIn(Long buyerId, Long sellerId, List<ItemStatus> statuses);
+
 }

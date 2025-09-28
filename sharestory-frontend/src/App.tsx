@@ -21,6 +21,8 @@ import PointList from "./components/mypage/PointList";
 import MyItems from "./components/mypage/MyItems.tsx";
 import ProfileCard from "./components/mypage/ProfileCard.tsx";
 import PointModal from "./components/PointModal.tsx";
+import SafeTradeItems from "./components/SafeTradeItems.tsx";
+import SafeTradeDetail from "./pages/SafeTradeDetail";
 
 function AppLayout({
                        user,
@@ -197,6 +199,15 @@ export default function App() {
 
                     {/* 로그인 필수 라우트 */}
                     <Route
+                        path="/safe-items/:id"
+                        element={
+                            <ProtectedRoute user={user} isAuthLoading={isAuthLoading}>
+                                <SafeTradeDetail />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
                         path="/registerItem"
                         element={
                             <ProtectedRoute user={user} isAuthLoading={isAuthLoading}>
@@ -234,7 +245,8 @@ export default function App() {
                                         onChargeClick={() => setIsPointModalOpen(true)}
                                         onEditClick={() => alert("프로필 수정")}
                                     />
-                                    <MyItems />   {/* ✅ 프로필 밑에 바로 출력 */}
+                                    <MyItems />
+                                    <SafeTradeItems />
                                 </>
                             }
                         />

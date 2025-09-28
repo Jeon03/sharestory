@@ -54,16 +54,21 @@ const fetchRegionName = async (lat: number, lng: number): Promise<string> => {
         return "알 수 없음";
     }
 };
-console.log("✅ MyItems 파일 실행됨");
+
 export default function MyItems() {
     const [selectedTab, setSelectedTab] = useState("ALL");
     const [items, setItems] = useState<Item[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const SAFE_STATUSES = [
+        "SAFE_PENDING",
+        "SAFE_READY",
+        "SAFE_START",
+        "SAFE_ING",
+        "SAFE_COMPLETE",
+        "SAFE_POINT_DONE",
+    ];
 
-    useEffect(() => {
-        console.log("✅ MyItems 마운트됨");
-    }, []);
     useEffect(() => {
         const fetchMyItems = async () => {
             try {
@@ -98,10 +103,17 @@ export default function MyItems() {
         fetchMyItems();
     }, []);
 
+    // ✅ 안전거래 상태 제외한 필터링
     const filteredItems =
         selectedTab === "ALL"
-            ? items
-            : items.filter((item) => item.itemStatus === selectedTab);
+            ? items.filter((item) => !SAFE_STATUSES.includes(item.itemStatus))
+            : items.filter(
+                (item) =>
+                    item.itemStatus === selectedTab &&
+                    !SAFE_STATUSES.includes(item.itemStatus)
+            );
+
+    if (loading) return <p>불러오는 중...</p>;
 
     if (loading) return <p>불러오는 중...</p>;
 

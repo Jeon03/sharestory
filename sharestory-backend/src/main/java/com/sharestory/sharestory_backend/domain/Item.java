@@ -40,8 +40,8 @@ public class Item {
     private String condition;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "item_status", nullable = false)
-    private ItemStatus status; // ← 여기 이름이 status라면 findByStatus가 맞음
+    @Column(name = "item_status", nullable = false, length = 50)
+    private ItemStatus status;
 
     //@CreatedDate
     @Column(name = "created_date", nullable = false, updatable = false)
