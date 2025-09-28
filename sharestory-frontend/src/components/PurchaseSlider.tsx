@@ -250,7 +250,6 @@ export default function PurchaseSlider({
                         {/* 하단 버튼 */}
                         <footer className="purchase-footer">
                             {tab === "chat" ? (
-// 채팅하기 버튼
                                 <button
                                     className="purchase-btn"
                                     onClick={() => {
@@ -270,8 +269,8 @@ export default function PurchaseSlider({
                                 <button
                                     className="purchase-btn"
                                     onClick={() => {
-                                        onPaymentStart?.();
-                                        onClose();
+                                        onPaymentStart?.(); // ✅ 여기서 DeliverySlider 열리도록
+                                        onClose();          // PurchaseSlider 닫기
                                     }}
                                 >
                                     결제하기

@@ -1,10 +1,16 @@
 import { createContext } from "react";
+import type { User } from "../types/user"; // ✅ 기존 User 인터페이스 재사용
 
-export interface AuthContextValue {
+interface AuthContextType {
     openLogin: () => void;
     closeLogin: () => void;
-
+    user: User | null;
+    refreshUser: () => Promise<void>;
 }
 
-// ❗ 컴포넌트 없음. 값(Context)과 타입만 export합니다.
-export const AuthContext = createContext<AuthContextValue | null>(null);
+export const AuthContext = createContext<AuthContextType>({
+    openLogin: () => {},
+    closeLogin: () => {},
+    user: null,
+    refreshUser: async () => {},
+});

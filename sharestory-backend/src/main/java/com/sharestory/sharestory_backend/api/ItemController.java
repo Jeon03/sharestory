@@ -22,6 +22,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
+
+
 @Slf4j
 @RestController
 @RequestMapping("/api")
@@ -195,6 +197,7 @@ public class ItemController {
         }
         return ResponseEntity.ok(itemService.getChatRoomsForItem(id, user.getId()));
     }
+
     // ✅ 예약 확정
     @PostMapping("/items/{id}/reserve")
     public ResponseEntity<?> reserveItem(
@@ -234,5 +237,19 @@ public class ItemController {
         }
         return itemService.getMyItems(user.getId());
     }
+
+    // 구매자가 참여중인 안전거래 아이템
+    @GetMapping("/items/safe/buyer")
+    public List<ItemSummaryDto> getSafeBuyerItems(@AuthenticationPrincipal CustomUserDetails user) {
+        return itemService.getSafeTradeItemsForBuyer(user.getId());
+    }
+
+    // 판매자가 참여중인 안전거래 아이템
+    @GetMapping("/items/safe/seller")
+    public List<ItemSummaryDto> getSafeSellerItems(@AuthenticationPrincipal CustomUserDetails user) {
+        return itemService.getSafeTradeItemsForSeller(user.getId());
+    }
+
+
 
 }

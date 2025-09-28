@@ -63,8 +63,9 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/users/location",
                                 "/registerItem",
-                                "/mypage/**"
-
+                                "/mypage/**",
+                                "/api/orders/**",
+                                "/api/items/safe/**"
 
                         ).authenticated()
                         .anyRequest().authenticated()
@@ -93,15 +94,18 @@ public class SecurityConfig {
                             access.setMaxAge(0);
                             access.setPath("/");
                             access.setHttpOnly(true);
-                            access.setSecure(true);
+                            access.setSecure(false); // ✅ http 환경에서는 false
                             res.addCookie(access);
 
                             Cookie refresh = new Cookie("REFRESH_TOKEN", null);
                             refresh.setMaxAge(0);
                             refresh.setPath("/");
                             refresh.setHttpOnly(true);
-                            refresh.setSecure(true);
+                            refresh.setSecure(false); // ✅ http 환경에서는 false
                             res.addCookie(refresh);
+
+                            res.setHeader("Set-Cookie", "ACCESS_TOKEN=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax");
+                            res.addHeader("Set-Cookie", "REFRESH_TOKEN=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax");
 
                             res.setStatus(200);
                             res.setContentType("application/json");
