@@ -171,3 +171,16 @@
     font-size: 13px;
     color: #777;
 }
+.safe-detail-buttons {
+    display: flex;
+    flex-direction: column;   /* ✅ 세로 정렬 */
+    gap: 10px;                /* 버튼 간격 */
+    margin-top: 12px;         /* 위쪽 여백 */
+}
+
+.safe-detail-buttons .safe-detail-btn {
+    width: 100%;              /* 버튼 전체 너비 */
+    padding: 10px 14px;
+    font-size: 14px;
+    border-radius: 6px;
+}

@@ -45,6 +45,7 @@ public class SecurityConfig {
                 // 인가 정책
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/api/admin/items/**",
                                 "/api/health",
                                 "/error",
                                 "/oauth2/**",

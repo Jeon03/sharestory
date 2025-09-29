@@ -15,4 +15,9 @@ public class DeliveryInfo {
     private String address;
     private String detail;
     private String requestMessage;
+
+    // 판매자 입력
+    private String courier;         // 택배사
+    private String trackingNumber;  // 송장번호
+
 }

@@ -1,13 +1,13 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-import "../css/delivery.css";
+import "../css/deliverySlider.css";
 
 export interface DeliveryInfo {
     name: string;
     phone: string;
     address: string;
     detail: string;
-    request?: string;
+    requestMessage?: string;
 }
 
 interface DeliverySliderProps {
@@ -32,7 +32,7 @@ export default function DeliverySlider({
         phone: "",
         address: "",
         detail: "",
-        request: "",
+        requestMessage: "",
     });
 
     const totalPrice = price + shippingFee + safeFee;
@@ -119,8 +119,8 @@ export default function DeliverySlider({
                             <textarea
                                 name="request"
                                 placeholder="배송 요청사항 (예: 부재 시 경비실에 맡겨주세요)"
-                                value={form.request}
-                                onChange={(e) => setForm({ ...form, request: e.target.value })}
+                                value={form.requestMessage}
+                                onChange={(e) => setForm({ ...form, requestMessage: e.target.value })}
                                 rows={3}
                             />
 

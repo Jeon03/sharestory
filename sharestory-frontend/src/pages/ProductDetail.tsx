@@ -112,7 +112,7 @@ export default function ProductDetailSimple() {
                 if (!r.ok) throw new Error(await r.text());
                 const data = (await r.json()) as ItemDetail;
                 if (!aborted) setItem(data);
-
+                console.log("데이타",data);
                 // 관심 여부
                 const f = await fetch(`${API_BASE}/api/favorites/${id}`, { credentials: 'include' });
                 if (f.ok) {
@@ -505,7 +505,7 @@ export default function ProductDetailSimple() {
                 isOpen={showDeliverySlider}
                 onClose={() => setShowDeliverySlider(false)}
                 price={item.price}
-                shippingFee={item.dealInfo?.shippingOption === "included" ? 3000 : 0}
+                shippingFee={item.dealInfo?.shippingOption === "separate" ? 3000 : 0}
                 safeFee={Math.round(item.price * 0.035)}
                 onSubmit={handleDeliverySubmit}
             />

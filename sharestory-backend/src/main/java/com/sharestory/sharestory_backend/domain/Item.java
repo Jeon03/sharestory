@@ -35,7 +35,6 @@ public class Item {
     private Double latitude;       // 위도
     private Double longitude;      // 경도
 
-
     @Column(name = "item_condition")
     private String condition;
 
@@ -47,24 +46,21 @@ public class Item {
     @Column(name = "created_date", nullable = false, updatable = false)
     private LocalDateTime createdDate;
 
-    //수정일
     @Column(name = "updated_date")
-    private LocalDateTime updatedDate;
+    private LocalDateTime updatedDate;   // 수정일
 
-    //수정 여부
     @Column(name = "is_modified", nullable = false)
-    private boolean isModified = false;
+    private boolean isModified = false;  // 수정 여부
 
-
-    // ✅ 다중 이미지 매핑 (ItemImage 엔티티와 1:N)
+    // ✅ 다중 이미지 매핑
     @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sortOrder ASC")
     @Builder.Default
     private List<ItemImage> images = new ArrayList<>();
 
-    private String imageUrl;       // 대표 이미지 (첫 번째 이미지 S3 URL)
+    private String imageUrl;   // 대표 이미지 (첫 번째 이미지 S3 URL)
 
-    private Long userId;           // 등록자 ID (User FK 예정)
+    private Long userId;       // 등록자 ID (User FK 예정)
 
     @Column(name = "favorite_count")
     private Integer favoriteCount = 0;
@@ -77,13 +73,33 @@ public class Item {
     @Column(name = "chat_room_count", nullable = false)
     private Integer chatRoomCount = 0;
 
+    private Long sellerId;
+    private Long buyerId;
+
+    /* =========================== */
+    /* ✅ Cascade 삭제 연관관계 추가 */
+    /* =========================== */
+
+    // 주문들 (Order)
+    @OneToOne(mappedBy = "item", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private Order orders;
+
+    // 관심상품 (FavoriteItem)
+    @OneToMany(mappedBy = "item", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<FavoriteItem> favorites = new ArrayList<>();
+
+    // 채팅방 (ChatRoom)
+    @OneToMany(mappedBy = "item", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<ChatRoom> chatRooms = new ArrayList<>();
+
+    // 배송 추적 (DeliveryTracking)
+    @OneToOne(mappedBy = "item", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private DeliveryTracking deliveryTracking;
+
     @PrePersist
     void prePersist() {
         if (favoriteCount == null) favoriteCount = 0;
         if (viewCount == null) viewCount = 0;
         if (chatRoomCount == null) chatRoomCount = 0;
     }
-
-    private Long sellerId;
-    private Long buyerId;
 }
