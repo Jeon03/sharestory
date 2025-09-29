@@ -1,0 +1,73 @@
+.safe-delivery-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.35);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+}
+
+.safe-delivery-modal {
+    width: 520px; max-width: 92vw;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    overflow: visible;
+    animation: safe-delivery-pop 0.16s ease-out;
+}
+
+@keyframes safe-delivery-pop {
+    from { transform: translateY(6px) scale(0.98); opacity: 0; }
+    to   { transform: translateY(0)    scale(1);    opacity: 1; }
+}
+
+.safe-delivery-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; border-bottom: 1px solid #eee;
+}
+.safe-delivery-header h3 { margin: 0; font-size: 18px; font-weight: 700; }
+.safe-delivery-close {
+    border: 0; background: transparent; font-size: 22px; cursor: pointer;
+    line-height: 1; color: #666;
+}
+.safe-delivery-close:hover { color: #111; }
+
+.safe-delivery-body { padding: 16px; ; }
+.safe-delivery-label { display: block; font-size: 13px; color: #555; margin: 10px 0 6px; }
+
+.safe-delivery-input {
+    width: 95%; height: 40px; padding: 0 12px;
+    border: 1px solid #ddd; border-radius: 10px; outline: none;
+}
+.safe-delivery-input:focus { border-color: #f7cf42; box-shadow: 0 0 0 3px rgba(247,207,66,0.2); }
+
+.safe-delivery-hint { font-size: 12px; color: #777; margin-top: 6px; }
+
+.safe-delivery-error {
+    margin-top: 10px;
+    background: #fff2f2; color: #d33; border: 1px solid #f0caca;
+    padding: 8px 10px; border-radius: 8px; font-size: 13px;
+}
+
+.safe-delivery-footer {
+    display: flex; gap: 10px; justify-content: flex-end;
+    padding: 12px 16px; border-top: 1px solid #eee;
+}
+
+.safe-delivery-btn {
+    height: 38px; padding: 0 14px; border-radius: 10px; border: 0;
+    cursor: pointer; font-weight: 600;
+}
+.safe-delivery-btn.primary { background: #f7cf42; color: black; }
+.safe-delivery-btn.primary:disabled { opacity: 0.7; cursor: not-allowed; }
+.safe-delivery-btn.ghost { background: #f3f4f6; color: #111; }
+.safe-delivery-btn.ghost:hover { background: #e5e7eb; }
+
+/* react-select 기본 커스터마이즈 */
+.safe-delivery-modal .react-select__control {
+    border-radius: 10px; border-color: #ddd; min-height: 40px;
+}
+.safe-delivery-modal .react-select__control--is-focused {
+    border-color: #f7cf42; box-shadow: 0 0 0 3px rgba(247,207,66,0.2);
+}
+.safe-delivery-modal .react-select__menu { border-radius: 10px; overflow: hidden; }
+.safe-delivery-modal .react-select__option--is-focused { background: #f3f4f6; }
+.safe-delivery-modal .react-select__option--is-selected { background: #e5edff; color: #1f3af6; }

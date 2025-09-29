@@ -20,7 +20,7 @@ interface PurchaseSliderProps {
     latitude?: number;
     longitude?: number;
     onChatStart?: (presetMessage?: string) => void;
-    onPaymentStart?: () => void;  // 결제하기 버튼 콜백
+    onPaymentStart?: () => void;
 }
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
@@ -57,7 +57,8 @@ export default function PurchaseSlider({
     const [tab, setTab] = useState<"chat" | "safe">("chat");
     const [locationName, setLocationName] = useState<string>("");
     const [showSummary, setShowSummary] = useState(false);
-    // ✅ 좌표 → 위치명 변환
+
+    // 좌표 → 위치명 변환
     useEffect(() => {
         if (!latitude || !longitude) return;
         (async () => {
@@ -66,11 +67,10 @@ export default function PurchaseSlider({
         })();
     }, [latitude, longitude]);
 
-// ✅ 요약 계산
-    const SHIPPING_FEE = dealInfo.shippingOption === "included" ? 3000 : 0;
+    // 요약 계산
+    const SHIPPING_FEE = dealInfo.shippingOption === "separate" ? 3000 : 0;
     const SAFE_TRADE_FEE = Math.round(price * 0.035);
     const totalPrice = price + SHIPPING_FEE + SAFE_TRADE_FEE;
-
 
     const [selectedDeal, setSelectedDeal] = useState<"parcel" | "direct" | null>(null);
 
@@ -99,7 +99,7 @@ export default function PurchaseSlider({
                         {/* 헤더 */}
                         <header className="purchase-header">
                             <button className="purchase-back-btn" onClick={onClose}>
-                                ←
+
                             </button>
                             <h2 className="purchase-title">거래 방식 선택</h2>
                             <button className="purchase-close-btn" onClick={onClose}>
@@ -141,16 +141,18 @@ export default function PurchaseSlider({
                                             <div className="purchase-card-left">
                                                 <p className="purchase-card-title">택배거래</p>
                                                 <div className="purchase-card-desc-row">
-                          <span className="purchase-card-desc">
-                            {dealInfo.shippingOption === "included"
-                                ? "배송비 별도 상품입니다."
-                                : "배송비 무료 상품입니다."}
-                          </span>
+                                                    <span className="purchase-card-desc">
+                                                        {dealInfo.shippingOption === "separate"
+                                                            ? "배송비 별도 상품입니다."
+                                                            : "배송비 무료 상품입니다."}
+                                                    </span>
                                                     <span className="purchase-card-emoji">🚚</span>
                                                 </div>
+                                                <p className="purchase-card-subnote">
+                                                    (기본 3,000원, 상황에 따라 달라질 수 있으니 채팅으로 문의하세요)
+                                                </p>
                                                 <p className="purchase-card-highlight">
-                                                    배송비{" "}
-                                                    {dealInfo.shippingOption === "included" ? "별도" : "무료배송"}
+                                                    배송비 {dealInfo.shippingOption === "separate" ? "별도" : "무료배송"}
                                                 </p>
                                             </div>
                                         </div>
@@ -173,7 +175,7 @@ export default function PurchaseSlider({
                                                         size={22}
                                                         color="white"
                                                         fill="#777"
-                                                        style={{ marginRight: "3px" , marginBottom:"-4px"}}
+                                                        style={{ marginRight: "3px", marginBottom: "-4px" }}
                                                     />
                                                     {locationName || "위치 정보 없음"}
                                                 </p>
@@ -191,13 +193,16 @@ export default function PurchaseSlider({
                                         <div className="purchase-card-left">
                                             <p className="purchase-card-title">택배거래</p>
                                             <div className="purchase-card-desc-row">
-                        <span className="purchase-card-desc">
-                          {dealInfo.shippingOption === "included"
-                              ? "배송비 별도 상품입니다."
-                              : "배송비 무료 상품입니다."}
-                        </span>
+                                                <span className="purchase-card-desc">
+                                                    {dealInfo.shippingOption === "separate"
+                                                        ? "배송비 별도 상품입니다."
+                                                        : "배송비 무료 상품입니다."}
+                                                </span>
                                                 <span className="purchase-card-emoji">💳</span>
                                             </div>
+                                            <p className="purchase-card-subnote">
+                                                (기본 3,000원, 상황에 따라 달라질 수 있으니 채팅으로 문의하세요)
+                                            </p>
                                             <p className="purchase-card-highlight">
                                                 예상 결제금액: {totalPrice.toLocaleString()}원
                                             </p>
@@ -214,9 +219,9 @@ export default function PurchaseSlider({
                         >
                             <span>예상 결제금액</span>
                             <span className="total-amount">
-                {totalPrice.toLocaleString()}원
-                <span className="arrow">{showSummary ? "▼" : "▲"}</span>
-              </span>
+                                {totalPrice.toLocaleString()}원
+                                <span className="arrow">{showSummary ? "▼" : "▲"}</span>
+                            </span>
                         </div>
 
                         <AnimatePresence>
@@ -235,11 +240,14 @@ export default function PurchaseSlider({
                                     <div className="purchase-row">
                                         <span>배송비</span>
                                         <span>
-          {dealInfo.shippingOption === "included" ? "3,000원" : "무료배송"}
-        </span>
+                                            {dealInfo.shippingOption === "separate" ? "3,000원" : "무료배송"}
+                                        </span>
                                     </div>
+                                    <p className="purchase-card-subnote">
+                                        (배송비는 기본 3,000원이며 상황에 따라 달라질 수 있으니 채팅으로 문의하세요)
+                                    </p>
                                     <div className="purchase-row">
-                                        <span>안심결제 수수료 3.5%</span>
+                                        <span>안전결제 수수료 3.5%</span>
                                         <span>{SAFE_TRADE_FEE.toLocaleString()}원</span>
                                     </div>
                                     <p className="purchase-fee-note">(결제수단/프로모션에 따라 변동)</p>
@@ -269,8 +277,8 @@ export default function PurchaseSlider({
                                 <button
                                     className="purchase-btn"
                                     onClick={() => {
-                                        onPaymentStart?.(); // ✅ 여기서 DeliverySlider 열리도록
-                                        onClose();          // PurchaseSlider 닫기
+                                        onPaymentStart?.();
+                                        onClose();
                                     }}
                                 >
                                     결제하기

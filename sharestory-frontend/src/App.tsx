@@ -89,7 +89,7 @@ export default function App() {
                     }
                 }
             } catch (err) {
-                console.error("❌ /api/main 요청 실패:", err);
+                console.error("/api/main 요청 실패:", err);
                 setUser(null);
                 if (forceLogin) openLogin();
                 return;

@@ -225,3 +225,9 @@
     border: 2px solid #f7d93f;   /* 진한 초록색 테두리 */
     background: #faf3cf;         /* 연한 초록 배경 */
 }
+.purchase-card-subnote {
+    font-size: 12px;
+    color: #888;
+    margin-top: 4px;
+    line-height: 1.4;
+}

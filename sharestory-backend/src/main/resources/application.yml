@@ -105,7 +105,7 @@ spring:
     basename: messages
     encoding: UTF-8
 
-# ✅ HttpClientAutoConfiguration 제외
+
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.http.client.HttpClientAutoConfiguration
@@ -148,6 +148,7 @@ logging:
     org.springframework.messaging: DEBUG
     com.sharestory.sharestory_backend.config.StompAuthInterceptor: DEBUG
     com.sharestory.sharestory_backend.security.JwtService: DEBUG
+
 management:
   endpoints:
     web:
