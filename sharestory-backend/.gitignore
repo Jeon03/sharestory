@@ -67,3 +67,4 @@ aws-credentials.yml
 ### Test / Coverage ###
 /coverage/
 /test-output/
+src/main/resources/firebase/serviceAccountKey.json

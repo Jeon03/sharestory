@@ -14,8 +14,8 @@ public class StatusMapper {
         orderToItem.put(OrderStatus.SAFE_DELIVERY_START, ItemStatus.SAFE_START);
         orderToItem.put(OrderStatus.SAFE_DELIVERY_ING, ItemStatus.SAFE_ING);
         orderToItem.put(OrderStatus.SAFE_DELIVERY_COMPLETE, ItemStatus.SAFE_COMPLETE);
-        orderToItem.put(OrderStatus.SAFE_DELIVERY_POINT_DONE, ItemStatus.SAFE_POINT_DONE);
-
+        orderToItem.put(OrderStatus.SAFE_DELIVERY_RECEIVED, ItemStatus.SAFE_RECEIVED);
+        orderToItem.put(OrderStatus.SAFE_DELIVERY_FINISHED, ItemStatus.SAFE_FINISHED);
         // 역매핑도 자동 등록
         orderToItem.forEach((k, v) -> itemToOrder.put(v, k));
     }

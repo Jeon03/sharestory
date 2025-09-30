@@ -64,6 +64,9 @@ dependencies {
 
 // 메시징 코어 모듈
 	implementation 'org.springframework:spring-messaging'
+
+	implementation 'com.google.firebase:firebase-admin:9.2.0' // 또는 최신 버전
+
 }
 
 configurations.all {

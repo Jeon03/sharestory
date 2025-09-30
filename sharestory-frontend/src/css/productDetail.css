@@ -378,3 +378,15 @@
     background-color: #ff6b6b; /* 빨강 */
     color: white;
 }
+
+.btn-buy.disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+}
+.btn-buy.reserved {
+    background-color: #ffcc00;
+    color: #333;
+    font-weight: bold;
+    cursor: pointer;
+}

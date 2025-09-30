@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useLayoutEffect } from "react";
+import { useCallback, useEffect, useRef, useState, useLayoutEffect } from "react"; // useCallback 추가
 import { connect, disconnect, sendMessage, sendReadEvent } from "../../services/socketClient";
 import "../../css/chat.css";
 import { Image, MapPin, X } from "lucide-react";
@@ -9,10 +9,10 @@ import type { MessageType } from "../../services/socketClient";
 import { useAuth } from "../../contexts/useAuth";
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
 
+// (Interface 정의들은 변경 없음)
 interface ChatRoomProps {
     roomId: number;
 }
-
 interface ChatMsg {
     id: number;
     content: string;
@@ -22,7 +22,6 @@ interface ChatMsg {
     type: MessageType;
     read: boolean;
 }
-
 interface ItemInfo {
     id: number;
     title: string;
@@ -30,7 +29,6 @@ interface ItemInfo {
     imageUrl: string;
     description: string;
 }
-
 interface ServerMessage {
     id: number;
     roomId: number;
@@ -95,13 +93,33 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
         return () => setCurrentOpenRoomId(null);
     }, [roomId, currentUserId, setCurrentOpenRoomId, setUnreadCounts]);
 
-    /** ✅ 스크롤 맨 아래로 이동 */
-    const scrollToBottom = (smooth = false) => {
-        messagesEndRef.current?.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
+    const triggerPushNotification = (message: string, type: MessageType) => {
+        let notificationMessage = message;
+        if (type === 'IMAGE') {
+            notificationMessage = "사진을 보냈습니다.";
+        } else if (type === 'LOCATION_MAP') {
+            notificationMessage = "위치를 공유했습니다.";
+        }
+
+        fetchWithAuth(`${import.meta.env.VITE_API_URL}/api/chat/notify`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                roomId: roomId,
+                message: notificationMessage,
+            }),
+        }).catch(err => console.error("🔔 푸시 알림 요청 실패:", err));
     };
+
+    /** ✅ 스크롤 맨 아래로 이동 */
+        // --- [수정됨] --- useCallback으로 함수를 감싸서 의존성을 안정시킵니다.
+    const scrollToBottom = useCallback((smooth = false) => {
+            messagesEndRef.current?.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
+        }, []);
+
     useEffect(() => {
         if (messages.length > 0) scrollToBottom(false);
-    }, [messages]);
+    }, [messages, scrollToBottom]); // --- [수정됨] --- scrollToBottom 추가
 
     useLayoutEffect(() => {
         if (inputWrapperRef.current) {
@@ -121,7 +139,7 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                 console.error("❌ 사용자 정보 불러오기 실패:", e);
             }
         })();
-    }, []);
+    }, []); // 이 hook은 마운트 시 한 번만 실행되므로 의도적으로 비워둡니다.
 
     /** ✅ 채팅방 상품 정보 */
     useEffect(() => {
@@ -168,7 +186,7 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
 
     /** ✅ 실시간 메시지 수신 */
     useEffect(() => {
-        if (!roomId || !currentUserId) return; // ✅ 조건: 유저ID 준비된 후에만 connect
+        if (!roomId || !currentUserId) return;
 
         console.log("🔌 [ChatRoom] connect 실행, roomId =", roomId, "userId =", currentUserId);
 
@@ -222,7 +240,9 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
             console.log("🔌 [ChatRoom] cleanup → disconnect()");
             disconnect();
         };
-    }, [roomId, currentUserId]);
+        // --- [수정됨] --- ESLint 경고가 발생한 부분
+    }, [roomId, currentUserId, openLogin, setUnreadCounts, setMessages, setItem]);
+
 
     /** ✅ 메시지 전송 */
     const handleSend = async () => {
@@ -243,6 +263,8 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                 );
                 const data = await res.json();
                 sendMessage(roomId, data.url, currentUserId, "IMAGE");
+                triggerPushNotification(data.url, "IMAGE");
+
             } catch (err) {
                 console.error("❌ 이미지 업로드 실패:", err);
             } finally {
@@ -253,9 +275,12 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
 
         // 텍스트 메시지
         if (input.trim() !== "") {
+            const messageToSend = input;
             try {
-                sendMessage(roomId, input, currentUserId, "TEXT");
-                setInput(""); // 전송 후 비우기
+                sendMessage(roomId, messageToSend, currentUserId, "TEXT");
+                setInput("");
+                triggerPushNotification(messageToSend, "TEXT");
+
             } catch (err) {
                 console.error("❌ 메시지 전송 실패:", err);
                 openLogin();
@@ -263,9 +288,9 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
         }
     };
 
+    // (return JSX 부분은 변경 없음)
     return (
         <div className="chat-container">
-            {/* 상단 상품 정보 */}
             {item && (
                 <div className="chat-room-item-header">
                     <img src={item.imageUrl} alt={item.title} className="chat-room-item-thumb" />
@@ -275,14 +300,11 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                     </div>
                 </div>
             )}
-
-            {/* 메시지 영역 */}
             <div className="chat-messages" style={{ paddingBottom: bottomPadding }}>
                 {messages.map((m, i) => {
                     const msgDate = new Date(m.rawTime).toDateString();
                     const prevDate = i > 0 ? new Date(messages[i - 1].rawTime).toDateString() : null;
                     const showDivider = msgDate !== prevDate;
-
                     return (
                         <div key={m.id}>
                             {showDivider && (
@@ -295,7 +317,6 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                                     })}
                                 />
                             )}
-
                             {m.type === "SYSTEM" ? (
                                 <div className="chat-system-message">📢 {m.content}</div>
                             ) : (
@@ -327,7 +348,6 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                                     ) : (
                                         m.content
                                     )}
-
                                     <div className="message-time">
                                         {m.time}
                                         {m.mine && (
@@ -343,8 +363,6 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                 })}
                 <div ref={messagesEndRef} />
             </div>
-
-            {/* 입력창 */}
             <div className="chat-input-wrapper" ref={inputWrapperRef}>
                 {previewImage && (
                     <div className="chat-preview">
@@ -360,7 +378,6 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                         </button>
                     </div>
                 )}
-
                 <div className="chat-input">
                     <input
                         type="file"
@@ -375,15 +392,12 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                             }
                         }}
                     />
-
                     <button className="icon-button" onClick={() => fileInputRef.current?.click()}>
                         <Image size={18} />
                     </button>
-
                     <button className="icon-button" onClick={() => setShowMap(true)}>
                         <MapPin size={18} />
                     </button>
-
                     <input
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
@@ -395,13 +409,12 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                     </button>
                 </div>
             </div>
-
             {showMap && (
                 <LocationPickerModal
                     onConfirm={(lat, lng, address) => {
                         const payload = JSON.stringify({ lat, lng, address });
                         sendMessage(roomId, payload, currentUserId!, "LOCATION_MAP");
-                        sendMessage(roomId, address, currentUserId!, "LOCATION_TEXT");
+                        triggerPushNotification(address, "LOCATION_MAP");
                         setShowMap(false);
                     }}
                     onCancel={() => setShowMap(false)}

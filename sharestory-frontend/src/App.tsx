@@ -8,6 +8,8 @@ import ItemRegister from "./pages/Item/ItemRegister";
 import ItemEdit from "./pages/Item/ItemEdit";
 import ProductDetail from './pages/ProductDetail';
 import SearchPage from "./pages/SearchPage";
+import AuctionList from './pages/AuctionList';
+import AuctionItemPage from './pages/AuctionItemPage';
 import './css/App.css';
 import type { User } from './types/user';
 import { connectGlobal, disconnect } from "./services/socketClient.ts";
@@ -21,8 +23,13 @@ import PointList from "./components/mypage/PointList";
 import MyItems from "./components/mypage/MyItems.tsx";
 import ProfileCard from "./components/mypage/ProfileCard.tsx";
 import PointModal from "./components/PointModal.tsx";
-import SafeTradeItems from "./components/SafeTradeItems.tsx";
+import SafeTradeItems from "./components/mypage/SafeTradeItems.tsx";
 import SafeTradeDetail from "./pages/SafeTradeDetail";
+import PurchasedItems from "./components/mypage/PurchasedItems.tsx";
+import AuctionRegister from "./pages/Item/AuctionRegister.tsx";
+// --- [추가된 코드 1] ---
+import { requestPermissionAndRegisterToken } from './services/firebaseMessaging';
+
 
 function AppLayout({
                        user,
@@ -167,6 +174,15 @@ export default function App() {
         };
     }, [user?.id, currentOpenRoomId, setUnreadCounts, setLastMessages]);
 
+    // --- [추가된 코드 블록 2] ---
+    // ✅ 전역 FCM 푸시 알림 설정
+    useEffect(() => {
+        // 사용자가 로그인된 상태일 때만 푸시 알림 권한을 요청하고 토큰을 등록합니다.
+        if (user) {
+            requestPermissionAndRegisterToken();
+        }
+    }, [user]); // user 상태가 변경될 때 (로그인 시) 실행됩니다.
+
     useEffect(() => {
         const fetchUnreadCounts = async () => {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/chat/rooms`, {
@@ -197,6 +213,9 @@ export default function App() {
                     <Route path="/items/:id" element={<ProductDetail />} />
                     <Route path="/search" element={<SearchPage />} />
 
+                    <Route path="/auctions" element={<AuctionList />} />
+                    <Route path="/auctions/:id" element={<AuctionItemPage />} />
+                    <Route path="/auctionRegister" element={<AuctionRegister /> }/>
                     {/* 로그인 필수 라우트 */}
                     <Route
                         path="/safe-items/:id"
@@ -246,11 +265,18 @@ export default function App() {
                                         onEditClick={() => alert("프로필 수정")}
                                     />
                                     <MyItems />
+                                    <PurchasedItems />
                                     <SafeTradeItems />
                                 </>
                             }
                         />
+                        {/* 판매 상품 */}
                         <Route path="items" element={<MyItems />} />
+                        {/* 구매 상품 */}
+                        <Route path="purchased" element={<PurchasedItems />} />
+                        {/* 안전거래 상품 */}
+                        <Route path="safe" element={<SafeTradeItems />} />
+
                         <Route
                             path="points"
                             element={

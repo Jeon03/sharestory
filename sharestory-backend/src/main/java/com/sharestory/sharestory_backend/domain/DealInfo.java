@@ -24,4 +24,6 @@ public class DealInfo {
 
     @Column(name = "safe_trade")
     private Boolean safeTrade;  // 읽기 전용
+    @Column(name = "is_auction") // DB 컬럼명이 is_auction일 경우
+    private Boolean auction;
 }

@@ -40,7 +40,7 @@ services:
     ports:
       - "3306:3306"
     environment:
-      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_ROOT_PASSWORD=rla1dbs2
       - MYSQL_DATABASE=story
       - TZ=Asia/Seoul
     volumes:

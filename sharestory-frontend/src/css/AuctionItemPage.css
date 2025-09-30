@@ -1,0 +1,280 @@
+.detail-container {
+    padding: 24px;
+}
+.breadcrumb {
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: #555;
+}
+.detail-main {
+    display: flex;
+    gap: 32px;
+}
+.detail-slider {
+    flex: 0 0 40%;
+    max-width: 40%;
+}
+.detail-image img,
+.slide-image {
+    width: 100%;
+    height: 400px;
+    object-fit: contain;
+    border-radius: 8px;
+    transform: scale(1);
+    transform-origin: center;
+}
+.detail-info {
+    flex: 1 1 50%;
+    min-width: 50%;
+}
+.detail-title {
+    font-size: 28px;
+    margin: 0 0 12px;
+}
+.detail-price {
+    font-size: 24px;
+    color: #000;
+    margin: 0 0 8px;
+}
+.safe-transaction {
+    display: inline-block;
+    background: #4caf50;
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-bottom: 12px;
+}
+.detail-meta {
+    font-size: 12px;
+    color: #777;
+    margin-bottom: 20px;
+}
+.detail-table {
+    width: 100%;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 20px;
+}
+.detail-table th,
+.detail-table td {
+    padding: 8px 0;
+    text-align: left;
+    font-size: 14px;
+}
+.detail-description {
+    white-space: pre-wrap;
+    line-height: 1.6;
+    margin-bottom: 24px;
+}
+.detail-actions .btn-chat,
+.detail-actions .btn-buy {
+    padding: 12px 24px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.btn-chat { background: #fff; color: #000; border: 1px solid #000; }
+.btn-buy  { background: #000; color: #fff; margin-left: 12px; }
+
+.waiting-tracking-msg {
+    margin-bottom: 10px;
+    padding: 10px 14px;
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.btn-cancel {
+    background-color: #ff5c5c;
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.btn-cancel:hover {
+    background-color: #e04343;
+}
+
+.btn-confirm {
+    background-color: #28a745;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.view-count {
+    font-size: 0.9rem;
+    color: gray;
+    margin-top: 4px;
+}
+
+.heart-button {
+    background: none;
+    border: none;
+    font-size: 32px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    outline: none;
+}
+
+.heart-button.animate {
+    transform: scale(1.4);
+}
+
+.heart-button.favorited {
+    color: red;
+}
+
+.favorite-toast {
+    position: fixed;
+    top: 160px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #f5e166;
+    color: black;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 15px;
+    z-index: 1000;
+    animation: toast-fade 2s ease-in-out;
+    white-space: nowrap;
+    font-weight: bolder;
+}
+
+@keyframes toast-fade {
+    0%   { opacity: 0; transform: translate(-50%, 20px); }
+    10%  { opacity: 1; transform: translate(-50%, 0); }
+    90%  { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, -10px); }
+}
+
+.image-wrapper {
+    position: relative;
+}
+
+.status-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    border-radius: 8px;
+}
+
+.status-overlay.sold { background-color: rgba(255, 0, 0, 0.4); }
+.status-overlay.reserved { background-color: rgba(255, 165, 0, 0.4); }
+.status-overlay.in-progress { background-color: rgba(23, 162, 184, 0.4); }
+.status-overlay.done { background-color: rgba(40, 167, 69, 0.4); }
+
+.favorite-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: #444;
+}
+.favorite-btn:hover { opacity: 0.8; }
+
+/* ========================= */
+/* ✅ 경매 모달 CSS 추가 */
+/* ========================= */
+.auction-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auction-modal {
+    background: #fff;
+    border-radius: 10px;
+    padding: 24px;
+    width: 380px;
+    max-width: 90%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    animation: modal-fade-in 0.3s ease;
+}
+
+.auction-modal h2 {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 16px;
+}
+
+.auction-modal input {
+    width: 95%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+.auction-modal .btn-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+@keyframes modal-fade-in {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.auction-btn {
+    background-color: #f6e367;
+    color: #000;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.auction-btn:hover {
+    background-color: #e0d153;
+    transform: translateY(-2px);
+}
+
+.chat-btn {
+    background-color: #0077ff;
+    color: #fff;
+    font-weight: bold;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+.chat-btn:hover {
+    background-color: #005fcc;
+    transform: translateY(-2px);
+}

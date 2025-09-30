@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import "../css/deliveryTrackingModal.css";
+import { FiX, FiRefreshCw } from "react-icons/fi";
 
 interface TrackingHistory {
     time: string;
@@ -28,34 +29,42 @@ export default function DeliveryTrackingModal({
                                                   onClose,
                                               }: DeliveryTrackingModalProps) {
     const [tracking, setTracking] = useState<TrackingInfo | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // ✅ API 호출 함수 분리
+    const fetchTracking = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const res = await fetch(
+                `${API_BASE}/api/items/${itemId}/delivery/tracking`,
+                { credentials: "include" }
+            );
+            if (!res.ok) throw new Error(await res.text());
+            const data = (await res.json()) as TrackingInfo;
+            setTracking(data);
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "조회 실패");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ✅ Polling (1분 주기)
     useEffect(() => {
         if (!isOpen) return;
-        (async () => {
-            try {
-                setLoading(true);
-                const res = await fetch(
-                    `${API_BASE}/api/items/${itemId}/delivery/tracking`,
-                    { credentials: "include" }
-                );
-                if (!res.ok) throw new Error(await res.text());
-                const data = await res.json();
-                setTracking(data);
-            } catch (e) {
-                setError(e instanceof Error ? e.message : "조회 실패");
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, [itemId, isOpen]);
+
+        fetchTracking(); // 모달 열릴 때 1회 실행
+        const interval = setInterval(fetchTracking, 60 * 1000);
+
+        return () => clearInterval(interval);
+    }, [isOpen, itemId]);
 
     return (
         <AnimatePresence>
             {isOpen && (
                 <div className="delivery-modal-overlay">
-                    {/* 모달 패널 */}
                     <motion.div
                         className="delivery-modal-panel"
                         initial={{ opacity: 0, scale: 0.9 }}
@@ -65,12 +74,23 @@ export default function DeliveryTrackingModal({
                     >
                         <header className="delivery-modal-header">
                             <h2>📦 배송 조회</h2>
-                            <button
-                                className="delivery-modal-close"
-                                onClick={onClose}
-                            >
-                                ✕
-                            </button>
+                            <div className="delivery-header-actions">
+                                <button
+                                    className="delivery-icon-btn"
+                                    onClick={fetchTracking}
+                                    disabled={loading}
+                                    title="새로고침"
+                                >
+                                    <FiRefreshCw size={18} />
+                                </button>
+                                <button
+                                    className="delivery-icon-btn"
+                                    onClick={onClose}
+                                    title="닫기"
+                                >
+                                    <FiX size={18} />
+                                </button>
+                            </div>
                         </header>
 
                         <main className="delivery-modal-body">
@@ -89,25 +109,15 @@ export default function DeliveryTrackingModal({
 
                                     <section className="delivery-history">
                                         <h3>배송 진행 현황</h3>
-                                        <h3>배송 진행 현황</h3>
                                         <ul>
-                                            {tracking.history.map((h, idx) => {
-                                                const formattedTime = new Date(h.time).toLocaleString("ko-KR", {
-                                                    year: "numeric",
-                                                    month: "2-digit",
-                                                    day: "2-digit",
-                                                    hour: "2-digit",
-                                                    minute: "2-digit",
-                                                    second: "2-digit",
-                                                });
-
-                                                return (
-                                                    <li key={idx} className="delivery-step">
-                                                        <div className="delivery-time">⏰ {formattedTime}</div>
-                                                        <div className="delivery-desc">🚚 {h.desc}</div>
-                                                    </li>
-                                                );
-                                            })}
+                                            {tracking.history.map((h, idx) => (
+                                                <li key={idx} className="delivery-step">
+                                                    <div className="delivery-time">
+                                                        ⏰ {new Date(h.time).toLocaleString("ko-KR")}
+                                                    </div>
+                                                    <div className="delivery-desc">🚚 {h.desc}</div>
+                                                </li>
+                                            ))}
                                         </ul>
                                     </section>
                                 </>

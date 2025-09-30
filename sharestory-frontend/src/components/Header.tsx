@@ -110,6 +110,13 @@ export default function Header({
                                     판매하기
                                 </a>
                             </div>
+                            <span className="divider">|</span>
+                                <div className="menu-item">
+                                <i className="bi-bag-dash"></i>
+                                <a href="/auctionRegister" onClick={handleProductRegisterClick}>
+                                    경매물품 등록하기
+                                </a>
+                            </div>
 
                             <span className="divider">|</span>
 

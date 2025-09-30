@@ -41,17 +41,13 @@ export default function ChatSlider({ isOpen, onClose, activeRoomId }: ChatSlider
         <AnimatePresence>
             {isOpen && (
                 <>
-                    {/* 오버레이 */}
                     <motion.div
-                        className="chatroom-overlay"
-                        onClick={onClose}
+                        className="chatroom-panel-backdrop"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.25 }}
+                        onClick={onClose}
                     />
-
-                    {/* 패널 */}
                     <motion.div
                         className="chatroom-panel"
                         initial={{ x: "100%" }}

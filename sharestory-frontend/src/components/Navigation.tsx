@@ -64,8 +64,8 @@ function Navigation() {
                     )}
                 </div>
 
-                <a href="#">중고거래</a>
-                <a href="#">물품경매</a>
+                <a href="/">중고거래</a>
+                <a href="/auctions">물품경매</a>
 
             </div>
         </nav>

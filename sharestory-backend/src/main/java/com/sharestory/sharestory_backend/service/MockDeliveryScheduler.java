@@ -23,46 +23,47 @@ public class MockDeliveryScheduler {
     private final TrackingHistoryRepository historyRepository;
 
     @Scheduled(fixedRate = 5000)
-//    @Scheduled(fixedRate = 60000) // 1분마다 실행
     @Transactional
     public void progressMockDelivery() {
-        // 1. SAFE_DELIVERY → SAFE_DELIVERY_START
+        // 1️SAFE_DELIVERY → SAFE_DELIVERY_START
         List<Order> readyOrders = orderRepository.findByStatus(OrderStatus.SAFE_DELIVERY);
-        for (Order order : readyOrders) {
-            order.setStatus(OrderStatus.SAFE_DELIVERY_START);
-            order.getItem().setStatus(StatusMapper.toItemStatus(OrderStatus.SAFE_DELIVERY_START));
-
-            historyRepository.save(TrackingHistory.builder()
-                    .order(order)
-                    .statusText("배송 시작")
-                    .timestamp(LocalDateTime.now())
-                    .build());
+        if (!readyOrders.isEmpty()) {
+            for (Order order : readyOrders) {
+                updateOrderStatus(order, OrderStatus.SAFE_DELIVERY_START, "배송 시작");
+            }
+            return;
         }
 
-        // 2. SAFE_DELIVERY_START → SAFE_DELIVERY_ING
+        // 2️SAFE_DELIVERY_START → SAFE_DELIVERY_ING
         List<Order> startOrders = orderRepository.findByStatus(OrderStatus.SAFE_DELIVERY_START);
-        for (Order order : startOrders) {
-            order.setStatus(OrderStatus.SAFE_DELIVERY_ING);
-            order.getItem().setStatus(StatusMapper.toItemStatus(OrderStatus.SAFE_DELIVERY_ING));
-
-            historyRepository.save(TrackingHistory.builder()
-                    .order(order)
-                    .statusText("배송중")
-                    .timestamp(LocalDateTime.now())
-                    .build());
+        if (!startOrders.isEmpty()) {
+            for (Order order : startOrders) {
+                updateOrderStatus(order, OrderStatus.SAFE_DELIVERY_ING, "배송중");
+            }
+            return;
         }
 
-        // 3. SAFE_DELIVERY_ING → SAFE_DELIVERY_COMPLETE
+        // 3️SAFE_DELIVERY_ING → SAFE_DELIVERY_COMPLETE
         List<Order> ingOrders = orderRepository.findByStatus(OrderStatus.SAFE_DELIVERY_ING);
-        for (Order order : ingOrders) {
-            order.setStatus(OrderStatus.SAFE_DELIVERY_COMPLETE);
-            order.getItem().setStatus(StatusMapper.toItemStatus(OrderStatus.SAFE_DELIVERY_COMPLETE));
-
-            historyRepository.save(TrackingHistory.builder()
-                    .order(order)
-                    .statusText("배송완료")
-                    .timestamp(LocalDateTime.now())
-                    .build());
+        if (!ingOrders.isEmpty()) {
+            for (Order order : ingOrders) {
+                updateOrderStatus(order, OrderStatus.SAFE_DELIVERY_COMPLETE, "배송완료");
+            }
         }
     }
+
+    private void updateOrderStatus(Order order, OrderStatus newStatus, String statusText) {
+        order.setStatus(newStatus);
+        order.getItem().setStatus(StatusMapper.toItemStatus(newStatus));
+
+        TrackingHistory history = historyRepository.save(
+                TrackingHistory.builder()
+                        .order(order)
+                        .statusText(statusText)
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
+
+    }
 }
+

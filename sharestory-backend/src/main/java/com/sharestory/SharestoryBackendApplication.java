@@ -5,7 +5,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.util.TimeZone;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing; // ✅ import 추가
 
+@EnableJpaAuditing
 @SpringBootApplication
 public class SharestoryBackendApplication {
 

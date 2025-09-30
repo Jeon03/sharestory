@@ -4,13 +4,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sharestory.sharestory_backend.domain.DealInfo;
 import com.sharestory.sharestory_backend.domain.Item;
-import com.sharestory.sharestory_backend.dto.ItemRequestDto;
-import com.sharestory.sharestory_backend.dto.ItemStatus;
-import com.sharestory.sharestory_backend.dto.ItemSummaryDto;
-import com.sharestory.sharestory_backend.dto.ReserveRequest;
+import com.sharestory.sharestory_backend.domain.User;
+import com.sharestory.sharestory_backend.dto.*;
 import com.sharestory.sharestory_backend.security.CustomUserDetails;
 import com.sharestory.sharestory_backend.service.ItemSearchService;
 import com.sharestory.sharestory_backend.service.ItemService;
+import com.sharestory.sharestory_backend.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -33,6 +32,7 @@ public class ItemController {
     private final ItemService itemService;
     private final ObjectMapper objectMapper;
     private final ItemSearchService itemSearchService;
+    private final OrderService orderService;
 
     @PostMapping(value = "/registerItem", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> registerItem(
@@ -237,6 +237,13 @@ public class ItemController {
         }
         return itemService.getMyItems(user.getId());
     }
+    @GetMapping("/mypage/purchased")
+    public List<ItemSummaryDto> getPurchasedItems(
+            @AuthenticationPrincipal(expression = "id") Long userId
+    ) {
+        return itemService.getPurchasedItems(userId);
+    }
+
 
     // 구매자가 참여중인 안전거래 아이템
     @GetMapping("/items/safe/buyer")
@@ -250,6 +257,22 @@ public class ItemController {
         return itemService.getSafeTradeItemsForSeller(user.getId());
     }
 
+    @PatchMapping("/items/{itemId}/confirm-receipt")
+    public ResponseEntity<?> confirmItemReceipt(
+            @PathVariable Long itemId,
+            @AuthenticationPrincipal(expression = "id") Long buyerId
+    ) {
+        orderService.confirmReceiveByItemId(itemId, buyerId);
+        return ResponseEntity.ok("물품 수령이 확인되었습니다.");
+    }
 
+    @PatchMapping("/items/{itemId}/payout")
+    public ResponseEntity<String> payoutToSeller(
+            @PathVariable Long itemId,
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        orderService.payoutToSeller(itemId, user.getId());
+        return ResponseEntity.ok("포인트가 판매자에게 지급되었습니다.");
+    }
 
 }

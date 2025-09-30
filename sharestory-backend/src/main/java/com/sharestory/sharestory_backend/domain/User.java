@@ -69,4 +69,9 @@ public class User {
 
     @Column(nullable = false)
     private int points = 0;
+    @Builder.Default
+    @Column(nullable = false)
+    private int currentTotalBidPrice = 0;
+
+
 }
