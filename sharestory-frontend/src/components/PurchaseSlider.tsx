@@ -1,4 +1,3 @@
-// src/components/PurchaseSlider.tsx
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import "../css/purchase.css";

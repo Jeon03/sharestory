@@ -17,7 +17,7 @@ public class ItemSummaryDto {
     private Integer chatRoomCount;
     private Double latitude;
     private Double longitude;
-
+    private boolean hasSafeOrder;
 
     private boolean modified;     // 수정 여부
     private String updatedDate;   // 수정 시간 (optional)

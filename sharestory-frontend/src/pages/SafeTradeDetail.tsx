@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import type { CustomArrowProps, Settings } from 'react-slick';
 import Slider from 'react-slick';
 import '../css/safeProductDetail.css';
@@ -7,6 +7,7 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import DeliveryModal from "../components/DeliveryModal";
 import DeliveryTrackingModal from "../components/DeliveryTrackingModal";
+import { useAuth } from "../contexts/useAuth";
 
 type ItemStatus =
     | 'SAFE_PENDING'
@@ -14,7 +15,8 @@ type ItemStatus =
     | 'SAFE_START'
     | 'SAFE_ING'
     | 'SAFE_COMPLETE'
-    | 'SAFE_POINT_DONE';
+    | 'SAFE_RECEIVED'
+    | 'SAFE_FINISHED';
 
 type ShippingOption = 'included' | 'separate';
 
@@ -53,12 +55,6 @@ interface ItemDetail {
     longitude?: number;
 }
 
-interface User {
-    id: number;
-    name: string;
-    email: string;
-}
-
 const API_BASE = import.meta?.env?.VITE_API_BASE || '';
 
 function PrevArrow({ className, style, onClick }: CustomArrowProps) {
@@ -87,12 +83,26 @@ export default function SafeProductDetail() {
     const [loading, setLoading] = useState(true);
     const [err, setErr] = useState<string | null>(null);
     const [favoriteCount, setFavoriteCount] = useState(0);
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
-
+    const { user: currentUser, refreshUser } = useAuth();
+    const navigate = useNavigate();
     const [showDeliveryModal, setShowDeliveryModal] = useState(false);
     const [showTrackingModal, setShowTrackingModal] = useState(false);
 
-    // ✅ 데이터 로딩
+    useEffect(() => {
+        if (!id) return;
+        (async () => {
+            const res = await fetch(`${API_BASE}/api/items/${id}`, { credentials: "include" });
+            if (!res.ok) return;
+            const data = await res.json();
+            setItem(data);
+
+            // 안전거래 주문 없는 상품 → 일반 상세로 이동
+            if (!data.hasSafeOrder && location.pathname.startsWith("/safe-items/")) {
+                navigate(`/items/${id}`, { replace: true });
+            }
+        })();
+    }, [id, navigate, location]);
+
     useEffect(() => {
         if (!id) return;
         let aborted = false;
@@ -102,44 +112,24 @@ export default function SafeProductDetail() {
                 setLoading(true);
                 setErr(null);
 
-                // 상품 상세
-                const r = await fetch(`${API_BASE}/api/items/${id}`, {
-                    credentials: 'include',
-                });
+                const r = await fetch(`${API_BASE}/api/items/${id}`, { credentials: 'include' });
                 if (!r.ok) throw new Error(await r.text());
                 const data = (await r.json()) as ItemDetail;
                 if (!aborted) setItem(data);
 
-                // 관심 수
-                const f = await fetch(`${API_BASE}/api/favorites/${id}`, {
-                    credentials: 'include',
-                });
+                const f = await fetch(`${API_BASE}/api/favorites/${id}`, { credentials: 'include' });
                 if (f.ok) {
                     const fav = await f.json();
-                    if (!aborted) {
-                        setFavoriteCount(fav.favoriteCount ?? 0);
-                    }
-                }
-
-                // 로그인 사용자
-                const me = await fetch(`${API_BASE}/api/main`, {
-                    credentials: 'include',
-                });
-                if (me.ok) {
-                    const user = (await me.json()) as User;
-                    if (!aborted) setCurrentUser(user);
+                    if (!aborted) setFavoriteCount(fav.favoriteCount ?? 0);
                 }
             } catch (e) {
-                if (!aborted)
-                    setErr(e instanceof Error ? e.message : '요청 실패');
+                if (!aborted) setErr(e instanceof Error ? e.message : '요청 실패');
             } finally {
                 if (!aborted) setLoading(false);
             }
         })();
 
-        return () => {
-            aborted = true;
-        };
+        return () => { aborted = true; };
     }, [id]);
 
     const images = useMemo(() => {
@@ -166,19 +156,9 @@ export default function SafeProductDetail() {
         responsive: [{ breakpoint: 768, settings: { arrows: false, dots: true } }],
     };
 
-    if (loading)
-        return <div className="safe-detail-loading">로딩 중…</div>;
-    if (err)
-        return (
-            <div
-                className="safe-detail-loading"
-                style={{ color: 'crimson' }}
-            >
-                에러: {err}
-            </div>
-        );
-    if (!item)
-        return <div className="safe-detail-loading">데이터가 없습니다.</div>;
+    if (loading) return <div className="safe-detail-loading">로딩 중…</div>;
+    if (err) return <div className="safe-detail-loading" style={{ color: 'crimson' }}>에러: {err}</div>;
+    if (!item) return <div className="safe-detail-loading">데이터가 없습니다.</div>;
 
     return (
         <div className="safe-detail-container">
@@ -197,25 +177,13 @@ export default function SafeProductDetail() {
                         <Slider {...sliderSettings}>
                             {images.map((url, idx) => (
                                 <div key={idx} className="safe-image-wrapper">
-                                    <img
-                                        src={url}
-                                        alt={`${item.title} ${idx + 1}`}
-                                        className="safe-slide-image"
-                                    />
+                                    <img src={url} alt={`${item.title} ${idx + 1}`} className="safe-slide-image" />
                                 </div>
                             ))}
                         </Slider>
                     ) : (
                         <div className="safe-image-wrapper">
-                            <div
-                                className="safe-slide-image"
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: '#888',
-                                }}
-                            >
+                            <div className="safe-slide-image" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
                                 이미지가 없습니다
                             </div>
                         </div>
@@ -225,9 +193,7 @@ export default function SafeProductDetail() {
                 {/* 상품 정보 */}
                 <div className="safe-detail-info">
                     <h1 className="safe-detail-title">{item.title}</h1>
-                    <p className="safe-detail-price">
-                        {item.price.toLocaleString()}원
-                    </p>
+                    <p className="safe-detail-price">{item.price.toLocaleString()}원</p>
 
                     <div className="safe-detail-meta">
                         <span>{new Date(item.createdDate).toLocaleDateString()}</span>
@@ -244,9 +210,7 @@ export default function SafeProductDetail() {
                     <div className="safe-detail-row description-row">
                         <span className="label">상품설명</span>
                         <div className="value">
-                            {(item.description || '')
-                                .split('\n')
-                                .map((line, i) => <p key={i}>{line}</p>)}
+                            {(item.description || '').split('\n').map((line, i) => <p key={i}>{line}</p>)}
 
                             {/* 판매자 / 구매자 분기 */}
                             {currentUser && (
@@ -256,50 +220,59 @@ export default function SafeProductDetail() {
                                         <div className="safe-detail-seller">
                                             {item.itemStatus === "SAFE_PENDING" && (
                                                 <>
-                                                    <p className="safe-detail-status-banner green">
-                                                        🔒 안전결제가 완료되었습니다. 송장을 등록해야 거래가 진행됩니다.
-                                                    </p>
-                                                    <button
-                                                        className="safe-detail-btn safe-detail-btn-green"
-                                                        onClick={() => setShowDeliveryModal(true)}
-                                                    >
-                                                        송장 등록하기
-                                                    </button>
-                                                    <p className="safe-detail-subtext">
-                                                        배송정보(택배사/송장번호)를 입력하면 구매자에게 자동 안내됩니다.
-                                                    </p>
+                                                    <div className="safe-detail-progress">
+                                                        <span className="done">✔ 결제 완료</span>
+                                                        <span className="active">📦 송장 등록 대기중</span>
+                                                        <span>🚚 배송중</span>
+                                                        <span>📥 수령</span>
+                                                        <span>💳 포인트 지급</span>
+                                                    </div>
+                                                    <div className="safe-detail-buttons">
+                                                        <button className="safe-detail-btn safe-detail-btn-green" onClick={() => setShowDeliveryModal(true)}>송장 등록하기</button>
+                                                    </div>
+                                                    <p className="safe-detail-subtext">배송정보(택배사/송장번호)를 입력하면 구매자에게 자동 안내됩니다.</p>
                                                 </>
                                             )}
 
-                                            {/* 🚚 진행 상황 공통 표시 */}
-                                            {["SAFE_READY", "SAFE_START", "SAFE_ING", "SAFE_COMPLETE", "SAFE_POINT_DONE"].includes(item.itemStatus) && (
+                                            {["SAFE_READY", "SAFE_START", "SAFE_ING", "SAFE_COMPLETE", "SAFE_RECEIVED", "SAFE_FINISHED"].includes(item.itemStatus) && (
                                                 <>
                                                     <div className="safe-detail-progress">
-                            <span className={["SAFE_PENDING","SAFE_READY","SAFE_START","SAFE_ING","SAFE_COMPLETE","SAFE_POINT_DONE"].includes(item.itemStatus) ? "done" : ""}>
-                              ✔ 결제 완료
-                            </span>
-                                                        <span className={["SAFE_READY","SAFE_START","SAFE_ING","SAFE_COMPLETE","SAFE_POINT_DONE"].includes(item.itemStatus) ? "done" : (item.itemStatus==="SAFE_PENDING" ? "active":"")}>
-                              📦 송장 등록
-                            </span>
-                                                        <span className={["SAFE_START","SAFE_ING","SAFE_COMPLETE","SAFE_POINT_DONE"].includes(item.itemStatus) ? "done" : (item.itemStatus==="SAFE_READY" ? "active":"")}>
-                              🚚 배송중
-                            </span>
-                                                        <span className={["SAFE_COMPLETE","SAFE_POINT_DONE"].includes(item.itemStatus) ? "done" : (item.itemStatus==="SAFE_ING" ? "active":"")}>
-                              📥 수령
-                            </span>
-                                                        <span className={item.itemStatus==="SAFE_POINT_DONE" ? "done" : (item.itemStatus==="SAFE_COMPLETE" ? "active":"")}>
-                              💳 포인트 지급
-                            </span>
+                                                        <span className="done">✔ 결제 완료</span>
+                                                        <span className={item.itemStatus !== "SAFE_PENDING" ? "done" : "active"}>📦 송장 등록</span>
+                                                        <span className={["SAFE_START","SAFE_ING","SAFE_COMPLETE","SAFE_RECEIVED","SAFE_FINISHED"].includes(item.itemStatus) ? "done" : (item.itemStatus==="SAFE_READY" ? "active":"")}>🚚 배송중</span>
+                                                        <span className={["SAFE_COMPLETE","SAFE_RECEIVED","SAFE_FINISHED"].includes(item.itemStatus) ? "done" : (item.itemStatus==="SAFE_ING" ? "active":"")}>📥 수령</span>
+                                                        <span className={["SAFE_RECEIVED","SAFE_FINISHED"].includes(item.itemStatus) ? "done" : (item.itemStatus==="SAFE_COMPLETE" ? "active":"")}>💳 포인트 지급</span>
                                                     </div>
 
                                                     <div className="safe-detail-buttons">
-                                                        <button
-                                                            className="safe-detail-btn safe-detail-btn-blue"
-                                                            onClick={() => setShowTrackingModal(true)}
-                                                        >
-                                                            내 배송 조회하기
-                                                        </button>
+                                                        <button className="safe-detail-btn safe-detail-btn-blue" onClick={() => setShowTrackingModal(true)}>내 배송 조회하기</button>
+
+                                                        {item.itemStatus === "SAFE_RECEIVED" && (
+                                                            <button
+                                                                className="safe-detail-btn safe-detail-btn-green"
+                                                                onClick={async () => {
+                                                                    try {
+                                                                        const res = await fetch(`${API_BASE}/api/items/${item.id}/payout`, { method: "PATCH", credentials: "include" });
+                                                                        if (!res.ok) throw new Error("포인트 수령 실패");
+                                                                        alert("✅ 포인트가 적립되었습니다.");
+                                                                        setItem(prev => prev ? { ...prev, itemStatus: "SAFE_FINISHED" } : prev);
+                                                                        await refreshUser();
+                                                                    } catch (e) {
+                                                                        console.error("포인트 수령 오류:", e);
+                                                                        alert("❌ 포인트 수령 중 오류 발생");
+                                                                    }
+                                                                }}
+                                                            >포인트 수령하기</button>
+                                                        )}
+
+                                                        {item.itemStatus === "SAFE_FINISHED" && (
+                                                            <button className="safe-detail-btn safe-detail-btn-green" onClick={() => navigate("/mypage/points")}>포인트 적립 내역보기</button>
+                                                        )}
                                                     </div>
+
+                                                    {item.itemStatus === "SAFE_FINISHED" && (
+                                                        <p className="safe-detail-status-banner gray">🎉 거래가 완료되었습니다. 배송은 종료되었으며 포인트가 판매자에게 지급되었습니다.</p>
+                                                    )}
                                                 </>
                                             )}
                                         </div>
@@ -308,9 +281,6 @@ export default function SafeProductDetail() {
                                         <div className="safe-detail-buyer">
                                             {item.itemStatus === "SAFE_PENDING" && (
                                                 <>
-                                                    <p className="safe-detail-status-banner yellow">
-                                                        ⏳ 아직 판매자가 송장을 등록하지 않았습니다.
-                                                    </p>
                                                     <div className="safe-detail-progress">
                                                         <span className="done">✔ 결제 완료</span>
                                                         <span className="active">📦 송장 등록 대기중</span>
@@ -318,10 +288,10 @@ export default function SafeProductDetail() {
                                                         <span>📥 수령</span>
                                                         <span>💳 포인트 지급</span>
                                                     </div>
+                                                    <p className="safe-detail-status-banner yellow">⏳ 아직 판매자가 송장을 등록하지 않았습니다.</p>
                                                 </>
                                             )}
 
-                                            {/* 🚚 진행 상황 + 버튼 */}
                                             {["SAFE_READY","SAFE_START","SAFE_ING"].includes(item.itemStatus) && (
                                                 <>
                                                     <div className="safe-detail-progress">
@@ -331,12 +301,9 @@ export default function SafeProductDetail() {
                                                         <span>📥 수령</span>
                                                         <span>💳 포인트 지급</span>
                                                     </div>
-                                                    <button
-                                                        className="safe-detail-btn safe-detail-btn-blue"
-                                                        onClick={() => setShowTrackingModal(true)}
-                                                    >
-                                                        상품 배송 조회하기
-                                                    </button>
+                                                    <div className="safe-detail-buttons">
+                                                        <button className="safe-detail-btn safe-detail-btn-blue" onClick={() => setShowTrackingModal(true)}>상품 배송 조회하기</button>
+                                                    </div>
                                                 </>
                                             )}
 
@@ -350,70 +317,82 @@ export default function SafeProductDetail() {
                                                         <span>💳 포인트 지급</span>
                                                     </div>
                                                     <div className="safe-detail-buttons">
-                                                        <button
-                                                            className="safe-detail-btn safe-detail-btn-blue"
-                                                            onClick={() => setShowTrackingModal(true)}
-                                                        >
-                                                            상품 배송 조회하기
-                                                        </button>
+                                                        <button className="safe-detail-btn safe-detail-btn-blue" onClick={() => setShowTrackingModal(true)}>상품 배송 조회하기</button>
                                                         <button
                                                             className="safe-detail-btn safe-detail-btn-green"
                                                             onClick={async () => {
                                                                 try {
-                                                                    const res = await fetch(
-                                                                        `${API_BASE}/api/items/${item.id}/confirm-receipt`,
-                                                                        { method: "POST", credentials: "include" }
-                                                                    );
+                                                                    const res = await fetch(`${API_BASE}/api/items/${item.id}/confirm-receipt`, { method: "PATCH", credentials: "include" });
                                                                     if (!res.ok) throw new Error("수령 확인 실패");
-
-                                                                    alert("✅ 수령이 확인되었습니다. 포인트가 판매자에게 지급됩니다.");
-                                                                    setItem((prev) =>
-                                                                        prev ? { ...prev, itemStatus: "SAFE_POINT_DONE" } : prev
-                                                                    );
+                                                                    alert("✅ 수령이 확인되었습니다. 포인트가 판매자에게 지급 대기중입니다.");
+                                                                    setItem(prev => prev ? { ...prev, itemStatus: "SAFE_RECEIVED" } : prev);
                                                                 } catch (e) {
                                                                     console.error("수령 오류:", e);
                                                                     alert("❌ 수령 처리 중 오류 발생");
                                                                 }
                                                             }}
-                                                        >
-                                                            물품 수령 확인
-                                                        </button>
+                                                        >물품 수령 확인</button>
                                                     </div>
                                                 </>
                                             )}
 
-                                            {item.itemStatus === "SAFE_POINT_DONE" && (
-                                                <p className="safe-detail-status-banner gray">
-                                                    ✅ 거래가 완료되었습니다. 포인트가 지급되었습니다.
-                                                </p>
+                                            {item.itemStatus === "SAFE_RECEIVED" && (
+                                                <>
+                                                    <div className="safe-detail-progress">
+                                                        <span className="done">✔ 결제 완료</span>
+                                                        <span className="done">📦 송장 등록</span>
+                                                        <span className="done">🚚 배송중</span>
+                                                        <span className="done">📥 수령</span>
+                                                        <span className="active">💳 포인트 지급</span>
+                                                    </div>
+                                                    <div className="safe-detail-buttons">
+                                                        <button className="safe-detail-btn safe-detail-btn-blue" onClick={() => setShowTrackingModal(true)}>상품 배송 조회하기</button>
+                                                    </div>
+                                                    <p className="safe-detail-status-banner gray">✅ 수령 확인이 완료되었습니다. 판매자가 포인트를 수령할 때까지 기다려주세요.</p>
+                                                </>
+                                            )}
+
+                                            {item.itemStatus === "SAFE_FINISHED" && (
+                                                <>
+                                                    <div className="safe-detail-progress">
+                                                        <span className="done">✔ 결제 완료</span>
+                                                        <span className="done">📦 송장 등록</span>
+                                                        <span className="done">🚚 배송중</span>
+                                                        <span className="done">📥 수령</span>
+                                                        <span className="done">💳 포인트 지급</span>
+                                                    </div>
+                                                    <div className="safe-detail-buttons">
+                                                        <button className="safe-detail-btn safe-detail-btn-blue" onClick={() => setShowTrackingModal(true)}>상품 배송 조회하기</button>
+                                                    </div>
+                                                    <p className="safe-detail-status-banner gray">🎉 거래가 완료되었습니다. 포인트가 판매자에게 지급되었습니다.</p>
+                                                </>
                                             )}
                                         </div>
                                     )}
                                 </div>
                             )}
-
-                            {showDeliveryModal && (
-                                <DeliveryModal
-                                    itemId={item.id}
-                                    onClose={() => setShowDeliveryModal(false)}
-                                    onSuccess={() => {
-                                        setItem((prev) =>
-                                            prev ? { ...prev, itemStatus: 'SAFE_READY' } : prev
-                                        );
-                                    }}
-                                />
-                            )}
-
-                            {/* 배송조회 모달 */}
-                            <DeliveryTrackingModal
-                                itemId={item.id}
-                                isOpen={showTrackingModal}
-                                onClose={() => setShowTrackingModal(false)}
-                            />
                         </div>
                     </div>
                 </div>
             </div>
+
+            {showDeliveryModal && (
+                <DeliveryModal
+                    itemId={item.id}
+                    onClose={() => setShowDeliveryModal(false)}
+                    onSuccess={({ courierCode, trackingNumber }) => {
+                        alert(`송장 등록 완료!\n택배사: ${courierCode}\n운송장번호: ${trackingNumber}`);
+                        setItem(prev => prev ? { ...prev, itemStatus: "SAFE_READY" } : prev);
+                        setShowDeliveryModal(false);
+                    }}
+                />
+            )}
+
+            <DeliveryTrackingModal
+                itemId={item.id}
+                isOpen={showTrackingModal}
+                onClose={() => setShowTrackingModal(false)}
+            />
         </div>
     );
 }

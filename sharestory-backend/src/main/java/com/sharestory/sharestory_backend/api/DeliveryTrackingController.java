@@ -24,29 +24,37 @@ public class DeliveryTrackingController {
     private final DeliveryTrackingService deliveryTrackingService;
 
     //배송지 정보 조회 (송장 등록 모달용)
-    @GetMapping("/{orderId}/delivery-info")
-    public DeliveryInfo getDeliveryInfo(@PathVariable Long orderId) {
-        Order order = orderRepository.findById(orderId)
+    @GetMapping("/{itemId}/delivery-info")
+    public DeliveryInfo getDeliveryInfoByItem(@PathVariable Long itemId) {
+        Order order = orderRepository.findByItem_Id(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("주문이 존재하지 않습니다."));
         return order.getDeliveryInfo();
     }
 
-    //송장 등록
-    @PostMapping("/{orderId}/delivery/invoice")
-    public ResponseEntity<String> registerInvoice(
-            @PathVariable Long orderId,
+    // 송장 등록 (itemId 기반)
+    @PostMapping("/{itemId}/delivery/invoice")
+    public ResponseEntity<String> registerInvoiceByItem(
+            @PathVariable Long itemId,
             @AuthenticationPrincipal CustomUserDetails user,
             @RequestBody DeliveryInvoiceRequest req
     ) {
-        deliveryTrackingService.registerInvoice(orderId, user.getId(), req);
+        // ✅ itemId → order 조회
+        Order order = orderRepository.findByItem_Id(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 상품의 주문이 존재하지 않습니다."));
+
+        deliveryTrackingService.registerInvoice(order.getId(), user.getId(), req);
         return ResponseEntity.ok("송장이 등록되었습니다.");
     }
 
 
-    // 🚛 배송 추적 조회 (스케줄러 + TrackingHistory 기반)
-    @GetMapping("/{orderId}/delivery/tracking")
-    public ResponseEntity<DeliveryTrackingResponse> trackDelivery(@PathVariable Long orderId) {
-        DeliveryTrackingResponse tracking = deliveryTrackingService.getMockTracking(orderId);
+    // 🚛 배송 추적 조회 (itemId 기반)
+    @GetMapping("/{itemId}/delivery/tracking")
+    public ResponseEntity<DeliveryTrackingResponse> trackDeliveryByItem(@PathVariable Long itemId) {
+        // ✅ itemId → order 조회
+        Order order = orderRepository.findByItem_Id(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 상품의 주문이 존재하지 않습니다."));
+
+        DeliveryTrackingResponse tracking = deliveryTrackingService.getMockTracking(order.getId());
         return ResponseEntity.ok(tracking);
     }
 

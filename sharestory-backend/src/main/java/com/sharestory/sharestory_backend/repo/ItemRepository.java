@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +29,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     List<Item> findByUserId(Long userId);
 
+    List<Item> findByBuyerIdAndStatusIn(Long buyerId, Collection<ItemStatus> statuses);
 
     // 로그인한 유저가 구매자로 참여 중인 안전거래
     List<Item> findByBuyerIdAndStatusIn(Long buyerId, List<ItemStatus> statuses);

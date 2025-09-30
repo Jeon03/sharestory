@@ -14,7 +14,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
 
     private final StompAuthInterceptor stompAuthInterceptor;
-    private final HttpHandshakeInterceptor httpHandshakeInterceptor; // ✅ 추가
+    private final HttpHandshakeInterceptor httpHandshakeInterceptor;
 
     public WebSocketConfig(StompAuthInterceptor stompAuthInterceptor,
                            HttpHandshakeInterceptor httpHandshakeInterceptor) {
