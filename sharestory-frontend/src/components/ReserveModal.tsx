@@ -7,7 +7,7 @@ interface ChatRoomInfo {
     buyerId: number;
     buyerName: string;
     lastMessage?: string;
-    lastMessageType?: "TEXT" | "IMAGE" | "LOCATION";
+    lastMessageType?: "TEXT" | "IMAGE" | "LOCATION_MAP" | "LOCATION_TEXT";
 }
 
 interface ReserveModalProps {
@@ -61,7 +61,7 @@ export default function ReserveModal({ itemId, onClose, onConfirm }: ReserveModa
                             if (room.lastMessage) {
                                 if (room.lastMessageType === "IMAGE") {
                                     displayMessage = "[사진]";
-                                } else if (room.lastMessageType === "LOCATION") {
+                                } else if (room.lastMessageType === "LOCATION_MAP" || room.lastMessageType === "LOCATION_TEXT") {
                                     displayMessage = "[지도]";
                                 } else if (room.lastMessageType === "TEXT") {
                                     displayMessage = room.lastMessage ?? "메시지 없음";

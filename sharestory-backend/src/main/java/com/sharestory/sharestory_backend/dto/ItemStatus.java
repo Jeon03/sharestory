@@ -10,5 +10,6 @@ public enum ItemStatus {
     SAFE_START,    // 배송 시작
     SAFE_ING,      // 배송 중
     SAFE_COMPLETE, // 배송 완료
-    SAFE_POINT_DONE // 포인트 지급 완료
+    SAFE_RECEIVED, // 포인트 지급 완료
+    SAFE_FINISHED //판매자 포인트 지급 완료 (최종 종료)
 }

@@ -28,6 +28,7 @@ public class Order {
     private Long sellerId;  // 판매자
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 50, nullable = false)
     private OrderStatus status;
 
     private int price; // 결제 금액 (상품가 + 수수료 + 배송비)

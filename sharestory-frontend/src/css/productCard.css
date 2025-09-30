@@ -169,3 +169,29 @@
     color: #333;
     margin-top: auto;
 }
+
+/* 상태 배지 공통 */
+.status-badge {
+    position: absolute;
+    top: 9px;
+    left: 11px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 4px;
+    color: #fff;
+}
+
+/* 상태별 색상 */
+.status-badge.safe_pending { background: #f39c12; }    /* 결제완료 (주황) */
+.status-badge.safe_ready { background: #3498db; }      /* 송장등록 (파랑) */
+.status-badge.safe_start,
+.status-badge.safe_ing { background: #27ae60; }        /* 배송중 (초록) */
+.status-badge.safe_complete { background: #2ecc71; }   /* 배송완료 (연두) */
+.status-badge.safe_received { background: #9b59b6; }   /* 수령확인 (보라) */
+.status-badge.safe_finished { background: #34495e; }   /* 거래완료 (회색) */
+
+/* product-image-wrapper를 relative로 만들어야 오버레이 가능 */
+.product-image-wrapper {
+    position: relative;
+}

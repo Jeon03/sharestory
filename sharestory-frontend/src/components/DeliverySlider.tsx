@@ -16,7 +16,7 @@ interface DeliverySliderProps {
     price: number;
     shippingFee: number;
     safeFee: number;
-    onSubmit: (delivery: DeliveryInfo) => void;
+    onSubmit: (delivery: DeliveryInfo) => Promise<void> | void;
 }
 
 export default function DeliverySlider({
@@ -35,8 +35,10 @@ export default function DeliverySlider({
         requestMessage: "",
     });
 
+    const [isLoading, setIsLoading] = useState(false);
     const totalPrice = price + shippingFee + safeFee;
 
+    // ✅ 카카오 주소검색
     const handleSearchAddress = () => {
         new window.daum.Postcode({
             oncomplete: (data: DaumPostcodeData) => {
@@ -45,7 +47,8 @@ export default function DeliverySlider({
         }).open();
     };
 
-    const handleConfirm = () => {
+    // ✅ 결제 확인 + 로딩 처리
+    const handleConfirm = async () => {
         const phoneRegex = /^01[0-9]-\d{3,4}-\d{4}$/;
         if (!form.name || !form.phone || !form.address) {
             alert("필수 정보를 입력하세요.");
@@ -55,14 +58,29 @@ export default function DeliverySlider({
             alert("전화번호는 010-1234-5678 형식으로 입력해주세요.");
             return;
         }
-        onSubmit(form);
-        onClose();
+
+        // 재확인
+        const confirmed = window.confirm("정말 결제를 진행하시겠습니까?");
+        if (!confirmed) return;
+
+        try {
+            setIsLoading(true); // 로딩 시작
+            await onSubmit(form); // 결제 처리
+            alert("✅ 결제가 완료되었습니다!");
+            onClose();
+        } catch (err) {
+            console.error("결제 오류:", err);
+            alert("❌ 결제 처리 중 오류가 발생했습니다.");
+        } finally {
+            setIsLoading(false); // 로딩 종료
+        }
     };
 
     return (
         <AnimatePresence>
             {isOpen && (
                 <>
+                    {/* 배경 오버레이 */}
                     <motion.div
                         className="delivery-slider-overlay"
                         onClick={onClose}
@@ -71,6 +89,8 @@ export default function DeliverySlider({
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.25 }}
                     />
+
+                    {/* 사이드 패널 */}
                     <motion.div
                         className="delivery-slider-panel"
                         initial={{ x: "100%" }}
@@ -120,10 +140,13 @@ export default function DeliverySlider({
                                 name="request"
                                 placeholder="배송 요청사항 (예: 부재 시 경비실에 맡겨주세요)"
                                 value={form.requestMessage}
-                                onChange={(e) => setForm({ ...form, requestMessage: e.target.value })}
+                                onChange={(e) =>
+                                    setForm({ ...form, requestMessage: e.target.value })
+                                }
                                 rows={3}
                             />
 
+                            {/* 요약 */}
                             <div className="delivery-slider-summary">
                                 <div className="row">
                                     <span>상품 금액</span>
@@ -148,20 +171,29 @@ export default function DeliverySlider({
                             <button
                                 className="delivery-slider-cancel-btn"
                                 onClick={onClose}
+                                disabled={isLoading}
                             >
                                 취소
                             </button>
                             <button
                                 className="delivery-slider-confirm-btn"
                                 onClick={handleConfirm}
+                                disabled={isLoading}
                             >
-                                결제하기
+                                {isLoading ? "결제 진행중..." : "결제하기"}
                             </button>
                         </footer>
                     </motion.div>
+
+                    {/* 로딩 오버레이 */}
+                    {isLoading && (
+                        <div className="loading-overlay">
+                            <div className="spinner"></div>
+                            <p>결제 진행중...</p>
+                        </div>
+                    )}
                 </>
             )}
         </AnimatePresence>
     );
-
 }

@@ -97,6 +97,25 @@ export default function ProductDetailSimple() {
     const [presetMessage, setPresetMessage] = useState<string>("");
 
 
+    useEffect(() => {
+        if (!id) return;
+        (async () => {
+            const res = await fetch(`${API_BASE}/api/items/${id}`, { credentials: "include" });
+            if (!res.ok) return;
+
+            const data = await res.json();
+            console.log("✅ 상세 API 응답:", data);   // ← 전체 확인
+            console.log("✅ hasSafeOrder:", data.hasSafeOrder); // ← 플래그만 확인
+
+            setItem(data);
+
+            // 🚨 안전거래 상품인데 일반 상세로 들어왔을 경우
+            if (data.hasSafeOrder && location.pathname.startsWith("/items/")) {
+                navigate(`/safe-items/${id}`, { replace: true });
+            }
+        })();
+    }, [id, navigate, location]);
+
     // ✅ 데이터 로딩
     useEffect(() => {
         if (!id) return;
@@ -254,6 +273,7 @@ export default function ProductDetailSimple() {
     };
 
     const { refreshUser } = useAuth();
+
     // 배송정보 제출 → 안전거래 주문 API 호출
     const handleDeliverySubmit = async (delivery: DeliveryInfo) => {
         if (!item) return;
@@ -269,9 +289,9 @@ export default function ProductDetailSimple() {
             });
 
             if (res.ok) {
-                alert("안전거래 결제가 완료되었습니다.");
-                setShowDeliverySlider(false); // ✅ 슬라이더 닫기
+                setShowDeliverySlider(false);
                 await refreshUser();
+                navigate(`/safe-items/${item.id}`, { replace: true });
             } else {
                 alert("결제 실패");
             }
@@ -403,15 +423,30 @@ export default function ProductDetailSimple() {
                                 <button onClick={handleStartChat} className="btn-chat">
                                     채팅하기
                                 </button>
-                                <button
-                                    className="btn-buy"
-                                    onClick={() => setShowPurchaseSlider(true)}
-                                >
-                                    구매하기
-                                </button>
+
+                                {item.itemStatus === "SOLD_OUT" ? (
+                                    <button className="btn-buy disabled" disabled>
+                                        판매완료
+                                    </button>
+                                ) : item.itemStatus === "RESERVED" ? (
+                                    <button
+                                        className="btn-buy reserved"
+                                        onClick={handleStartChat}
+                                    >
+                                        예약중
+                                    </button>
+                                ) : (
+                                    <button
+                                        className="btn-buy"
+                                        onClick={() => setShowPurchaseSlider(true)}
+                                    >
+                                        구매하기
+                                    </button>
+                                )}
                             </>
                         )}
                     </div>
+
 
                     {/* 판매자 전용 버튼 */}
                     {currentUser && item.userId === currentUser.id && (

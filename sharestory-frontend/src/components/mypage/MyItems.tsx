@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Eye, Heart, MessageCircle } from "lucide-react";
 import "../../css/myPage.css";
-import "../../css/productCard.css"; // ✅ 공통 카드 스타일
+import "../../css/productCard.css";
 
 interface Item {
     id: number;
@@ -66,7 +66,8 @@ export default function MyItems() {
         "SAFE_START",
         "SAFE_ING",
         "SAFE_COMPLETE",
-        "SAFE_POINT_DONE",
+        "SAFE_RECEIVED",
+        "SAFE_FINISHED"
     ];
 
     useEffect(() => {
@@ -140,7 +141,7 @@ export default function MyItems() {
             </div>
 
             {/* 상품 카드 리스트 */}
-            <ul className="product-grid-my"> {/* ✅ 공통 클래스 사용 */}
+            <ul className="product-grid-my">
                 {filteredItems.length > 0 ? (
                     filteredItems.map((item) => (
                         <li key={item.id} className="product-card">

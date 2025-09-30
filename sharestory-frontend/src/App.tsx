@@ -21,8 +21,9 @@ import PointList from "./components/mypage/PointList";
 import MyItems from "./components/mypage/MyItems.tsx";
 import ProfileCard from "./components/mypage/ProfileCard.tsx";
 import PointModal from "./components/PointModal.tsx";
-import SafeTradeItems from "./components/SafeTradeItems.tsx";
+import SafeTradeItems from "./components/mypage/SafeTradeItems.tsx";
 import SafeTradeDetail from "./pages/SafeTradeDetail";
+import PurchasedItems from "./components/mypage/PurchasedItems.tsx";
 
 function AppLayout({
                        user,
@@ -246,11 +247,18 @@ export default function App() {
                                         onEditClick={() => alert("프로필 수정")}
                                     />
                                     <MyItems />
+                                    <PurchasedItems />
                                     <SafeTradeItems />
                                 </>
                             }
                         />
+                        {/* 판매 상품 */}
                         <Route path="items" element={<MyItems />} />
+                        {/* 구매 상품 */}
+                        <Route path="purchased" element={<PurchasedItems />} />
+                        {/* 안전거래 상품 */}
+                        <Route path="safe" element={<SafeTradeItems />} />
+
                         <Route
                             path="points"
                             element={

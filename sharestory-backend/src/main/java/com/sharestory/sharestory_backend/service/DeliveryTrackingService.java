@@ -52,6 +52,9 @@ public class DeliveryTrackingService {
         // 상태 업데이트 (송장 등록됨)
         order.setStatus(com.sharestory.sharestory_backend.dto.OrderStatus.SAFE_DELIVERY);
         item.setStatus(StatusMapper.toItemStatus(order.getStatus())); // SAFE_READY
+
+        orderRepository.save(order);
+        itemRepository.save(item);
     }
 
     @Transactional
@@ -65,18 +68,20 @@ public class DeliveryTrackingService {
 
         // 현재 상태 → 텍스트 매핑
         String status = switch (order.getStatus()) {
-            case SAFE_DELIVERY -> "송장 등록됨";
+            case SAFE_DELIVERY       -> "송장 등록됨";
             case SAFE_DELIVERY_START -> "배송 시작";
-            case SAFE_DELIVERY_ING -> "배송중";
+            case SAFE_DELIVERY_ING   -> "배송중";
             case SAFE_DELIVERY_COMPLETE -> "배송완료";
+            case SAFE_DELIVERY_RECEIVED -> "배송완료";
+            case SAFE_DELIVERY_FINISHED -> "배송완료";
             default -> "준비중";
         };
 
-        // ✅ 배송 이력 (스케줄러가 기록했다면 DB에서 조회, 없으면 더미)
+        //배송 이력 (스케줄러가 기록했다면 DB에서 조회, 없으면 더미)
         List<TrackingHistoryDto> history = historyRepository
                 .findByOrder_IdOrderByTimestampAsc(orderId)
                 .stream()
-                .map(h -> new TrackingHistoryDto(h.getTimestamp(), h.getStatusText()))
+                .map(TrackingHistoryDto::new)
                 .toList();
 
         return DeliveryTrackingResponse.builder()

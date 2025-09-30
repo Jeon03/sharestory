@@ -29,8 +29,8 @@ public class ItemService {
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final ChatReadRepository chatReadRepository;
     private final ChatMessageRepository chatMessageRepository;
-    private final PointHistoryRepository pointHistoryRepository;
     private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
 
     @Transactional
     public Item registerItem(ItemRequestDto dto, List<MultipartFile> images, Long userId) throws IOException {
@@ -330,6 +330,9 @@ public class ItemService {
         // ✅ 상태 변경
         item.setStatus(ItemStatus.RESERVED);
 
+        // ✅ 예약자 지정
+        item.setBuyerId(buyerId);
+
         ChatRoom room = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
 
@@ -377,6 +380,9 @@ public class ItemService {
 
         // ✅ 상태 변경
         item.setStatus(ItemStatus.SOLD_OUT);
+
+        // ✅ 최종 구매자 지정
+        item.setBuyerId(buyerId);
 
         ChatRoom room = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
@@ -438,7 +444,9 @@ public class ItemService {
                 ItemStatus.SAFE_READY,
                 ItemStatus.SAFE_START,
                 ItemStatus.SAFE_ING,
-                ItemStatus.SAFE_COMPLETE
+                ItemStatus.SAFE_COMPLETE,
+                ItemStatus.SAFE_RECEIVED,
+                ItemStatus.SAFE_FINISHED
         );
 
         return itemRepository.findByBuyerIdAndStatusIn(buyerId, statuses)
@@ -453,7 +461,9 @@ public class ItemService {
                 ItemStatus.SAFE_READY,
                 ItemStatus.SAFE_START,
                 ItemStatus.SAFE_ING,
-                ItemStatus.SAFE_COMPLETE
+                ItemStatus.SAFE_COMPLETE,
+                ItemStatus.SAFE_RECEIVED,
+                ItemStatus.SAFE_FINISHED
         );
 
         return itemRepository.findBySellerIdAndStatusIn(sellerId, statuses)
@@ -462,7 +472,24 @@ public class ItemService {
                 .toList();
     }
 
+
+    public List<ItemSummaryDto> getPurchasedItems(Long buyerId) {
+        List<ItemStatus> statuses = List.of(
+                ItemStatus.RESERVED,   // 일반거래 예약
+                ItemStatus.SOLD_OUT    // 일반거래 완료
+        );
+
+        return itemRepository.findByBuyerIdAndStatusIn(buyerId, statuses)
+                .stream()
+                .map(this::toSummaryDto)
+                .toList();
+    }
+
+
     private ItemSummaryDto toSummaryDto(Item item) {
+
+        boolean hasSafeOrder = orderRepository.existsByItem_Id(item.getId());
+
         return ItemSummaryDto.builder()
                 .id(item.getId())
                 .title(item.getTitle())
@@ -478,6 +505,7 @@ public class ItemService {
                 .modified(item.isModified())
                 .updatedDate(item.getUpdatedDate() != null ? item.getUpdatedDate().toString() : null)
                 .dealInfo(item.getDealInfo())
+                .hasSafeOrder(hasSafeOrder)
                 .build();
     }
 
