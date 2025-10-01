@@ -225,3 +225,70 @@
     font-weight: bold;
     color: #000;
 }
+.point-list {
+    margin-top: 20px;
+}
+
+.point-list h3 {
+    margin-bottom: 12px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.point-list table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.point-list th,
+.point-list td {
+    border-bottom: 1px solid #ddd;
+    padding: 8px 10px;
+    text-align: center;
+}
+
+.point-list .plus {
+    color: green;
+    font-weight: bold;
+}
+
+.point-list .minus {
+    color: red;
+    font-weight: bold;
+}
+
+.point-empty {
+    margin-top: 20px;
+    color: #888;
+}
+
+
+
+.my-items h4,
+.safe-items h4,
+.purchased-items h4 {
+    margin-bottom: 16px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    border-left: 6px solid #f5e166; /* 강조 바 */
+    padding-left: 10px;
+    border-top:  3px solid #f5e166;
+    border-bottom: 3px solid #f5e166;
+    border-right: 6px solid #f5e166;
+}
+
+.my-items h5,
+.safe-items h5,
+.purchased-items h5 {
+    margin-bottom: 16px;
+    font-size: 15px;
+    font-weight: bold;
+    color: #333;
+    border-left: 4px solid #55c964; /* 강조 바 */
+    padding-left: 10px;
+    border-top:  2px solid #55c964;
+    border-bottom: 2px solid #55c964;
+    border-right: 4px solid #55c964;
+}

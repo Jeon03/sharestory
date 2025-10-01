@@ -7,6 +7,7 @@ import com.sharestory.sharestory_backend.dto.ItemStatus;
 import com.sharestory.sharestory_backend.dto.ItemSummaryDto;
 import com.sharestory.sharestory_backend.repo.ChatRoomRepository;
 import com.sharestory.sharestory_backend.repo.ItemRepository;
+import com.sharestory.sharestory_backend.repo.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +31,7 @@ public class ItemQueryService {
     private static final DateTimeFormatter ISO = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     private static final ItemStatus ON_SALE = ItemStatus.ON_SALE;
     private final ChatRoomRepository chatRoomRepository;
+    private final OrderRepository orderRepository;
 
     private static final List<ItemStatus> ACTIVE_STATUSES = List.of(
             ItemStatus.ON_SALE,
@@ -110,6 +112,9 @@ public class ItemQueryService {
 
         int chatCount = chatRoomRepository.findByItem_Id(id).size();
 
+        // ✅ 안전거래 여부 (DB 조회 기반)
+        boolean hasSafeOrder = orderRepository.existsByItem_Id(item.getId());
+
         return ItemDetailResponse.builder()
                 .id(item.getId())
                 .userId(item.getUserId())
@@ -123,7 +128,6 @@ public class ItemQueryService {
                 .condition(item.getCondition())
                 .itemStatus(item.getStatus().name())
                 .imageUrl(cover)
-                // ✅ images를 [{id, url}]로 내려줌
                 .images(item.getImages() == null ? List.of()
                         : item.getImages().stream()
                         .map(img -> new ImageDto(img.getId(), img.getUrl()))
@@ -135,6 +139,7 @@ public class ItemQueryService {
                 .updatedDate(item.getUpdatedDate() != null ? item.getUpdatedDate().format(ISO) : null)
                 .viewCount(item.getViewCount())
                 .chatRoomCount(chatCount)
+                .hasSafeOrder(hasSafeOrder) // ✅ 추가
                 .build();
     }
 
@@ -144,6 +149,9 @@ public class ItemQueryService {
         if ((thumb == null || thumb.isBlank()) && item.getImages() != null && !item.getImages().isEmpty()) {
             thumb = item.getImages().get(0).getUrl(); // isThumbnail 기준 있으면 그걸로 교체
         }
+
+        boolean hasSafeOrder = orderRepository.existsByItem_Id(item.getId());
+
         return ItemSummaryDto.builder()
                 .id(item.getId())
                 .title(item.getTitle())
@@ -156,8 +164,10 @@ public class ItemQueryService {
                 .chatRoomCount(item.getChatRoomCount())
                 .latitude(item.getLatitude())
                 .longitude(item.getLongitude())
-                .modified(item.isModified())   // ✅ 수정 여부
+                .modified(item.isModified())
                 .updatedDate(item.getUpdatedDate() != null ? item.getUpdatedDate().toString() : null)
+                .dealInfo(item.getDealInfo())
+                .hasSafeOrder(hasSafeOrder)
                 .build();
     }
 }

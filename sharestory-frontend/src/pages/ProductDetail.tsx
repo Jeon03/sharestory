@@ -10,16 +10,17 @@ import { useChatContext } from "../contexts/ChatContext";
 import Select from "react-select";
 import ReserveModal from "../components/ReserveModal";
 import CompleteModal from "../components/CompleteModal";
+import { useFavorites } from "../contexts/useFavorites";
+import Toast from "../components/common/Toast";
+import PurchaseSlider from "../components/PurchaseSlider";
+import DeliverySlider, {type DeliveryInfo} from "../components/DeliverySlider.tsx";
+import {useAuth} from "../contexts/useAuth.ts";
 
 type ItemStatus =
     | 'ON_SALE'
     | 'RESERVED'
-    | 'SOLD_OUT'
-    | 'SAFE_DELIVERY'
-    | 'SAFE_DELIVERY_START'
-    | 'SAFE_DELIVERY_ING'
-    | 'SAFE_DELIVERY_COMPLETE'
-    | 'SAFE_DELIVERY_POINT_DONE';
+    | 'SOLD_OUT';
+
 
 type ShippingOption = 'included' | 'separate';
 
@@ -28,6 +29,7 @@ interface DealInfo {
     direct?: boolean;
     safeTrade?: boolean;
     shippingOption?: ShippingOption;
+    phoneNumber?: string | null;
 }
 interface ImageDto {
     id: number;
@@ -51,6 +53,8 @@ interface ItemDetail {
     updatedDate?: string;
     viewCount: number;
     chatRoomCount: number;
+    latitude?: number;
+    longitude?: number;
 }
 
 interface User {
@@ -79,12 +83,38 @@ export default function ProductDetailSimple() {
     const [isFavorite, setIsFavorite] = useState(false);
     const [favoriteCount, setFavoriteCount] = useState(0);
 
-    // ✅ 예약 모달 상태
+    // 모달 상태
     const [showReserveModal, setShowReserveModal] = useState(false);
     const [showCompleteModal, setShowCompleteModal] = useState(false);
+    const [showPurchaseSlider, setShowPurchaseSlider] = useState(false);
+    const [showDeliverySlider, setShowDeliverySlider] = useState(false);
 
     const navigate = useNavigate();
     const { openChat } = useChatContext();
+    const { addFavorite, removeFavorite } = useFavorites();
+    const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+    const [presetMessage, setPresetMessage] = useState<string>("");
+
+
+    useEffect(() => {
+        if (!id) return;
+        (async () => {
+            const res = await fetch(`${API_BASE}/api/items/${id}`, { credentials: "include" });
+            if (!res.ok) return;
+
+            const data = await res.json();
+            console.log("✅ 상세 API 응답:", data);   // ← 전체 확인
+            console.log("✅ hasSafeOrder:", data.hasSafeOrder); // ← 플래그만 확인
+
+            setItem(data);
+
+            // 🚨 안전거래 상품인데 일반 상세로 들어왔을 경우
+            if (data.hasSafeOrder && location.pathname.startsWith("/items/")) {
+                navigate(`/safe-items/${id}`, { replace: true });
+            }
+        })();
+    }, [id, navigate, location]);
 
     // ✅ 데이터 로딩
     useEffect(() => {
@@ -101,7 +131,7 @@ export default function ProductDetailSimple() {
                 if (!r.ok) throw new Error(await r.text());
                 const data = (await r.json()) as ItemDetail;
                 if (!aborted) setItem(data);
-
+                console.log("데이타",data);
                 // 관심 여부
                 const f = await fetch(`${API_BASE}/api/favorites/${id}`, { credentials: 'include' });
                 if (f.ok) {
@@ -135,15 +165,25 @@ export default function ProductDetailSimple() {
         if (!id) return;
         try {
             const res = await fetch(`${API_BASE}/api/favorites/${id}/toggle`, {
-                method: 'POST',
-                credentials: 'include',
+                method: "POST",
+                credentials: "include",
             });
             if (!res.ok) throw new Error(await res.text());
             const data = await res.json();
+
             setIsFavorite(data.isFavorite);
             setFavoriteCount(data.favoriteCount);
+
+            if (data.isFavorite) {
+                addFavorite(Number(id));
+                setToastMsg("관심상품에 등록되었습니다");
+            } else {
+                removeFavorite(Number(id));
+                setToastMsg("관심상품이 해제되었습니다");
+            }
+            setTimeout(() => setToastMsg(null), 2000);
         } catch {
-            alert('관심상품 처리 중 오류 발생');
+            alert("관심상품 처리 중 오류 발생");
         }
     };
 
@@ -185,6 +225,7 @@ export default function ProductDetailSimple() {
             if (res.ok) {
                 const room = await res.json();
                 openChat(room.roomId);
+                setPresetMessage(presetMessage || "");
             } else {
                 alert("채팅방 생성 실패");
             }
@@ -193,10 +234,9 @@ export default function ProductDetailSimple() {
         }
     };
 
-    // ✅ 예약 확정
+    // 예약 확정
     const handleReserveConfirm = async (roomId: number, buyerId: number) => {
         if (!id) return;
-
         try {
             const res = await fetch(`${API_BASE}/api/items/${id}/reserve`, {
                 method: "POST",
@@ -213,9 +253,9 @@ export default function ProductDetailSimple() {
         }
     };
 
+    // 거래 완료 확정
     const handleCompleteConfirm = async (roomId: number, buyerId: number) => {
         if (!id) return;
-
         try {
             const res = await fetch(`${API_BASE}/api/items/${id}/complete`, {
                 method: "POST",
@@ -229,6 +269,35 @@ export default function ProductDetailSimple() {
             alert("거래가 완료되었습니다.");
         } catch {
             alert("거래완료 처리 중 오류 발생");
+        }
+    };
+
+    const { refreshUser } = useAuth();
+
+    // 배송정보 제출 → 안전거래 주문 API 호출
+    const handleDeliverySubmit = async (delivery: DeliveryInfo) => {
+        if (!item) return;
+        try {
+            const res = await fetch(`${API_BASE}/api/orders/safe`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({
+                    itemId: item.id,
+                    deliveryInfo: delivery,
+                }),
+            });
+
+            if (res.ok) {
+                setShowDeliverySlider(false);
+                await refreshUser();
+                navigate(`/safe-items/${item.id}`, { replace: true });
+            } else {
+                alert("결제 실패");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("결제 처리 중 오류 발생");
         }
     };
 
@@ -338,11 +407,46 @@ export default function ProductDetailSimple() {
                     {/* 액션 버튼 */}
                     <div className="action-buttons">
                         <button onClick={toggleFavorite} className="btn-fav">
-                            {isFavorite ? <Heart fill="red" stroke="red" size={28} /> : <Heart stroke="black" size={28} strokeWidth={1} />}
+                            {isFavorite ? (
+                                <Heart fill="red" stroke="red" size={28} />
+                            ) : (
+                                <Heart stroke="black" size={28} strokeWidth={1} />
+                            )}
                         </button>
-                        <button onClick={handleStartChat} className="btn-chat">채팅하기</button>
-                        <button className="btn-buy">구매하기</button>
+
+                        {currentUser && item.userId === currentUser.id ? (
+                            <button onClick={handleStartChat} className="btn-chat full-width">
+                                채팅하기
+                            </button>
+                        ) : (
+                            <>
+                                <button onClick={handleStartChat} className="btn-chat">
+                                    채팅하기
+                                </button>
+
+                                {item.itemStatus === "SOLD_OUT" ? (
+                                    <button className="btn-buy disabled" disabled>
+                                        판매완료
+                                    </button>
+                                ) : item.itemStatus === "RESERVED" ? (
+                                    <button
+                                        className="btn-buy reserved"
+                                        onClick={handleStartChat}
+                                    >
+                                        예약중
+                                    </button>
+                                ) : (
+                                    <button
+                                        className="btn-buy"
+                                        onClick={() => setShowPurchaseSlider(true)}
+                                    >
+                                        구매하기
+                                    </button>
+                                )}
+                            </>
+                        )}
                     </div>
+
 
                     {/* 판매자 전용 버튼 */}
                     {currentUser && item.userId === currentUser.id && (
@@ -376,37 +480,6 @@ export default function ProductDetailSimple() {
                                         setItem({ ...item, itemStatus: selected.value as ItemStatus });
                                     }}
                                     isSearchable={false}
-                                    styles={{
-                                        control: (provided, state) => ({
-                                            ...provided,
-                                            borderRadius: "8px",
-                                            borderColor: state.isFocused ? "gold" : "#ddd", // 포커스 시 오렌지
-                                            boxShadow: state.isFocused ? "0 0 0 2px rgba(255,126,54,0.2)" : "none",
-                                            "&:hover": { borderColor: "gold" },
-                                            minHeight: "40px",
-                                        }),
-                                        option: (provided, state) => ({
-                                            ...provided,
-                                            backgroundColor: state.isSelected
-                                                ? "#f5e166"
-                                                : state.isFocused
-                                                    ? ""
-                                                    : "#fff",
-                                            color: state.isSelected ? "black" : "#333",
-                                            padding: "10px 12px",
-                                            cursor: "pointer",
-                                        }),
-                                        singleValue: (provided) => ({
-                                            ...provided,
-                                            color: "#333",
-                                            fontWeight: 500,
-                                        }),
-                                        dropdownIndicator: (provided) => ({
-                                            ...provided,
-                                            color: "gray",
-                                            "&:hover": { color: "black" },
-                                        }),
-                                    }}
                                 />
                             </div>
 
@@ -431,6 +504,47 @@ export default function ProductDetailSimple() {
                     onConfirm={handleCompleteConfirm}
                 />
             )}
+            <PurchaseSlider
+                isOpen={showPurchaseSlider}
+                onClose={() => setShowPurchaseSlider(false)}
+                price={item.price}
+                dealInfo={item.dealInfo || {}}
+                latitude={item.latitude}
+                longitude={item.longitude}
+                onChatStart={async (presetMessage) => {
+                    if (!id) return;
+                    try {
+                        const res = await fetch(`${API_BASE}/api/chat/room?itemId=${id}`, {
+                            method: "POST",
+                            credentials: "include",
+                        });
+                        if (!res.ok) {
+                            console.error("채팅방 생성 실패", await res.text());
+                            return;
+                        }
+                        const room = await res.json();
+                        if (presetMessage) {
+                            sessionStorage.setItem(`chat:preset:${room.roomId}`, presetMessage);
+                        }
+                        openChat(room.roomId);
+                    } catch (e) {
+                        console.error("채팅 시작 실패:", e);
+                    }
+                }}
+                onPaymentStart={() => {
+                    setShowPurchaseSlider(false);
+                    setShowDeliverySlider(true);
+                }}
+            />
+            <DeliverySlider
+                isOpen={showDeliverySlider}
+                onClose={() => setShowDeliverySlider(false)}
+                price={item.price}
+                shippingFee={item.dealInfo?.shippingOption === "separate" ? 3000 : 0}
+                safeFee={Math.round(item.price * 0.035)}
+                onSubmit={handleDeliverySubmit}
+            />
+            <Toast message={toastMsg} />
         </div>
     );
 }

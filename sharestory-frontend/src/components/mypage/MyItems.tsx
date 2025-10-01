@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Eye, Heart, MessageCircle } from "lucide-react";
 import "../../css/myPage.css";
-import "../../css/productCard.css"; // ✅ 공통 카드 스타일
+import "../../css/productCard.css";
 
 interface Item {
     id: number;
@@ -60,14 +60,28 @@ export default function MyItems() {
     const [items, setItems] = useState<Item[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const SAFE_STATUSES = [
+        "SAFE_PENDING",
+        "SAFE_READY",
+        "SAFE_START",
+        "SAFE_ING",
+        "SAFE_COMPLETE",
+        "SAFE_RECEIVED",
+        "SAFE_FINISHED"
+    ];
+
     useEffect(() => {
         const fetchMyItems = async () => {
             try {
                 const res = await fetch(`${API_BASE}/api/mypage/items`, {
                     credentials: "include",
                 });
+
+                console.log("내 상품 응답 상태:", res.status);
+
                 if (res.ok) {
                     const data: Item[] = await res.json();
+                    console.log("내 상품 데이터:", data); // ✅ 서버에서 받은 원본 데이터 찍기
                     const withLocation = await Promise.all(
                         data.map(async (item) => {
                             let location = "위치 정보 없음";
@@ -90,10 +104,17 @@ export default function MyItems() {
         fetchMyItems();
     }, []);
 
+    // ✅ 안전거래 상태 제외한 필터링
     const filteredItems =
         selectedTab === "ALL"
-            ? items
-            : items.filter((item) => item.itemStatus === selectedTab);
+            ? items.filter((item) => !SAFE_STATUSES.includes(item.itemStatus))
+            : items.filter(
+                (item) =>
+                    item.itemStatus === selectedTab &&
+                    !SAFE_STATUSES.includes(item.itemStatus)
+            );
+
+    if (loading) return <p>불러오는 중...</p>;
 
     if (loading) return <p>불러오는 중...</p>;
 
@@ -120,7 +141,7 @@ export default function MyItems() {
             </div>
 
             {/* 상품 카드 리스트 */}
-            <ul className="product-grid-my"> {/* ✅ 공통 클래스 사용 */}
+            <ul className="product-grid-my">
                 {filteredItems.length > 0 ? (
                     filteredItems.map((item) => (
                         <li key={item.id} className="product-card">
@@ -132,18 +153,19 @@ export default function MyItems() {
                                 <div className="list-badge-sold">거래완료</div>
                             )}
 
-                            <div className="product-image-wrapper">
-                                <img
-                                    src={item.imageUrl}
-                                    alt={item.title}
-                                    className="product-image"
-                                    onError={(e) =>
-                                        (e.currentTarget.src = "/placeholder.png")
-                                    }
-                                />
-                            </div>
+
 
                             <Link to={`/items/${item.id}`} className="product-link">
+                                <div className="product-image-wrapper">
+                                    <img
+                                        src={item.imageUrl}
+                                        alt={item.title}
+                                        className="product-image"
+                                        onError={(e) =>
+                                            (e.currentTarget.src = "/placeholder.png")
+                                        }
+                                    />
+                                </div>
                                 <div className="product-info">
                                     <div className="favorite-and-views">
                                         <span className="count">

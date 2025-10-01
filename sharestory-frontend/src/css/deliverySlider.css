@@ -1,0 +1,175 @@
+/* 패널 */
+.delivery-slider-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 35vw;
+    max-width: 580px;
+    min-width: 280px;
+    height: 100vh;
+    background: #fff;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    z-index: 10000;
+}
+
+/* 오버레이 */
+.delivery-slider-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+}
+
+/* 헤더 */
+.delivery-slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid #eee;
+}
+.delivery-slider-header h2 {
+    font-size: 18px;
+    font-weight: bold;
+}
+.delivery-slider-header button {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #333;
+}
+
+/* 본문 */
+.delivery-slider-body {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.delivery-slider-body input,
+.delivery-slider-body textarea {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.delivery-slider-body input:focus,
+.delivery-slider-body textarea:focus {
+    border-color: #f7d93f;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(247, 217, 63, 0.3);
+}
+
+.delivery-slider-body textarea {
+    resize: none;
+    line-height: 1.4;
+}
+
+/* 주소 입력 */
+.delivery-slider-address-row {
+    display: flex;
+    gap: 8px;
+}
+
+.delivery-slider-address-row input {
+    flex: 1;
+}
+
+.delivery-slider-address-btn {
+    flex-shrink: 0;
+    width: 90px;
+    background: #f7d93f;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.delivery-slider-address-btn:hover {
+    background: gold;
+}
+
+/* 요약 영역 */
+.delivery-slider-summary {
+    padding: 16px;
+    border-top: 1px solid #eee;
+    background: #fafafa;
+    font-size: 14px;
+    margin-top: 12px;
+}
+
+.delivery-slider-summary .row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    color: #333;
+}
+
+.delivery-slider-summary .total {
+    font-weight: bold;
+    color: #16a34a;
+    border-top: 1px solid #ddd;
+    margin-top: 8px;
+    padding-top: 8px;
+}
+
+/* 푸터 */
+.delivery-slider-footer {
+    padding: 16px;
+    border-top: 1px solid #ddd;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.delivery-slider-cancel-btn {
+    background: #eee;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.delivery-slider-cancel-btn:hover {
+    background: #ddd;
+}
+
+.delivery-slider-confirm-btn {
+    background: black;
+    color: white;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.delivery-slider-confirm-btn:hover {
+    background: #333;
+}
+.loading-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #ddd;
+    border-top: 4px solid #4caf50;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
