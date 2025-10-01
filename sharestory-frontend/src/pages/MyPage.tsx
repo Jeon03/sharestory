@@ -20,7 +20,7 @@ export default function MyPage({ user, setUser }: MyPageProps) {
 
     return (
         <div className="mypage-container">
-            {/* 사이드바 */}
+
             <aside className="mypage-sidebar">
                 <h3>마이 페이지</h3>
                 <div>
