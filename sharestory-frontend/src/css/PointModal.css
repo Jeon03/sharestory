@@ -1,0 +1,185 @@
+.point-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.point-modal-content {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+    width: 630px;
+    max-width: 95%;
+    text-align: center;
+    z-index: 1001;
+
+}
+
+.point-modal-content h2 {
+    margin-top: 0;
+    font-size: 1.4rem;
+    font-weight: bold;
+}
+
+.point-modal-points-display {
+    margin: 15px 0 25px;
+    font-size: 1rem;
+    color: #333;
+    font-weight: 500;
+    text-align: left;
+}
+
+/* 금액 선택 (한 줄) */
+.point-modal-amount-row {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+}
+
+.point-modal-amount-choice {
+    flex: 1;
+    min-width: 80px;
+    padding: 18px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: 0.2s;
+    font-size: 1rem;
+    font-weight: 600;
+    white-space: nowrap;
+    text-align: center;
+}
+.point-modal-amount-choice:hover {
+    background: #f5f5f5;
+}
+
+.point-modal-amount-choice.selected {
+    background: gold;
+    color: black;
+    outline: none;
+    border-color: gold;
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.3);
+}
+
+/* 직접 입력 input */
+.point-modal-custom-input {
+    display: flex;
+    flex-direction: column; /* 입력창 + 안내문구 세로 배치 */
+    align-items: center;
+    margin: 20px 0;
+    width: 100%;
+}
+.point-modal-input-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+
+.point-modal-custom-input input {
+    width: 220px;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1.5px solid #ccc;
+    border-radius: 8px;
+    text-align: right;
+    transition: all 0.2s ease;
+}
+
+.point-modal-custom-input input:focus {
+    outline: none;
+    border-color: gold;
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.3);
+}
+
+.point-modal-custom-input span {
+    margin-left: 10px;
+    font-size: 1rem;
+    color: #333;
+}
+.point-modal-input-hint {
+    margin-top: 6px;
+    font-size: 0.8rem;
+    text-align: center;
+    color: #888; /* 기본은 회색 */
+}
+
+.point-modal-input-hint:has(> .error) {
+    color: #d9534f; /* 에러 메시지는 빨간색 */
+}
+
+/* 결제 수단 */
+.point-modal-payment-section {
+    margin: 20px 0;
+    text-align: left;
+}
+
+.point-modal-payment-section h3 {
+    font-size: 1rem;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.point-modal-payment-methods {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.point-modal-payment-methods label {
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.point-modal-payment-methods input {
+    margin-right: 6px;
+}
+
+/* 버튼 */
+.point-modal-buttons.full {
+    margin-top: 20px;
+}
+
+.point-modal-charge-button.big {
+    width: 100%;
+    padding: 14px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 6px;
+    background-color: gold;
+    color: black;
+    border: 2px solid #4a5568;
+    /*border-color:black;*/
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.point-modal-charge-button.big:hover {
+    background-color: #e5d555;
+    border-color:black;
+}
+
+
+.point-modal-close-button {
+    margin-top: 10px;
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #4a5568;
+    border-radius: 6px;
+    background-color: #6c757d;
+    color: white;
+    cursor: pointer;
+}

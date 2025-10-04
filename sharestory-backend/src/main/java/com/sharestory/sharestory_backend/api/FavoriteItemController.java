@@ -1,5 +1,6 @@
 package com.sharestory.sharestory_backend.api;
 
+import com.sharestory.sharestory_backend.dto.ItemSummaryDto;
 import com.sharestory.sharestory_backend.security.CustomUserDetails;
 import com.sharestory.sharestory_backend.service.FavoriteItemService;
 import lombok.RequiredArgsConstructor;
@@ -7,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -45,5 +47,10 @@ public class FavoriteItemController {
                 "isFavorite", isFavorite,
                 "favoriteCount", favoriteCount
         ));
+    }
+
+    @GetMapping
+    public List<ItemSummaryDto> getFavorites(@AuthenticationPrincipal CustomUserDetails user) {
+        return favoriteService.getFavorites(user.getId());
     }
 }

@@ -8,8 +8,8 @@ app:
   ## JWT 설정 (반드시 긴 랜덤값으로, 환경변수 주입 권장)
   jwt:
     secret: ${APP_JWT_SECRET}               # 512bit 이상 랜덤 시크릿
-    access-exp-seconds: 1800                # 30분
-    refresh-exp-seconds: 1209600            # 14일
+    access-exp-seconds: 1800       # 30분
+    refresh-exp-seconds: 1209600           # 14일
 
   ## 쿠키 설정 (로컬: Lax/secure=false, 배포: None/secure=true + HTTPS)
   cookie:
@@ -105,7 +105,7 @@ spring:
     basename: messages
     encoding: UTF-8
 
-# ✅ HttpClientAutoConfiguration 제외
+
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.http.client.HttpClientAutoConfiguration
@@ -143,10 +143,21 @@ logging:
   level:
     org.springframework.security: INFO
     org.hibernate.SQL: INFO
+    org.springframework.web: DEBUG
+    org.springframework.web.socket: DEBUG
+    org.springframework.messaging: DEBUG
+    com.sharestory.sharestory_backend.config.StompAuthInterceptor: DEBUG
+    com.sharestory.sharestory_backend.security.JwtService: DEBUG
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info,env
+
+
+iamport:
+  api:
+    key: ${IAMPORT_API_KEY}
+    secret: ${IAMPORT_API_SECRET}
 

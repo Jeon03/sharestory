@@ -10,7 +10,12 @@ declare global {
                     container: HTMLElement,
                     options: { center: kakao.maps.LatLng; level: number }
                 ) => kakao.maps.Map;
-                Marker: new (options: { position: kakao.maps.LatLng; map: kakao.maps.Map }) => kakao.maps.Marker;
+                Marker: new (options: {
+                    position?: kakao.maps.LatLng;
+                    map: kakao.maps.Map;
+                    draggable?: boolean;
+                }) => kakao.maps.Marker;
+                Circle: new (options: kakao.maps.CircleOptions) => kakao.maps.Circle;
                 event: {
                     addListener: (
                         target: kakao.maps.Map | kakao.maps.Marker,
@@ -24,6 +29,14 @@ declare global {
                 };
             };
         };
+
+        daum: {
+            Postcode: new (options: {
+                oncomplete: (data: DaumPostcodeData) => void;
+            }) => {
+                open: () => void;
+            };
+        };
     }
 
     namespace kakao.maps {
@@ -35,11 +48,30 @@ declare global {
         interface Map {
             setCenter(latlng: LatLng): void;
             setLevel(level: number): void;
+            relayout(): void;
         }
 
         interface Marker {
             setPosition(position: LatLng): void;
+            getPosition(): LatLng;
             setMap(map: Map | null): void;
+        }
+
+        interface Circle {
+            setMap(map: Map | null): void;
+            setOptions(options: { center?: LatLng; radius?: number }): void;
+        }
+
+        interface CircleOptions {
+            map: Map;
+            center: LatLng;
+            radius: number;
+            strokeWeight?: number;
+            strokeColor?: string;
+            strokeOpacity?: number;
+            strokeStyle?: string;
+            fillColor?: string;
+            fillOpacity?: number;
         }
 
         namespace event {
@@ -60,6 +92,17 @@ declare global {
                 ): void;
             }
         }
+    }
+
+    interface DaumPostcodeData {
+        address: string;
+        zonecode: string;
+        roadAddress: string;
+        jibunAddress: string;
+        buildingName?: string;
+        bname?: string;
+        sido?: string;
+        sigungu?: string;
     }
 }
 

@@ -1,0 +1,197 @@
+/* ===== 공통 상품 카드 그리드 ===== */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* ✅ 한 줄에 5개 */
+    gap: 16px;
+    padding: 0;
+    list-style: none;
+}
+
+.product-grid-my {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* ✅ 한 줄에 5개 */
+    gap: 16px;
+    padding: 0;
+    list-style: none;
+}
+
+/* 반응형 */
+@media (max-width: 1200px) {
+    .product-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+@media (max-width: 992px) {
+    .product-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+@media (max-width: 768px) {
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 480px) {
+    .product-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===== 공통 카드 ===== */
+.product-card {
+    position: relative;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0.1,0.1,0.1,0.1);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.product-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+/* 이미지 */
+.product-image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+}
+.product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    transform: scale(0.9);
+    transform-origin: center;
+    border-radius: 5px;
+}
+
+
+@font-face {
+    font-family: 'NanumGothicBold';
+    src: url('../../public/fonts/NanumGothicBold.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+/* 상태 배지 */
+.list-badge-reserved {
+    font-family: 'NanumGothicBold', sans-serif;
+    position: absolute;
+    top: 9px;
+    left: 11px;
+    font-size: 12px;
+    font-weight: bolder;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background-color: black;
+    color: gold;
+    z-index: 10;
+}
+.list-badge-safe {
+    font-family: 'NanumGothicBold', sans-serif;
+    position: absolute;
+    bottom: -40px;
+    left: 10px;
+    background: #ee7023;
+    color: white;
+    font-size: 11px;
+    font-weight: 550;
+    padding: 4px 8px;
+    border-radius: 4px;
+    z-index: 2;
+}
+.list-badge-sold {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 3px 6px;
+    border-radius: 4px;
+    background-color: #666;
+    color: white;
+    z-index: 10;
+}
+
+
+/* 카드 내부 */
+.product-info {
+    flex: 1;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+.favorite-and-views {
+    display: flex;
+    justify-content: right;
+    gap: 10px;
+    font-size: 13px;
+    color: #777;
+    margin-bottom: 4px;
+    min-height: 18px;
+    padding: 0 4px;
+    box-sizing: border-box;
+}
+.count {
+    display: inline-flex;
+    align-items: center;
+    font-size: 13px;
+    color: #777;
+}
+.product-title {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #333;
+    margin-top: 7px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    height: 2.4em;
+}
+.product-price {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #000;
+    margin-top: -15px;
+}
+.product-date {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.9rem;
+    color: #333;
+    margin-top: auto;
+}
+
+/* 상태 배지 공통 */
+.status-badge {
+    position: absolute;
+    top: 9px;
+    left: 11px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 4px;
+    color: #fff;
+}
+
+/* 상태별 색상 */
+.status-badge.safe_pending { background: #f39c12; }    /* 결제완료 (주황) */
+.status-badge.safe_ready { background: #3498db; }      /* 송장등록 (파랑) */
+.status-badge.safe_start,
+.status-badge.safe_ing { background: #27ae60; }        /* 배송중 (초록) */
+.status-badge.safe_complete { background: #2ecc71; }   /* 배송완료 (연두) */
+.status-badge.safe_received { background: #9b59b6; }   /* 수령확인 (보라) */
+.status-badge.safe_finished { background: #34495e; }   /* 거래완료 (회색) */
+
+/* product-image-wrapper를 relative로 만들어야 오버레이 가능 */
+.product-image-wrapper {
+    position: relative;
+}

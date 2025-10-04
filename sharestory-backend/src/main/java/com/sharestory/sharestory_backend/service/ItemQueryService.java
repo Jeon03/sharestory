@@ -1,10 +1,13 @@
 package com.sharestory.sharestory_backend.service;
 
 import com.sharestory.sharestory_backend.domain.Item;
+import com.sharestory.sharestory_backend.dto.ImageDto;
 import com.sharestory.sharestory_backend.dto.ItemDetailResponse;
 import com.sharestory.sharestory_backend.dto.ItemStatus;
 import com.sharestory.sharestory_backend.dto.ItemSummaryDto;
+import com.sharestory.sharestory_backend.repo.ChatRoomRepository;
 import com.sharestory.sharestory_backend.repo.ItemRepository;
+import com.sharestory.sharestory_backend.repo.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,13 +30,20 @@ public class ItemQueryService {
     private final ItemRepository itemRepository;
     private static final DateTimeFormatter ISO = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     private static final ItemStatus ON_SALE = ItemStatus.ON_SALE;
+    private final ChatRoomRepository chatRoomRepository;
+    private final OrderRepository orderRepository;
+
+    private static final List<ItemStatus> ACTIVE_STATUSES = List.of(
+            ItemStatus.ON_SALE,
+            ItemStatus.RESERVED
+    );
 
     public Page<Item> getOnSalePage(int page, int size) {
         Pageable pageable = PageRequest.of(
                 page, size,
                 Sort.by(Sort.Direction.DESC, "createdDate").and(Sort.by(Sort.Direction.DESC, "id"))
         );
-        return itemRepository.findByStatus(ItemStatus.ON_SALE, pageable);
+        return itemRepository.findByStatusIn(ACTIVE_STATUSES, pageable);
     }
 
     /** 최신순  */
@@ -41,30 +51,35 @@ public class ItemQueryService {
         Pageable pageable = PageRequest.of(0, size,
                 Sort.by(Sort.Direction.DESC, "createdDate").and(Sort.by("id").descending()));
 
-        Page<Item> page = itemRepository.findByStatus(ON_SALE, pageable); // enum 버전
-        return page.map(this::toSummary).getContent();
+        Page<Item> result = itemRepository.findByStatusIn(ACTIVE_STATUSES, pageable);
+        return result.map(this::toSummary).getContent();
     }
 
     /** 관심 많은 순 (favoriteCount DESC) */
     public List<ItemSummaryDto> getFavorites(int size) {
         Pageable pageable = PageRequest.of(0, size,
                 Sort.by(Sort.Direction.DESC, "favoriteCount").and(Sort.by("id").descending()));
-        Page<Item> page = itemRepository.findByStatus(ON_SALE, pageable); // enum 버전
-        return page.map(this::toSummary).getContent();
+
+        Page<Item> result = itemRepository.findByStatusIn(ACTIVE_STATUSES, pageable);
+        return result.map(this::toSummary).getContent();
     }
 
     /** 많이 본 순 (viewCount DESC) */
     public List<ItemSummaryDto> getViews(int size) {
         Pageable pageable = PageRequest.of(0, size,
                 Sort.by(Sort.Direction.DESC, "viewCount").and(Sort.by("id").descending()));
-        return itemRepository.findByStatus(ON_SALE, pageable).map(this::toSummary).getContent();
+
+        Page<Item> result = itemRepository.findByStatusIn(ACTIVE_STATUSES, pageable);
+        return result.map(this::toSummary).getContent();
     }
 
-    /** 전체 리스트(페이지네이션) — 프론트는 여기서 전부 받고 12개만 사용 */
+    /** 전체 리스트(페이지네이션) */
     public List<ItemSummaryDto> getAll(int page, int size) {
         Pageable pageable = PageRequest.of(page, size,
                 Sort.by(Sort.Direction.DESC, "createdDate").and(Sort.by("id").descending()));
-        return itemRepository.findByStatus(ON_SALE, pageable).map(this::toSummary).getContent();
+
+        Page<Item> result = itemRepository.findByStatusIn(ACTIVE_STATUSES, pageable);
+        return result.map(this::toSummary).getContent();
     }
 
     @Transactional
@@ -95,6 +110,11 @@ public class ItemQueryService {
             cover = item.getImages().get(0).getUrl();
         }
 
+        int chatCount = chatRoomRepository.findByItem_Id(id).size();
+
+        // ✅ 안전거래 여부 (DB 조회 기반)
+        boolean hasSafeOrder = orderRepository.existsByItem_Id(item.getId());
+
         return ItemDetailResponse.builder()
                 .id(item.getId())
                 .userId(item.getUserId())
@@ -109,12 +129,17 @@ public class ItemQueryService {
                 .itemStatus(item.getStatus().name())
                 .imageUrl(cover)
                 .images(item.getImages() == null ? List.of()
-                        : item.getImages().stream().map(img -> img.getUrl()).collect(Collectors.toList()))
+                        : item.getImages().stream()
+                        .map(img -> new ImageDto(img.getId(), img.getUrl()))
+                        .collect(Collectors.toList()))
                 .latitude(item.getLatitude())
                 .longitude(item.getLongitude())
                 .dealInfo(item.getDealInfo())
                 .modified(item.isModified())
                 .updatedDate(item.getUpdatedDate() != null ? item.getUpdatedDate().format(ISO) : null)
+                .viewCount(item.getViewCount())
+                .chatRoomCount(chatCount)
+                .hasSafeOrder(hasSafeOrder) // ✅ 추가
                 .build();
     }
 
@@ -124,6 +149,9 @@ public class ItemQueryService {
         if ((thumb == null || thumb.isBlank()) && item.getImages() != null && !item.getImages().isEmpty()) {
             thumb = item.getImages().get(0).getUrl(); // isThumbnail 기준 있으면 그걸로 교체
         }
+
+        boolean hasSafeOrder = orderRepository.existsByItem_Id(item.getId());
+
         return ItemSummaryDto.builder()
                 .id(item.getId())
                 .title(item.getTitle())
@@ -136,8 +164,10 @@ public class ItemQueryService {
                 .chatRoomCount(item.getChatRoomCount())
                 .latitude(item.getLatitude())
                 .longitude(item.getLongitude())
-                .modified(item.isModified())   // ✅ 수정 여부
+                .modified(item.isModified())
                 .updatedDate(item.getUpdatedDate() != null ? item.getUpdatedDate().toString() : null)
+                .dealInfo(item.getDealInfo())
+                .hasSafeOrder(hasSafeOrder)
                 .build();
     }
 }

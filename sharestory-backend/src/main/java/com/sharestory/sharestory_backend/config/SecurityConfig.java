@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -25,6 +26,7 @@ public class SecurityConfig {
     private final CustomOAuth2UserService oAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final JwtAuthenticationFilter jwtFilter;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Value("${app.frontend-url:http://localhost:5173}")
     private String frontendUrl;
@@ -37,15 +39,18 @@ public class SecurityConfig {
 
                 // CORS: 프론트엔드 도메인 허용
                 .cors(c -> c.configurationSource(corsSource()))
-
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 // 인가 정책
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/api/admin/items/**",
                                 "/api/health",
                                 "/error",
-                                "/oauth2/**",        // 소셜 로그인 진입
-                                "/login/**",         // OAuth2 Callback
-                                "/auth/**",         //토큰 재발급, 로그아웃 API
+                                "/oauth2/**",
+                                "/login/**",
+                                "/auth/**",
                                 "/actuator/**",
                                 "/api/allItems",
                                 "/api/items/sorted/**",
@@ -53,16 +58,22 @@ public class SecurityConfig {
                                 "/api/map/**",
                                 "/api/favorites/**",
                                 "/api/main",
-                                "/api/items/autocomplete"
+                                "/api/items/autocomplete",
+                                "/ws-connect/**"
                         ).permitAll()
                         .requestMatchers(
                                 "/api/users/location",
-                                "/registerItem"
+                                "/registerItem",
+                                "/mypage/**",
+                                "/api/orders/**",
+                                "/api/items/safe/**"
 
                         ).authenticated()
                         .anyRequest().authenticated()
                 )
-
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(customAuthenticationEntryPoint) // ✅ JSON 응답
+                )
                 // 기본 로그인/HTTP Basic 비활성화
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -83,16 +94,19 @@ public class SecurityConfig {
                             Cookie access = new Cookie("ACCESS_TOKEN", null);
                             access.setMaxAge(0);
                             access.setPath("/");
-                            access.setHttpOnly(true); // ✅ JWT는 HttpOnly 쿠키
-                            access.setSecure(true);   // ✅ HTTPS 배포 환경이면 필수
+                            access.setHttpOnly(true);
+                            access.setSecure(false); // ✅ http 환경에서는 false
                             res.addCookie(access);
 
                             Cookie refresh = new Cookie("REFRESH_TOKEN", null);
                             refresh.setMaxAge(0);
                             refresh.setPath("/");
                             refresh.setHttpOnly(true);
-                            refresh.setSecure(true);
+                            refresh.setSecure(false); // ✅ http 환경에서는 false
                             res.addCookie(refresh);
+
+                            res.setHeader("Set-Cookie", "ACCESS_TOKEN=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax");
+                            res.addHeader("Set-Cookie", "REFRESH_TOKEN=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax");
 
                             res.setStatus(200);
                             res.setContentType("application/json");

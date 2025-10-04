@@ -1,26 +1,21 @@
 package com.sharestory.sharestory_backend.service;
 
-import com.sharestory.sharestory_backend.domain.Item;
-import com.sharestory.sharestory_backend.domain.ItemImage;
-import com.sharestory.sharestory_backend.dto.ItemRequestDto;
-import com.sharestory.sharestory_backend.dto.ItemStatus;
-import com.sharestory.sharestory_backend.repo.FavoriteItemRepository;
-import com.sharestory.sharestory_backend.repo.ItemImageRepository;
-import com.sharestory.sharestory_backend.repo.ItemRepository;
+import com.sharestory.sharestory_backend.domain.*;
+import com.sharestory.sharestory_backend.dto.*;
+import com.sharestory.sharestory_backend.repo.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ItemService {
@@ -30,6 +25,12 @@ public class ItemService {
     private final S3Service s3Service;
     private final ItemSearchIndexer itemSearchIndexer;
     private final FavoriteItemRepository favoriteItemRepository;
+    private final ChatRoomRepository chatRoomRepository;
+    private final SimpMessagingTemplate simpMessagingTemplate;
+    private final ChatReadRepository chatReadRepository;
+    private final ChatMessageRepository chatMessageRepository;
+    private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
 
     @Transactional
     public Item registerItem(ItemRequestDto dto, List<MultipartFile> images, Long userId) throws IOException {
@@ -98,7 +99,8 @@ public class ItemService {
     @Transactional
     public void updateItem(Long itemId,
                            ItemRequestDto dto,
-                           List<MultipartFile> images,
+                           List<MultipartFile> images,        // 새로 추가할 이미지
+                           List<Long> deletedImageIds,        // 삭제할 기존 이미지 ID
                            Long userId) throws IOException {
 
         Item item = itemRepository.findById(itemId)
@@ -120,48 +122,68 @@ public class ItemService {
         item.setUpdatedDate(LocalDateTime.now());
         item.setModified(true);
 
-        // ✅ 기존 이미지 전부 삭제 (S3 + DB)
-        List<ItemImage> oldImages = new ArrayList<>(item.getImages());
-        for (ItemImage img : oldImages) {
-            try {
-                String key = s3Service.extractKeyFromUrl(img.getUrl());
-                if (key != null) s3Service.deleteByKey(key);
-            } catch (Exception e) {
-                System.err.println("[S3 DELETE FAIL] " + img.getUrl() + " : " + e.getMessage());
+        // ✅ 삭제할 이미지가 있다면 S3 + DB에서 제거
+        if (deletedImageIds != null && !deletedImageIds.isEmpty()) {
+            List<ItemImage> toDelete = itemImageRepository.findAllById(deletedImageIds);
+            for (ItemImage img : toDelete) {
+                try {
+                    String key = s3Service.extractKeyFromUrl(img.getUrl());
+                    if (key != null) s3Service.deleteByKey(key);
+                } catch (Exception e) {
+                    System.err.println("[S3 DELETE FAIL] " + img.getUrl() + " : " + e.getMessage());
+                }
             }
-        }
-        itemImageRepository.deleteAll(oldImages);
-        item.getImages().clear();
-
-        // ✅ 새로운 이미지 등록 (기존 + 신규 합쳐진 이미지들)
-        if (images == null || images.isEmpty()) {
-            throw new IllegalArgumentException("상품 이미지는 최소 1장 이상이어야 합니다.");
+            itemImageRepository.deleteAll(toDelete);
+            item.getImages().removeAll(toDelete);
         }
 
-        List<ItemImage> newImageEntities = new ArrayList<>();
-        for (int i = 0; i < images.size(); i++) {
-            MultipartFile file = images.get(i);
-            if (file == null || file.isEmpty()) continue;
+        // ✅ 새로운 이미지 등록 (있을 때만)
+        if (images != null && !images.isEmpty()) {
+            List<ItemImage> newImageEntities = new ArrayList<>();
+            for (int i = 0; i < images.size(); i++) {
+                MultipartFile file = images.get(i);
+                if (file == null || file.isEmpty()) continue;
 
-            String url = s3Service.uploadFile(file, "items/" + item.getId());
-            ItemImage newImg = ItemImage.builder()
-                    .item(item)
-                    .url(url)
-                    .sortOrder(i)
-                    .build();
-            newImageEntities.add(newImg);
+                String url = s3Service.uploadFile(file, "items/" + item.getId());
+                ItemImage newImg = ItemImage.builder()
+                        .item(item)
+                        .url(url)
+                        .sortOrder(item.getImages().size() + i) // 기존 이미지 뒤에 붙임
+                        .build();
+                newImageEntities.add(newImg);
+            }
+            itemImageRepository.saveAll(newImageEntities);
+            item.getImages().addAll(newImageEntities);
         }
 
-        itemImageRepository.saveAll(newImageEntities);
-        item.getImages().addAll(newImageEntities);
-
-        // 대표 이미지 설정
-        item.setImageUrl(newImageEntities.get(0).getUrl());
+        // ✅ 대표 이미지 갱신 (남아있는 이미지 중 첫 번째)
+        if (!item.getImages().isEmpty()) {
+            item.setImageUrl(item.getImages().get(0).getUrl());
+        } else {
+            item.setImageUrl(null); // 이미지가 전부 삭제된 경우
+        }
 
         // 검색 인덱스 갱신
         itemSearchIndexer.indexItem(item);
-    }
 
+        // ✅ 채팅방 참여자에게 실시간 상품 업데이트 전송
+        List<ChatRoom> rooms = chatRoomRepository.findByItem_Id(itemId);
+        for (ChatRoom room : rooms) {
+            ItemUpdateMessage updateMessage = new ItemUpdateMessage(
+                    room.getId(),
+                    item.getId(),
+                    item.getTitle(),
+                    item.getPrice(),
+                    item.getImageUrl(),
+                    item.getDescription()
+            );
+
+            simpMessagingTemplate.convertAndSend(
+                    "/sub/chat/room/" + room.getId() + "/item",
+                    updateMessage
+            );
+        }
+    }
 
 
     @Transactional
@@ -174,39 +196,317 @@ public class ItemService {
             throw new SecurityException("삭제 권한이 없습니다.");
         }
 
-        //관심상품 db 삭제
-        favoriteItemRepository.deleteAllByItemId(itemId);
+        // 2) 채팅방 및 메시지 삭제 (읽음 기록 포함)
+        List<ChatRoom> rooms = chatRoomRepository.findByItem_Id(itemId);
+        for (ChatRoom room : rooms) {
+            // (1) 채팅 메시지 중 IMAGE 타입은 S3에서도 삭제
+            for (ChatMessage msg : room.getMessages()) {
+                if (msg.getType() == ChatMessage.MessageType.IMAGE) {
+                    try {
+                        String key = s3Service.extractKeyFromUrl(msg.getContent());
+                        if (key != null) {
+                            s3Service.deleteByKey(key);
+                        }
+                    } catch (Exception e) {
+                        log.error("[S3 DELETE FAIL] ChatMessage image {} : {}", msg.getContent(), e.getMessage());
+                    }
+                }
+            }
 
-        // ✅ S3 이미지 삭제
+            // (2) 읽음 기록 제거
+            chatReadRepository.deleteAllByRoomId(room.getId());
+
+            // (3) 메시지 제거
+            chatMessageRepository.deleteAllByRoomId(room.getId());
+        }
+
+        // (4) 채팅방 제거
+        chatRoomRepository.deleteAll(rooms);
+
+
+        // 5) 상품 이미지 S3 제거
         if (item.getImages() != null && !item.getImages().isEmpty()) {
             for (ItemImage img : item.getImages()) {
                 try {
                     String key = s3Service.extractKeyFromUrl(img.getUrl());
                     if (key != null) {
                         s3Service.deleteByKey(key);
-                        System.out.println("[S3 DELETE SUCCESS] key=" + key);
+                        log.info("[S3 DELETE SUCCESS] key={}", key);
                     }
                 } catch (Exception e) {
-                    System.err.println("[S3 DELETE FAIL] url=" + img.getUrl() + " err=" + e.getMessage());
+                    log.error("[S3 DELETE FAIL] url={} err={}", img.getUrl(), e.getMessage());
                 }
             }
         }
 
-        //다중 이미지 db 삭제
+        // 6) 상품 이미지 DB 제거
         itemImageRepository.deleteAllByItemId(itemId);
-        
-        // 2) DB 삭제 (연관 이미지 함께 삭제됨: CascadeType.ALL + orphanRemoval = true)
+        // 6.5) 관심상품 제거
+        favoriteItemRepository.deleteAllByItemId(itemId);
+        // 7) 상품 자체 DB 제거
         itemRepository.delete(item);
 
-        // 3) ES 인덱스 삭제
+        // 8) ES 인덱스 제거
         itemSearchIndexer.deleteItem(itemId);
+
+        log.info("[ITEM DELETE COMPLETE] itemId={}", itemId);
     }
+
 
     @Transactional(readOnly = true)
     public List<String> getImageUrls(Long itemId) {
         return itemImageRepository.findByItemIdOrderBySortOrderAsc(itemId).stream()
                 .map(ItemImage::getUrl)
                 .collect(Collectors.toList()); // (Java 16+면 .toList() 가능
+    }
+
+    @Transactional
+    public void updateStatus(Long itemId, ItemStatus status, Long userId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다."));
+
+        if (!item.getUserId().equals(userId)) {
+            throw new SecurityException("판매자만 상태를 변경할 수 있습니다.");
+        }
+
+        item.setStatus(status);
+
+        // 🔔 선택: 상태 변경 시 채팅방 참여자에게 알림 보내기
+        List<ChatRoom> rooms = chatRoomRepository.findByItem_Id(itemId);
+        for (ChatRoom room : rooms) {
+            simpMessagingTemplate.convertAndSend(
+                    "/sub/chat/room/" + room.getId() + "/status",
+                    status.name()
+            );
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getChatRoomsForItem(Long itemId, Long sellerId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다."));
+
+        if (!item.getUserId().equals(sellerId)) {
+            throw new SecurityException("판매자만 채팅방을 조회할 수 있습니다.");
+        }
+
+        List<ChatRoom> rooms = chatRoomRepository.findByItem_Id(itemId);
+
+        return rooms.stream()
+                .map(room -> {
+                    Map<String, Object> dto = new HashMap<>();
+                    dto.put("roomId", room.getId());
+                    dto.put("buyerId", room.getBuyerId());
+
+                    // ✅ 구매자 닉네임
+                    userRepository.findById(room.getBuyerId())
+                            .ifPresent(user -> dto.put("buyerName", user.getNickname()));
+
+                    // ✅ 최근 메시지
+                    chatMessageRepository.findTopByRoomOrderByCreatedAtDesc(room)
+                            .ifPresent(msg -> {
+                                dto.put("lastMessage", msg.getContent());
+                                dto.put("lastMessageType", msg.getType().name()); // TEXT / IMAGE / LOCATION
+                            });
+
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void reserveItem(Long itemId, Long sellerId, Long buyerId, Long roomId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다."));
+
+        if (!item.getUserId().equals(sellerId)) {
+            throw new SecurityException("판매자만 예약할 수 있습니다.");
+        }
+
+        // ✅ 구매자 조회
+        User buyer = userRepository.findById(buyerId)
+                .orElseThrow(() -> new IllegalArgumentException("구매자가 존재하지 않습니다."));
+
+        // ✅ 상태 변경
+        item.setStatus(ItemStatus.RESERVED);
+
+        // ✅ 예약자 지정
+        item.setBuyerId(buyerId);
+
+        ChatRoom room = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
+
+        // ✅ SYSTEM 메시지 저장
+        ChatMessage systemMsg = ChatMessage.builder()
+                .room(room)
+                .senderId(sellerId)
+                .content("판매자가 " + buyer.getNickname() + "님과 예약을 확정했습니다.")
+                .type(ChatMessage.MessageType.SYSTEM)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        ChatMessage saved = chatMessageRepository.save(systemMsg);
+
+        // ✅ SYSTEM 메시지는 구매자만 안읽음 처리
+        ChatRead chatRead = ChatRead.builder()
+                .message(saved)
+                .userId(buyerId)   // 구매자만 읽음 대상
+                .read(false)
+                .build();
+        chatReadRepository.save(chatRead);
+
+        // ✅ 마지막 메시지 시간 갱신
+        room.setUpdatedAt(LocalDateTime.now());
+
+        // ✅ WebSocket 브로드캐스트
+        simpMessagingTemplate.convertAndSend(
+                "/sub/chat/room/" + roomId,
+                ChatMessageDto.from(saved)   // DTO로 변환해서 내려주는 게 프론트에서 받기 편함
+        );
+    }
+
+    @Transactional
+    public void completeSale(Long itemId, Long sellerId, Long buyerId, Long roomId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다."));
+
+        if (!item.getUserId().equals(sellerId)) {
+            throw new SecurityException("판매자만 판매완료 처리할 수 있습니다.");
+        }
+
+        // ✅ 구매자 조회
+        User buyer = userRepository.findById(buyerId)
+                .orElseThrow(() -> new IllegalArgumentException("구매자가 존재하지 않습니다."));
+
+        // ✅ 상태 변경
+        item.setStatus(ItemStatus.SOLD_OUT);
+
+        // ✅ 최종 구매자 지정
+        item.setBuyerId(buyerId);
+
+        ChatRoom room = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
+
+        // ✅ SYSTEM 메시지 저장
+        ChatMessage systemMsg = ChatMessage.builder()
+                .room(room)
+                .senderId(sellerId)
+                .content("판매가 완료되었습니다. 구매자: " + buyer.getNickname() + "님")
+                .type(ChatMessage.MessageType.SYSTEM)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        ChatMessage saved = chatMessageRepository.save(systemMsg);
+
+        // ✅ SYSTEM 메시지는 구매자만 안읽음 처리
+        ChatRead chatRead = ChatRead.builder()
+                .message(saved)
+                .userId(buyerId)   // 구매자만 읽음 대상
+                .read(false)
+                .build();
+        chatReadRepository.save(chatRead);
+
+        // ✅ 마지막 메시지 시간 갱신
+        room.setUpdatedAt(LocalDateTime.now());
+
+        // ✅ WebSocket 브로드캐스트
+        simpMessagingTemplate.convertAndSend(
+                "/sub/chat/room/" + roomId,
+                ChatMessageDto.from(saved)
+        );
+    }
+
+    public List<ItemSummaryDto> getMyItems(Long userId) {
+        List<Item> items = itemRepository.findByUserId(userId);
+
+        return items.stream()
+                .map(item -> ItemSummaryDto.builder()
+                        .id(item.getId())
+                        .title(item.getTitle())
+                        .price(item.getPrice())
+                        .imageUrl(item.getImageUrl())
+                        .createdDate(item.getCreatedDate().toString())
+                        .itemStatus(item.getStatus().name())
+                        .favoriteCount(item.getFavoriteCount())
+                        .viewCount(item.getViewCount())
+                        .chatRoomCount(item.getChatRoomCount())
+                        .latitude(item.getLatitude())
+                        .longitude(item.getLongitude())
+                        .modified(item.isModified())
+                        .updatedDate(item.getUpdatedDate() != null ? item.getUpdatedDate().toString() : null)
+                        .build())
+                .toList();
+    }
+
+    public List<ItemSummaryDto> getSafeTradeItemsForBuyer(Long buyerId) {
+        List<ItemStatus> statuses = List.of(
+                ItemStatus.SAFE_PENDING,
+                ItemStatus.SAFE_READY,
+                ItemStatus.SAFE_START,
+                ItemStatus.SAFE_ING,
+                ItemStatus.SAFE_COMPLETE,
+                ItemStatus.SAFE_RECEIVED,
+                ItemStatus.SAFE_FINISHED
+        );
+
+        return itemRepository.findByBuyerIdAndStatusIn(buyerId, statuses)
+                .stream()
+                .map(this::toSummaryDto)
+                .toList();
+    }
+
+    public List<ItemSummaryDto> getSafeTradeItemsForSeller(Long sellerId) {
+        List<ItemStatus> statuses = List.of(
+                ItemStatus.SAFE_PENDING,
+                ItemStatus.SAFE_READY,
+                ItemStatus.SAFE_START,
+                ItemStatus.SAFE_ING,
+                ItemStatus.SAFE_COMPLETE,
+                ItemStatus.SAFE_RECEIVED,
+                ItemStatus.SAFE_FINISHED
+        );
+
+        return itemRepository.findBySellerIdAndStatusIn(sellerId, statuses)
+                .stream()
+                .map(this::toSummaryDto)
+                .toList();
+    }
+
+
+    public List<ItemSummaryDto> getPurchasedItems(Long buyerId) {
+        List<ItemStatus> statuses = List.of(
+                ItemStatus.RESERVED,   // 일반거래 예약
+                ItemStatus.SOLD_OUT    // 일반거래 완료
+        );
+
+        return itemRepository.findByBuyerIdAndStatusIn(buyerId, statuses)
+                .stream()
+                .map(this::toSummaryDto)
+                .toList();
+    }
+
+
+    private ItemSummaryDto toSummaryDto(Item item) {
+
+        boolean hasSafeOrder = orderRepository.existsByItem_Id(item.getId());
+
+        return ItemSummaryDto.builder()
+                .id(item.getId())
+                .title(item.getTitle())
+                .price(item.getPrice())
+                .imageUrl(item.getImageUrl())
+                .createdDate(item.getCreatedDate() != null ? item.getCreatedDate().toString() : null)
+                .itemStatus(item.getStatus().name())
+                .favoriteCount(item.getFavoriteCount())
+                .viewCount(item.getViewCount())
+                .chatRoomCount(item.getChatRoomCount())
+                .latitude(item.getLatitude())
+                .longitude(item.getLongitude())
+                .modified(item.isModified())
+                .updatedDate(item.getUpdatedDate() != null ? item.getUpdatedDate().toString() : null)
+                .dealInfo(item.getDealInfo())
+                .hasSafeOrder(hasSafeOrder)
+                .build();
     }
 
 }

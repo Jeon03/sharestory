@@ -14,8 +14,7 @@ function Agreeform({ onAgree, onCancel }: AgreeFormProps) {
             alert('위치정보 수집 및 이용에 동의해야 위치를 선택할 수 있습니다.');
             return;
         }
-
-        onAgree(); // ✅ 부모에게 동의 완료 알림
+        onAgree();
     };
 
     return (

@@ -1,0 +1,143 @@
+.favorite-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 35vw; max-width: 580px; min-width: 280px;
+    height: 100vh;
+    background: #fff;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    z-index: 10000 !important;
+}
+
+/* 관심상품 오버레이 */
+.favorite-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.4);
+    z-index: 9999 !important; /* 헤더(1000)보다 항상 위 */
+}
+/* 헤더 */
+.favorite-panel-header {
+    padding: 14px;
+    font-weight: bold;
+    font-size: 14px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-left: 10px;
+}
+
+/* 탭 */
+.favorite-tab {
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    border-bottom: 1px solid #eee;
+}
+
+/* 리스트 */
+.favorite-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+/* 카드 */
+.favorite-card {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f1f1;
+    cursor: pointer;
+}
+
+.favorite-card:hover {
+    background: #fafafa;
+}
+
+/* 썸네일 */
+.favorite-thumb-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.favorite-thumb {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.favorite-heart {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    font-size: 18px;
+    color: #e74c3c;
+}
+
+/* 정보 */
+.favorite-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.favorite-title {
+    font-size: 20px;     /* 👉 더 크게 */
+    font-weight: 600;    /* 👉 굵게 */
+    margin-bottom: 8px;
+    color: #000;         /* 진한 색상 */
+}
+
+.favorite-price {
+    font-size: 14px;
+    font-weight: bold;
+    color: #000;
+    margin-bottom: 10px;
+}
+.favorite-panel-header button {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #333;
+}
+
+.favorite-panel-header button:hover {
+    color: #e74c3c;            /* hover 시 빨강 */
+}
+.favorite-meta {
+    font-size: 12px;
+    color: #777;
+}
+
+.favorite-panel-header button:hover {
+    color: #e74c3c;
+}
+.favorite-remove-btn {
+    background: none;
+    border: none;
+    color: #e74c3c;
+    font-size: 14px;
+    cursor: pointer;
+    margin-left: auto;
+    padding: 4px 8px;
+    transition: color 0.2s;
+}
+
+.favorite-remove-btn:hover {
+    color: #c0392b;
+}
+.favorite-remove-btn:hover {
+    color: #c0392b;       /* hover 시 진한 빨강 */
+    transform: scale(1.1); /* hover 시 살짝 커짐 */
+}
