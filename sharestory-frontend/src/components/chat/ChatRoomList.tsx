@@ -35,7 +35,7 @@ export default function ChatRoomList({ onRoomSelect, onRequireLogin  }: ChatRoom
             if (res.ok) {
                 const data = await res.json();
 
-                console.log("📩 전체 채팅방 목록:", data);
+                //console.log("📩 전체 채팅방 목록:", data);
 
                 // ✅ Context에 unreadCounts 반영
                 const initialCounts: { [roomId: number]: number } = {};
@@ -58,7 +58,7 @@ export default function ChatRoomList({ onRoomSelect, onRequireLogin  }: ChatRoom
                 if (res.ok) {
                     const data = await res.json();
                     setRooms(data);
-                    console.log("📩 전체 채팅방 목록:", data);
+                    //console.log("📩 전체 채팅방 목록:", data);
                 } else if ((res.status === 401 || res.status === 403) && !loginPrompted) {
                     console.warn("⚠️ 인증 만료 → 채팅 닫고 로그인창 열기");
                     setLoginPrompted(true);

@@ -23,7 +23,7 @@ export function useChatSocket() {
         stompClient.connect(
             token ? { Authorization: `Bearer ${token}` } : {},
             () => {
-                console.log("✅ STOMP 연결 성공");
+                console.log("STOMP 연결 성공");
 
                 // 채팅 메시지 구독
                 stompClient!.subscribe(`/sub/chat/room/${roomId}`, (message: Message) => {
@@ -51,7 +51,7 @@ export function useChatSocket() {
 
     const disconnect = () => {
         if (stompClient && stompClient.connected) {
-            stompClient.disconnect(() => console.log("🛑 STOMP 연결 해제"));
+            //stompClient.disconnect(() => console.log("🛑 STOMP 연결 해제"));
         }
     };
 

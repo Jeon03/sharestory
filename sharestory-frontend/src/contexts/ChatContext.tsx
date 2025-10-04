@@ -47,8 +47,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
                     totalUnread: number;
                 } = await res.json();
 
-                console.log("📡 서버 unreadCounts:", data.unreadCounts);
-                console.log("📡 서버 totalUnread:", data.totalUnread);
+                // console.log("📡 서버 unreadCounts:", data.unreadCounts);
+                // console.log("📡 서버 totalUnread:", data.totalUnread);
 
                 setUnreadCounts(data.unreadCounts || {});
             }

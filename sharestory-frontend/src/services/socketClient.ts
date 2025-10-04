@@ -139,7 +139,7 @@ export const connect = (
 
             // 🚫 연결 객체도 초기화 → 재시도 방지
             if (stompClient?.connected) {
-                stompClient.disconnect(() => console.log("🛑 STOMP 연결 종료 (401)"));
+                // stompClient.disconnect(() => console.log("🛑 STOMP 연결 종료 (401)"));
             }
             stompClient = null; // ✅ 추가
         }
@@ -201,7 +201,7 @@ export const connectGlobal = (
     stompClient.connect(
         {},
         () => {
-            console.log("🌍 글로벌 구독 연결 성공");
+            // console.log("🌍 글로벌 구독 연결 성공");
 
             safeSubscribe(`/sub/chat/user/${userId}`, (message: Message) => {
                 try {
