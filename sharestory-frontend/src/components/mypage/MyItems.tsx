@@ -81,7 +81,7 @@ export default function MyItems() {
 
                 if (res.ok) {
                     const data: Item[] = await res.json();
-                    console.log("내 상품 데이터:", data); // ✅ 서버에서 받은 원본 데이터 찍기
+
                     const withLocation = await Promise.all(
                         data.map(async (item) => {
                             let location = "위치 정보 없음";

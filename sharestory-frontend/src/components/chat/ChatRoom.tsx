@@ -219,7 +219,7 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
         );
 
         return () => {
-            console.log("🔌 [ChatRoom] cleanup → disconnect()");
+            //console.log("🔌 [ChatRoom] cleanup → disconnect()");
             disconnect();
         };
     }, [roomId, currentUserId]);

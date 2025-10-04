@@ -3,6 +3,9 @@ import { AuthContext } from "./auth-context";
 import Login from "../pages/Login";
 import type { User } from "../types/user";
 
+// ✅ 추가 import
+import { registerFcmToken } from "../utils/fcm";
+
 const API_BASE = import.meta.env.VITE_API_BASE || "";
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -50,6 +53,16 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     useEffect(() => {
         refreshUser();
     }, [refreshUser]);
+
+    // ✅ 🔥 로그인 상태가 바뀔 때 FCM 등록 시도
+    useEffect(() => {
+        if (user) {
+            console.log("👤 로그인된 사용자 감지됨 → FCM 등록 시도");
+            registerFcmToken();
+        } else {
+            console.log("🚫 사용자 정보 없음 (비로그인 상태)");
+        }
+    }, [user]);
 
     return (
         <AuthContext.Provider value={{ openLogin, closeLogin, user, refreshUser }}>

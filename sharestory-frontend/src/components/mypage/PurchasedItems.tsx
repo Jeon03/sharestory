@@ -67,7 +67,6 @@ export default function PurchasedItems() {
                 if (!res.ok) throw new Error("구매한 상품 조회 실패");
                 const data: Item[] = await res.json();
 
-                console.log("1232131221213"+data);
 
                 // 좌표 → 행정동
                 const withLoc = await Promise.all(

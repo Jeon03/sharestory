@@ -82,7 +82,7 @@ const fetchItems = async (url: string): Promise<ProductItem[]> => {
     const res = await fetch(url, { credentials: 'include' });
     if (!res.ok) throw new Error(`${url} 실패`);
     const data: ProductItem[] = await res.json();
-    console.log(data);
+
     return await Promise.all(
         data.map(async (item) => {
             let location = '알 수 없음';
