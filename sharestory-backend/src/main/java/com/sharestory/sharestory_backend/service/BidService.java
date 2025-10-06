@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List; // List 임포트 확인
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -26,13 +27,11 @@ import java.util.NoSuchElementException;
 @RequiredArgsConstructor
 public class BidService {
 
-    // ✅ 기존 의존성
     private final BidRepository bidRepository;
     private final UserRepository userRepository;
     private final AuctionItemService auctionItemService;
-    private final AuctionItemRepository auctionItemRepository; // item 저장을 위해 추가
+    private final AuctionItemRepository auctionItemRepository;
 
-    // ✅ 알림 전송을 위해 새로 추가된 의존성
     private final FcmTokenRepository fcmTokenRepository;
     private final SseService sseService;
     private final FCMUtil fcmUtil;
@@ -46,13 +45,11 @@ public class BidService {
         User bidder = userRepository.findById(memberId)
                 .orElseThrow(() -> new NoSuchElementException("회원 정보를 찾을 수 없습니다. ID: " + memberId));
 
-        // ✅ 알림을 보내기 위해 판매자와 이전 최고 입찰자 정보를 미리 저장
+        // ✅ 알림을 보낼 판매자 정보만 미리 저장
         User seller = item.getSeller();
-        User previousHighestBidder = item.getHighestBidder();
 
         // --- 기존 입찰 유효성 검증 로직 ---
         if (seller.getId().equals(memberId)) {
-            // 주석 처리된 로직은 그대로 둡니다.
             // return new BidResult(false, "자신의 상품에는 입찰할 수 없습니다.");
         }
 
@@ -91,29 +88,34 @@ public class BidService {
         item.setHighestBidder(bidder);
         item.setFinalBidPrice(bidPrice);
         item.setBidCount(item.getBidCount() + 1);
-        auctionItemRepository.save(item); // item 상태 변경 저장
+
+        if (item.isBuyNowAvailable() && item.getReservePrice() != null && bidPrice >= item.getReservePrice()) {
+            item.setBuyNowAvailable(false);
+            log.info("최저가 도달. 즉시구매 비활성화: itemId={}", item.getId());
+        }
+
+        auctionItemRepository.save(item);
 
         bidder.setCurrentTotalBidPrice(newTotalBid);
         userRepository.save(bidder);
 
         log.info("입찰 성공 및 DB 업데이트 완료: itemId={}, newHighestBidderId={}", itemId, memberId);
 
-        // ✅ --- 알림 전송 로직 ---
+        // ✅ --- [수정된 알림 전송 로직] ---
         // 1. 판매자에게 알림 전송
         notifyUser(seller, "새로운 입찰 알림!", "'" + item.getTitle() + "' 상품에 새로운 입찰이 있습니다.");
 
-        // 2. 이전 최고 입찰자에게 상위 입찰 알림 전송 (이전 입찰자가 있고, 현재 입찰자와 다른 경우)
-        if (previousHighestBidder != null && !previousHighestBidder.getId().equals(bidder.getId())) {
-            notifyUser(previousHighestBidder, "상위 입찰 발생", "'" + item.getTitle() + "' 상품에 더 높은 가격의 입찰이 발생했습니다.");
+        // 2. 현재 입찰자를 제외한 모든 이전 입찰자들에게 상위 입찰 알림 전송
+        List<User> previousBidders = bidRepository.findDistinctBiddersByAuctionItemExceptCurrent(itemId, memberId);
+        log.info("이전 입찰자 {}명에게 상위 입찰 알림을 전송합니다.", previousBidders.size());
+        for (User previousBidder : previousBidders) {
+            notifyUser(previousBidder, "상위 입찰 발생", "'" + item.getTitle() + "' 상품에 더 높은 가격의 입찰이 발생했습니다.");
         }
         // --- 알림 전송 종료 ---
 
         return new BidResult(true, "입찰에 성공했습니다.");
     }
 
-    /**
-     * 지정된 사용자에게 SSE와 FCM 알림을 모두 보내는 헬퍼 메서드입니다.
-     */
     private void notifyUser(User user, String title, String body) {
         if (user == null) {
             log.warn("알림을 보낼 사용자(user)가 null입니다.");
@@ -123,21 +125,16 @@ public class BidService {
         Long userId = user.getId();
         log.info("알림 전송 시도: userId={}, title={}", userId, title);
 
-        // SSE 알림 (현재 접속 중인 사용자 대상)
-// Map 객체를 만들어 보냄 (이 Map이 JSON으로 변환됨)
         Map<String, Object> eventData = new HashMap<>();
-        eventData.put("message", "'test' 상품에 더 높은 가격의 입찰이 발생했습니다.");
-        eventData.put("newHighestBid", 56000); // 예시: 실제 새로운 입찰가
-        eventData.put("newBidderName", "새로운입찰자"); // 예시: 실제 입찰자 닉네임
+        eventData.put("message", body);
 
         sseService.sendNotification(userId, "new-activity", eventData);
-        // FCM 푸시 알림 (앱/웹을 사용하지 않는 사용자 대상)
+
         fcmTokenRepository.findFirstByUserId(userId).ifPresent(fcmToken -> {
             fcmUtil.send(fcmToken.getToken(), title, body);
         });
     }
 
-    // 기존 BidResult 클래스는 그대로 유지
     public static class BidResult {
         public final boolean success;
         public final String message;

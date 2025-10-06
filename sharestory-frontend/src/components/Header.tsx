@@ -22,13 +22,19 @@ export default function Header({
     const dropdownRef = useRef<HTMLDivElement | null>(null);
     const [isPointModalOpen, setIsPointModalOpen] = useState(false);
 
-    // 🔹 toggleChat 사용
     const { totalUnread, toggleChat } = useChatContext();
 
     const handleProductRegisterClick = (e: React.MouseEvent) => {
         e.preventDefault();
         navigate("/registerItem");
     };
+
+    // --- [추가된 함수] ---
+    const handleAuctionRegisterClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        navigate("/auctionRegister");
+    };
+    // --- [여기까지 추가] ---
 
     const handleLogout = async () => {
         try {
@@ -75,13 +81,13 @@ export default function Header({
                 <div className="menu-links">
                     {user ? (
                         <>
-                            {/* 🔹 채팅 */}
+                            {/* 채팅 */}
                             <div className="chat-link-wrapper">
                                 <div
                                     className="chat-icon-container"
                                     onClick={(e) => {
                                         e.preventDefault();
-                                        toggleChat(); // ✅ 열기/닫기 토글
+                                        toggleChat();
                                     }}
                                 >
                                     <i className="bi-chat-dots"></i>
@@ -94,7 +100,7 @@ export default function Header({
                                     href="#"
                                     onClick={(e) => {
                                         e.preventDefault();
-                                        toggleChat(); // ✅ 열기/닫기 토글
+                                        toggleChat();
                                     }}
                                 >
                                     채팅하기
@@ -103,7 +109,7 @@ export default function Header({
 
                             <span className="divider">|</span>
 
-                            {/* 🔹 판매하기 */}
+                            {/* 판매하기 */}
                             <div className="menu-item">
                                 <i className="bi-bag-dash"></i>
                                 <a href="/registerItem" onClick={handleProductRegisterClick}>
@@ -111,16 +117,19 @@ export default function Header({
                                 </a>
                             </div>
                             <span className="divider">|</span>
-                                <div className="menu-item">
+
+                            {/* --- [수정된 부분] --- */}
+                            <div className="menu-item">
                                 <i className="bi-bag-dash"></i>
-                                <a href="/auctionRegister" onClick={handleProductRegisterClick}>
+                                <a href="/auctionRegister" onClick={handleAuctionRegisterClick}>
                                     경매물품 등록하기
                                 </a>
                             </div>
+                            {/* --- [여기까지 수정] --- */}
 
                             <span className="divider">|</span>
 
-                            {/* 🔹 사용자 메뉴 */}
+                            {/* 사용자 메뉴 */}
                             <div className="header-dropdown" ref={dropdownRef}>
                                 <button
                                     className="dropdown-toggle"
@@ -190,7 +199,7 @@ export default function Header({
                                     href="#"
                                     onClick={(e) => {
                                         e.preventDefault();
-                                        onLoginClick(); // 비로그인 → 채팅 클릭 시 로그인 모달 열기
+                                        onLoginClick();
                                     }}
                                 >
                                     채팅하기
@@ -201,7 +210,6 @@ export default function Header({
                 </div>
             </header>
 
-            {/* 🔹 포인트 모달 */}
             <PointModal
                 isOpen={isPointModalOpen}
                 onClose={() => setIsPointModalOpen(false)}

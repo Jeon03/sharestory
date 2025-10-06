@@ -17,7 +17,7 @@ public class AuctionItemSummaryDto {
 
     // ✅ BigDecimal -> int 로 타입을 변경했습니다.
     private int currentPrice;
-
+    private Integer buyNowPrice;
     private LocalDateTime auctionEnd;
     private ItemStatus status;
     private int favoriteCount;

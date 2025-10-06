@@ -1,6 +1,8 @@
 export type ItemStatus =
     | 'ON_SALE' | 'RESERVED' | 'SOLD_OUT' | 'SAFE_DELIVERY' | 'SAFE_DELIVERY_START'
-    | 'SAFE_DELIVERY_ING' | 'SAFE_DELIVERY_COMPLETE' | 'SAFE_DELIVERY_POINT_DONE';
+    | 'SAFE_DELIVERY_ING' | 'SAFE_DELIVERY_COMPLETE' | 'SAFE_DELIVERY_POINT_DONE'
+    // 경매 관련 상태 추가
+    | 'ON_AUCTION';
 
 export type ShippingOption = 'included' | 'separate';
 
@@ -41,6 +43,10 @@ export interface ItemDetail {
     auctionEnd: string;
     favoriteCount: number;
     highestBidder: UserDto | null;
+
+    // --- [추가된 속성] ---
+    buyNowPrice: number | null;
+    buyNowAvailable: boolean;
 }
 
 export interface User {

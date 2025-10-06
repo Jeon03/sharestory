@@ -20,7 +20,8 @@ public class AuctionItemRequestDto {
     private DealInfo dealInfo;
     private Double latitude;
     private Double longitude;
-
+    private Integer reservePrice;
+    private Integer buyNowPrice;
     // ✅ BigDecimal -> int 로 타입을 변경
     private int minPrice;
 

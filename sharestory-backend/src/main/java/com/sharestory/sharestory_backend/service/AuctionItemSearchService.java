@@ -38,12 +38,13 @@ public class AuctionItemSearchService {
                 item.getTitle(),
                 item.getImageUrl(),
                 currentPrice,
-                item.getAuctionEnd(), // AuctionItem 엔티티의 마감 시간 필드명으로 맞춰주세요. (예: getAuctionDeadline())
+                item.getBuyNowPrice(), // 이 값을 추가해야 합니다.
+                item.getAuctionEnd(),
                 item.getStatus(),
                 item.getFavoriteCount(),
                 item.getSeller().getNickname(),
                 item.getViewCount(),
-                item.getBids() != null ? item.getBids().size() : 0
+                item.getBidCount()
         );
     }
 }

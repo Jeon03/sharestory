@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { User } from '../../types/auction';
-
-// VITE_API_BASE는 이 파일에서 사용되지 않으므로 삭제했습니다.
- const API_BASE = import.meta.env.VITE_API_BASE || '';
+import { fetchWithAuth } from '../../utils/fetchWithAuth'; // fetchWithAuth import 추가
 
 interface AuctionModalProps {
     isOpen: boolean;
@@ -47,7 +45,7 @@ export function AuctionModal({
         const amount = Number(bidAmount);
         const currentUserPoints = currentUser?.points ?? 0;
 
-        // --- 입찰 유효성 검증 ---
+        // --- 입찰 유효성 검증 (기존과 동일) ---
         if (timeLeft === '경매 종료') {
             alert('경매가 종료된 상품입니다.');
             return;
@@ -60,30 +58,30 @@ export function AuctionModal({
             alert(`보유 포인트(${currentUserPoints.toLocaleString()}P)를 초과할 수 없습니다.`);
             return;
         }
-        if ((amount - highestBid) % bidUnit !== 0 && highestBid !== 0) {
+        // 입찰 단위 검증은 시작가가 0일 때도 고려해야 합니다.
+        if (highestBid > 0 && (amount - highestBid) % bidUnit !== 0) {
             alert(`입찰은 ${bidUnit.toLocaleString()}원 단위로만 가능합니다.`);
             return;
         }
 
-        // --- API 호출 ---
+        // --- API 호출 (수정된 부분) ---
         try {
-            const res = await fetch(`${API_BASE}/auction-items/${itemId}/bids`, {
+            // 1. API 엔드포인트를 백엔드 컨트롤러와 일치시킵니다.
+            // 2. 인증을 위해 fetch -> fetchWithAuth로 변경합니다.
+            const res = await fetchWithAuth(`${import.meta.env.VITE_API_URL}/api/auction-items/${itemId}/bids`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                credentials: 'include',
                 body: JSON.stringify({ bidPrice: amount }),
             });
 
-            // --- [수정된 부분] ---
-            // 'response' -> 'res'로 변수명 오타를 수정했습니다.
             const result = await res.json();
 
             if (!res.ok) {
+                // 백엔드 BidResult의 message를 사용합니다.
                 throw new Error(result.message || '입찰 처리 중 오류가 발생했습니다.');
             }
-            // --- [수정 끝] ---
 
             alert(`💰 ${amount.toLocaleString()}원으로 입찰을 완료했습니다!`);
             onBidSuccess(amount);

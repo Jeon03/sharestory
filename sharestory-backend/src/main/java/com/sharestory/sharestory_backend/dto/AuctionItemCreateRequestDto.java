@@ -20,6 +20,8 @@ public class AuctionItemCreateRequestDto {
 
     // ✅ BigDecimal -> int 로 타입을 변경했습니다.
     private int minPrice;
+    private Integer reservePrice;
+    private Integer buyNowPrice;
 
     // ✅ auctionDuration 필드가 필요합니다.
     private long auctionDuration;

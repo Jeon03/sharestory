@@ -22,9 +22,12 @@ public class AuctionItemDetailResponseDto {
     private Double latitude;
     private Double longitude;
 
-    // ✅ BigDecimal -> int 로 타입을 변경
     private int minPrice;
     private int finalBidPrice;
+    private Integer buyNowPrice;
+
+    // ✅ [수정된 부분] 즉시 구매 가능 여부 필드 추가
+    private boolean buyNowAvailable;
 
     private LocalDateTime auctionStart;
     private LocalDateTime auctionEnd;
@@ -36,12 +39,10 @@ public class AuctionItemDetailResponseDto {
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
 
-// ... AuctionItemDetailResponseDto의 다른 필드들 ...
-
     @Getter
     @Builder
     @AllArgsConstructor
-    public static class UserDto { // ✅ static 키워드 추가
+    public static class UserDto {
         private Long id;
         private String nickname;
         private String email;

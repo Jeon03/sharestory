@@ -31,27 +31,28 @@ const AuctionRegister = () => {
     const [selectedCategory, setSelectedCategory] = useState('');
     const [productName, setProductName] = useState('');
 
-    // --- 옥션 관련 상태 추가 ---
-    const [startPrice, setStartPrice] = useState(''); // 경매 시작가
-    const [buyNowPrice, setBuyNowPrice] = useState(''); // 즉시 구매가 (선택)
-    const [auctionDuration, setAuctionDuration] = useState<number | null>(null); // 경매 기간
+    // --- 옥션 관련 상태 ---
+    const [startPrice, setStartPrice] = useState('');
+    const [buyNowPrice, setBuyNowPrice] = useState('');
+    const [reservePrice, setReservePrice] = useState(''); // 최저가 (선택)
+    const [auctionDuration, setAuctionDuration] = useState<number | null>(null);
 
     const [productExplain, setProductExplain] = useState('');
     const [showAgreeModal, setShowAgreeModal] = useState(false);
+
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const navigate = useNavigate();
 
     const hasValidDealMethod = Boolean(dealInfo.parcel || dealInfo.direct);
     const hasValidShippingOption = !dealInfo.parcel || !!dealInfo.shippingOption;
 
-    // --- 폼 유효성 검사 수정 ---
     const isFormValid = Boolean(
         productName &&
         selectedCategory &&
         images.length > 0 &&
         selectedCondition &&
-        startPrice && // 'price' 대신 'startPrice' 검사
-        auctionDuration && // 경매 기간 선택 여부 검사
+        startPrice &&
+        auctionDuration &&
         productExplain &&
         form.latitude &&
         form.longitude &&
@@ -96,7 +97,6 @@ const AuctionRegister = () => {
         setImages(next);
     };
 
-    // --- 가격 포맷팅 핸들러 (재사용) ---
     const formatPrice = (value: string) => {
         const digitsOnly = value.replace(/\D/g, '');
         if (!digitsOnly) return '';
@@ -111,55 +111,51 @@ const AuctionRegister = () => {
         setBuyNowPrice(formatPrice(e.target.value));
     };
 
+    const handleReservePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setReservePrice(formatPrice(e.target.value));
+    };
 
-    // --- 폼 제출 핸들러 수정 ---
-    // --- 폼 제출 핸들러 수정 ---
     const handleSubmit = async () => {
-        // (기존 유효성 검사 코드는 그대로 둡니다)
-        if (dealInfo.parcel) {
-            // ...
-        }
         const startPriceNum = Number(startPrice.replace(/,/g, ''));
         const buyNowPriceNum = Number(buyNowPrice.replace(/,/g, ''));
-        if (buyNowPrice && buyNowPriceNum <= startPriceNum) {
-            alert('즉시 구매가는 경매 시작가보다 높아야 합니다.');
+        const reservePriceNum = Number(reservePrice.replace(/,/g, ''));
+
+        if (reservePrice && reservePriceNum < startPriceNum) {
+            alert('최저가는 경매 시작가보다 같거나 높아야 합니다.');
             return;
         }
 
-        // --- 👇 여기부터 수정 ---
+        if (buyNowPrice && buyNowPriceNum <= (reservePrice ? reservePriceNum : startPriceNum)) {
+            alert('즉시 구매가는 최저가(또는 시작가)보다 높아야 합니다.');
+            return;
+        }
 
-        // 1. 백엔드가 요구하는 'data' JSON 객체 생성
         const data = {
             title: productName,
             category: selectedCategory,
             condition: selectedCondition,
             description: productExplain,
-            dealInfo: dealInfo, // dealInfo는 이미 객체이므로 JSON.stringify 불필요
+            dealInfo: dealInfo,
             latitude: form.latitude,
             longitude: form.longitude,
             minPrice: startPrice.replace(/,/g, ''),
             buyNowPrice: buyNowPrice ? buyNowPrice.replace(/,/g, '') : null,
+            reservePrice: reservePrice ? reservePrice.replace(/,/g, '') : null,
             auctionDuration: auctionDuration,
         };
 
         const formData = new FormData();
-
-        // 2. 'data' 객체는 JSON 문자열로 변환하여 추가
         formData.append('data', new Blob([JSON.stringify(data)], { type: "application/json" }));
-
-        // 'images'는 파일 그대로 추가
         images.forEach(file => formData.append('images', file));
 
-        // 3. API 엔드포인트를 백엔드 컨트롤러 주소와 일치시킴
         const API_BASE = import.meta.env.VITE_API_BASE || '';
-        const API_ENDPOINT = `${API_BASE}/api/auction-items`; // '/api/registerAuction' -> '/api/auction-items'
+        const API_ENDPOINT = `${API_BASE}/auction-items`;
 
         try {
             const res = await fetch(API_ENDPOINT, {
                 method: 'POST',
                 credentials: 'include',
                 body: formData
-                // 주의: multipart/form-data 요청 시 Content-Type 헤더는 브라우저가 자동으로 설정하므로 직접 명시하지 마세요.
             });
 
             if (res.ok) {
@@ -181,7 +177,6 @@ const AuctionRegister = () => {
 
     return (
         <section className={styles.saleProduct}>
-            {/* 제목 변경 */}
             <h2 className={styles.h2_top}>경매 상품 정보</h2>
             <hr className={styles.hr_bold} />
 
@@ -192,7 +187,7 @@ const AuctionRegister = () => {
                 }}
                 encType="multipart/form-data"
             >
-                {/* 이미지 업로드 (기존과 동일) */}
+                {/* 이미지 업로드 */}
                 <div className={styles.productImage}>
                     <h4>상품이미지</h4>
                     <div className={styles.previewGrid}>
@@ -234,7 +229,7 @@ const AuctionRegister = () => {
                     <p className={styles.helperText}>jpeg/png/webp/gif, 최대 {MAX_IMAGES}장 업로드</p>
                 </div>
 
-                {/* 상품명 (기존과 동일) */}
+                {/* 상품명 */}
                 <hr className={styles.hr} />
                 <div className={styles.productName}>
                     <h4>상품명</h4>
@@ -247,7 +242,7 @@ const AuctionRegister = () => {
                     <p className={styles.characterCount}>{productName.length}/50</p>
                 </div>
 
-                {/* 카테고리 (기존과 동일) */}
+                {/* 카테고리 */}
                 <hr className={styles.hr} />
                 <div className={styles.category}>
                     <h4>카테고리</h4>
@@ -260,7 +255,7 @@ const AuctionRegister = () => {
                     </div>
                 </div>
 
-                {/* 상품 상태 (기존과 동일) */}
+                {/* 상품 상태 */}
                 <hr className={styles.hr} />
                 <div className={styles.productCondition}>
                     <h4>상품상태</h4>
@@ -276,7 +271,7 @@ const AuctionRegister = () => {
                     ))}
                 </div>
 
-                {/* 설명 (기존과 동일) */}
+                {/* 설명 */}
                 <hr className={styles.hr} />
                 <div className={styles.productExplain}>
                     <h4>상품설명</h4>
@@ -289,7 +284,7 @@ const AuctionRegister = () => {
                     <p>{productExplain.length}/2000</p>
                 </div>
 
-                {/* --- 가격 섹션 → 경매 정보 섹션으로 변경 --- */}
+                {/* 경매 정보 섹션 */}
                 <h2 className={styles.h2}>경매 정보</h2>
                 <hr className={styles.hr_bold} />
 
@@ -327,6 +322,26 @@ const AuctionRegister = () => {
 
                 <hr className={styles.hr} />
 
+                {/* 최저가 (선택) */}
+                <div className={styles.price}>
+                    <h4>최저가 (선택)</h4>
+                    <div className={styles.priceInputWrapper}>
+                        <input
+                            type="text"
+                            placeholder="이 가격에 도달해야 낙찰됩니다."
+                            value={reservePrice}
+                            maxLength={12}
+                            onChange={handleReservePriceChange}
+                        />
+                        <span className={styles.won}>원</span>
+                    </div>
+                    <p className={styles.helperText}>
+                        입력하지 않으면 시작가의 1.5배로 자동 설정됩니다.
+                    </p>
+                </div>
+
+                <hr className={styles.hr} />
+
                 {/* 경매 기간 */}
                 <div className={styles.productCondition}>
                     <h4>경매 기간</h4>
@@ -342,8 +357,7 @@ const AuctionRegister = () => {
                     ))}
                 </div>
 
-
-                {/* 거래 방식 + 위치 (기존과 동일) */}
+                {/* 거래 방식 + 위치 */}
                 <h2 className={styles.h2}>거래</h2>
                 <hr className={styles.hr_bold} />
                 <h4>거래방법</h4>
@@ -361,14 +375,13 @@ const AuctionRegister = () => {
                 {/* 등록 버튼 */}
                 <hr className={styles.hr_bold} />
                 <div className={styles.submitOption}>
-                    {/* 버튼 텍스트 변경 */}
                     <button type="submit" className={styles.submitOptionButton} disabled={!isFormValid}>
                         경매 등록하기
                     </button>
                 </div>
             </form>
 
-            {/* 위치 동의 모달 (기존과 동일) */}
+            {/* 위치 동의 모달 */}
             {showAgreeModal && (
                 <AgreeModal
                     onAgree={() => {

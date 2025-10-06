@@ -1,10 +1,11 @@
+// 경로: src/main/java/com/sharestory/sharestory_backend/domain/AuctionItem.java
 package com.sharestory.sharestory_backend.domain;
 
 import com.sharestory.sharestory_backend.dto.ItemStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+// import org.springframework.data.jpa.domain.support.AuditingEntityListener; // ✅ 삭제
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EntityListeners(AuditingEntityListener.class)
+// @EntityListeners(AuditingEntityListener.class) // ✅ 상위 클래스에 있으므로 삭제
 public class AuctionItem extends BaseTimeEntity {
 
     @Id
@@ -41,6 +42,12 @@ public class AuctionItem extends BaseTimeEntity {
     @Column(nullable = false)
     private int minPrice;
 
+    @Column(name = "reserve_price")
+    private Integer reservePrice;
+
+    @Column(name = "buy_now_price")
+    private Integer buyNowPrice;
+
     @Column(nullable = false)
     private LocalDateTime auctionStart;
 
@@ -53,15 +60,15 @@ public class AuctionItem extends BaseTimeEntity {
     private int finalBidPrice = 0;
 
     // --- 상태 및 시간 관련 필드 ---
+    @Column(name = "buy_now_available", nullable = false)
+    @Builder.Default
+    private boolean buyNowAvailable = true;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "item_status", nullable = false)
     private ItemStatus status;
 
     // --- 통계 관련 필드 ---
-// AuctionItem.java
-
-// ...
-
     @Column(name = "favorite_count", nullable = false, columnDefinition = "int default 0")
     @Builder.Default
     private int favoriteCount = 0;
@@ -69,8 +76,6 @@ public class AuctionItem extends BaseTimeEntity {
     @Column(name = "view_count", nullable = false, columnDefinition = "int default 0")
     @Builder.Default
     private int viewCount = 0;
-
-// ... (chat_room_count, bid_count 도 동일하게 수정)
 
     @Column(name = "chat_room_count", nullable = false)
     @ColumnDefault("0")
