@@ -79,6 +79,12 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
     useEffect(() => {
         setCurrentOpenRoomId(roomId);
 
+        // ✅ 현재 열린 채팅방을 Service Worker에 알려주기 (FCM 알림 차단용)
+        const bc = new BroadcastChannel("chat-room");
+        if (roomId) {
+            bc.postMessage({ type: "SET_ROOM", roomId });
+        }
+
         if (roomId && currentUserId) {
             fetchWithAuth(`${import.meta.env.VITE_API_URL}/api/chat/${roomId}/read`, {
                 method: "POST",
@@ -92,7 +98,12 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
             sendReadEvent(roomId, currentUserId);
         }
 
-        return () => setCurrentOpenRoomId(null);
+        return () => {
+            // ✅ 방 나가면 열린 방 ID 초기화 (알림 다시 허용)
+            setCurrentOpenRoomId(null);
+            bc.postMessage({ type: "SET_ROOM", roomId: null });
+            bc.close();
+        };
     }, [roomId, currentUserId, setCurrentOpenRoomId, setUnreadCounts]);
 
     /** ✅ 스크롤 맨 아래로 이동 */

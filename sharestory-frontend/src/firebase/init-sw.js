@@ -1,4 +1,4 @@
-export const firebaseConfig = {
+self.FIREBASE_CONFIG = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
     authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
     projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
@@ -7,6 +7,3 @@ export const firebaseConfig = {
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
     measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
-
-// 🔹 VAPID Key (웹 푸시 인증서 공개키)
-export const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;

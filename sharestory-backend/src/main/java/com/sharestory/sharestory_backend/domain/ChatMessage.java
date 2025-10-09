@@ -36,6 +36,10 @@ public class ChatMessage {
 
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean notified = false;
+
     public enum MessageType {
         TEXT,
         IMAGE,

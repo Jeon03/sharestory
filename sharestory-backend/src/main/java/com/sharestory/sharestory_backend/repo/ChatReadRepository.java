@@ -49,4 +49,8 @@ public interface ChatReadRepository extends JpaRepository<ChatRead, Long> {
     @Modifying
     @Query("delete from ChatRead cr where cr.message.room.id = :roomId")
     void deleteAllByRoomId(@Param("roomId") Long roomId);
+
+    @Modifying
+    @Query("delete from ChatRead r where r.message.id in :messageIds")
+    void deleteAllByMessageIds(@Param("messageIds") List<Long> messageIds);
 }

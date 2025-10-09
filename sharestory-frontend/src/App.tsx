@@ -127,38 +127,48 @@ export default function App() {
     useEffect(() => {
         (async () => {
             await fetchMe(false);
-            setIsAuthLoading(false); // 👈 끝
+            setIsAuthLoading(false);
         })();
     }, [fetchMe]);
 
-    // ✅ 전역 WebSocket 연결
+// ✅ 전역 WebSocket 연결
     useEffect(() => {
         if (!user?.id) return;
+
         connectGlobal(user.id, (msg) => {
             console.log("📩 글로벌 새 메시지:", msg);
 
             const roomId = Number(msg.roomId);
+
+            // ✅ 메시지 타입별 표시 문구
             const normalized =
                 msg.type === "IMAGE"
                     ? "[사진]"
                     : msg.type === "LOCATION_MAP"
                         ? "[지도]"
-                        : msg.content;
+                        : msg.type === "SYSTEM"
+                            ? `${msg.content}`
+                            : msg.content;
 
             // ✅ 마지막 메시지 갱신
-            setLastMessages((prev) => {
-                const updated = {
-                    ...prev,
-                    [roomId]: { content: normalized, updatedAt: msg.createdAt },
-                };
-                return updated;
-            });
+            setLastMessages((prev) => ({
+                ...prev,
+                [roomId]: { content: normalized, updatedAt: msg.createdAt },
+            }));
 
-            // ✅ 현재 열려있지 않은 방이면 unread 증가
+            // ✅ 현재 열려있지 않은 방이면 unread 증가 (SYSTEM 메시지도 포함)
             if (roomId !== currentOpenRoomId) {
                 setUnreadCounts((prev) => ({
                     ...prev,
                     [roomId]: (prev[roomId] || 0) + 1,
+                }));
+            }
+
+            // ✅ 열려있는 방일 경우엔 자동 읽음 처리 (선택적)
+            else {
+                setUnreadCounts((prev) => ({
+                    ...prev,
+                    [roomId]: 0,
                 }));
             }
         });
@@ -167,6 +177,7 @@ export default function App() {
             disconnect();
         };
     }, [user?.id, currentOpenRoomId, setUnreadCounts, setLastMessages]);
+
 
     useEffect(() => {
         const fetchUnreadCounts = async () => {

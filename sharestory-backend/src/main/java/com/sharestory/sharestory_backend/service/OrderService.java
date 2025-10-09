@@ -7,11 +7,13 @@ import com.sharestory.sharestory_backend.dto.StatusMapper;
 import com.sharestory.sharestory_backend.repo.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -21,6 +23,8 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final PointHistoryRepository pointHistoryRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final NotificationTemplateService notificationTemplateService;
+    private final ChatService chatService;
 
     @Transactional
     public void createSafeOrder(Long itemId, Long buyerId, DeliveryInfo deliveryInfo) {
@@ -77,6 +81,17 @@ public class OrderService {
         }
 
         itemRepository.save(item);
+
+        // ✅ 판매자에게 결제 완료 메일 발송
+        try {
+            notificationTemplateService.sendSafeTradeMail(order, OrderStatus.PENDING);
+            log.info("📧 [메일 발송 완료] 결제 완료 알림 → 판매자: {}", seller.getEmail());
+        } catch (Exception e) {
+            log.error("❌ [메일 발송 실패] 결제 완료 메일 실패 → {}", e.getMessage());
+        }
+
+        // ✅ 2. 채팅방 시스템 메시지 전송
+        chatService.sendSystemMessage(item.getId(), "💰 구매자가 안전거래 결제를 완료했습니다.");
     }
 
 
@@ -97,11 +112,17 @@ public class OrderService {
         order.getItem().setStatus(ItemStatus.SAFE_RECEIVED);
         itemRepository.save(order.getItem());
 
-        // ✅ 판매자 알림
-        messagingTemplate.convertAndSend(
-                "/topic/order/" + order.getSellerId(),
-                "구매자가 물품 수령을 확인했습니다. 포인트를 지급받으세요!"
-        );
+
+        // ✅ 판매자에게 수령 완료 메일 발송
+        try {
+            notificationTemplateService.sendSafeTradeMail(order, OrderStatus.SAFE_DELIVERY_RECEIVED);
+            log.info("📧 [메일 발송 완료] 수령 완료 알림 → 판매자: {}", order.getSellerId());
+        } catch (Exception e) {
+            log.error("❌ [메일 발송 실패] 수령 완료 메일 실패 → {}", e.getMessage());
+        }
+
+        //채팅방 시스템 메시지
+        chatService.sendSystemMessage(order.getItem().getId(), "📬 구매자가 상품 수령을 완료했습니다. 포인트 지급이 진행됩니다.");
     }
 
     @Transactional
@@ -140,6 +161,7 @@ public class OrderService {
         order.setStatus(OrderStatus.SAFE_DELIVERY_FINISHED);
         order.getItem().setStatus(ItemStatus.SAFE_FINISHED);
         itemRepository.save(order.getItem());
+
     }
 
 }

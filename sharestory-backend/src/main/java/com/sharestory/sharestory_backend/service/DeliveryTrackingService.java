@@ -25,6 +25,7 @@ public class DeliveryTrackingService {
     private final OrderRepository orderRepository;
     private final DeliveryTrackingRepository trackingRepository;
     private final TrackingHistoryRepository historyRepository;
+    private final NotificationTemplateService notificationTemplateService;
 
     @Transactional
     public void registerInvoice(Long orderId, Long sellerId, DeliveryInvoiceRequest req) {
@@ -46,6 +47,7 @@ public class DeliveryTrackingService {
                 .courier(req.getCourier())
                 .trackingNumber(req.getTrackingNumber())
                 .item(item)
+                .order(order)
                 .build();
         trackingRepository.save(tracking);
 
@@ -55,6 +57,7 @@ public class DeliveryTrackingService {
 
         orderRepository.save(order);
         itemRepository.save(item);
+
     }
 
     @Transactional

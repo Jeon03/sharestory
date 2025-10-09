@@ -56,13 +56,16 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
     // ✅ 🔥 로그인 상태가 바뀔 때 FCM 등록 시도
     useEffect(() => {
-        if (user) {
-            console.log("👤 로그인된 사용자 감지됨 → FCM 등록 시도");
-            registerFcmToken();
-        } else {
-            console.log("🚫 사용자 정보 없음 (비로그인 상태)");
+        // user가 null이거나 아직 인증되지 않은 상태면 skip
+        if (!user || !user.id) {
+            console.log("🚫 FCM 등록 생략 — 사용자 없음");
+            return;
         }
-    }, [user]);
+
+        // ✅ 로그인된 사용자만 FCM 등록
+        console.log("👤 로그인된 사용자 감지됨 → FCM 등록 시도");
+        registerFcmToken();
+    }, [user?.id]); // 👈 user.id만 감시하도록 수정
 
     return (
         <AuthContext.Provider value={{ openLogin, closeLogin, user, refreshUser }}>

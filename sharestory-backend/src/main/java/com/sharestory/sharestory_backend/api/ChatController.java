@@ -2,16 +2,20 @@ package com.sharestory.sharestory_backend.api;
 
 import com.sharestory.sharestory_backend.domain.ChatMessage;
 import com.sharestory.sharestory_backend.domain.ChatRoom;
+import com.sharestory.sharestory_backend.domain.User;
 import com.sharestory.sharestory_backend.dto.ChatMessageDto;
 import com.sharestory.sharestory_backend.dto.ChatReadDto;
 import com.sharestory.sharestory_backend.dto.ChatRoomDto;
 import com.sharestory.sharestory_backend.repo.ChatReadRepository;
 import com.sharestory.sharestory_backend.repo.ChatRoomRepository;
+import com.sharestory.sharestory_backend.repo.UserRepository;
 import com.sharestory.sharestory_backend.security.CustomUserDetails;
 import com.sharestory.sharestory_backend.service.ChatService;
+import com.sharestory.sharestory_backend.service.FcmService;
 import com.sharestory.sharestory_backend.service.S3Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -24,7 +28,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/chat")
@@ -34,31 +38,61 @@ public class ChatController {
     private final ChatService chatService;
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatReadRepository chatReadRepository;
+    private final FcmService fcmService;
+    private final UserRepository userRepository;
 
     @MessageMapping("/message")
     public void message(ChatMessageDto dto) {
-        // 1) DB 저장
+        // 1️⃣ DB 저장
         ChatMessage saved = chatService.saveMessage(dto);
 
-        // 2) 방 단위 publish (기존)
+        // 2️⃣ 실시간 채팅방(STOMP)
         messagingTemplate.convertAndSend(
                 "/sub/chat/room/" + dto.getRoomId(),
                 ChatMessageDto.from(saved)
         );
 
-        // 3) 글로벌 publish (추가)
+        // 3️⃣ ChatRoom 정보 조회 (한 번만)
         ChatRoom room = chatService.findRoom(dto.getRoomId());
         Long sellerId = room.getSellerId();
         Long buyerId = room.getBuyerId();
 
+        // 4️⃣ 수신자 판별 (본인이 보낸 경우엔 제외)
+        Long receiverId = dto.getSenderId().equals(sellerId) ? buyerId : sellerId;
+        if (receiverId == null || receiverId.equals(dto.getSenderId())) {
+            log.info("⚠️ 자기 자신에게는 FCM 알림 전송 안 함");
+            return;
+        }
+
+        // 5️⃣ FCM 알림 한 번만 전송
+        try {
+            String senderName = userRepository.findById(dto.getSenderId())
+                    .map(User::getNickname)
+                    .orElse("알 수 없는 사용자");
+
+            String clickAction = "/chat/" + room.getId();
+
+            String bodyPreview = dto.getContent().length() > 40
+                    ? dto.getContent().substring(0, 40) + "..."
+                    : dto.getContent();
+
+            fcmService.sendToUser(
+                    receiverId,
+                    senderName + "님의 새 메시지",
+                    bodyPreview,
+                    clickAction,
+                    room.getId()
+            );
+        } catch (Exception e) {
+            log.error("❌ FCM 알림 전송 실패: {}", e.getMessage(), e);
+        }
+
+        // 6️⃣ 글로벌 알림 (STOMP)
         ChatMessageDto payload = ChatMessageDto.from(saved);
 
-        // 판매자에게 발송 (단, 본인이 보낸 메시지는 제외)
         if (!dto.getSenderId().equals(sellerId)) {
             messagingTemplate.convertAndSend("/sub/chat/user/" + sellerId, payload);
         }
-
-        // 구매자에게 발송 (단, 본인이 보낸 메시지는 제외)
         if (!dto.getSenderId().equals(buyerId)) {
             messagingTemplate.convertAndSend("/sub/chat/user/" + buyerId, payload);
         }
