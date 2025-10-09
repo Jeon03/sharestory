@@ -1,18 +1,20 @@
 package com.sharestory.sharestory_backend.fcm;
 
 import com.sharestory.sharestory_backend.domain.User;
+import com.sharestory.sharestory_backend.repo.BidDepositRepository;
 import com.sharestory.sharestory_backend.repo.UserRepository;
 import com.sharestory.sharestory_backend.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
+@Slf4j
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -21,8 +23,9 @@ public class FCMController {
     private final FCMUtil fcmUtil;
     private final FcmTokenRepository fcmTokenRepository;
     private final UserRepository userRepository;
-
+    private final BidDepositRepository bidDepositRepository;
     @PostMapping("/fcm/save-token")
+    @Transactional // 👈 여러 테이블을 수정하므로 트랜잭션 처리
     public ResponseEntity<?> saveFcmToken(@RequestBody Map<String, String> payload,
                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
         if (userDetails == null) {
@@ -35,27 +38,23 @@ public class FCMController {
         }
 
         Long userId = userDetails.getId();
-        Optional<User> userOptional = userRepository.findById(userId);
+        User currentUser = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-
-            // 이미 해당 토큰이 DB에 있는지 확인
-            Optional<FcmToken> existingToken = fcmTokenRepository.findByToken(token);
-            if (existingToken.isPresent()) {
-                // 토큰이 이미 있으면 아무것도 하지 않음 (또는 업데이트 로직 추가 가능)
-                return ResponseEntity.ok(existingToken);
-            } else {
-                // 기존 토큰이 없으면 새로 저장
-                FcmToken fcmToken = new FcmToken();
-                fcmToken.setToken(token);
-                fcmToken.setUser(user);
-                fcmTokenRepository.save(fcmToken);
-            }
-
-            return ResponseEntity.ok("FCM Token이 저장/업데이트되었습니다.");
+        // 1. FCM 토큰 저장 로직 (기존과 동일)
+        Optional<FcmToken> existingToken = fcmTokenRepository.findByToken(token);
+        if (existingToken.isEmpty()) {
+            FcmToken fcmToken = FcmToken.builder().token(token).user(currentUser).build();
+            fcmTokenRepository.save(fcmToken);
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("사용자를 찾을 수 없습니다.");
+
+        // 2. [핵심] 로그인 시 currentTotalPrice 전체 재계산
+        int totalBidAmount = bidDepositRepository.sumAmountByUser(currentUser);
+        currentUser.setCurrentTotalBidPrice(totalBidAmount);
+        userRepository.save(currentUser);
+        log.info("User ID: [{}]의 currentTotalPrice를 [{}]로 동기화했습니다.", userId, totalBidAmount);
+
+        return ResponseEntity.ok("FCM Token 저장 및 입찰 총액 동기화 완료.");
     }
 
     @PostMapping("/send-push-notification")
