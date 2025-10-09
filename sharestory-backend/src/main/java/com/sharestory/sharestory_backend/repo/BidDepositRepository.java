@@ -6,18 +6,24 @@ import com.sharestory.sharestory_backend.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
+@Repository
 public interface BidDepositRepository extends JpaRepository<BidDeposit, Long> {
 
-    // ✅ 사용자와 경매 상품으로 보증금 정보를 찾음 (UPSERT 로직에 사용)
+    // 특정 사용자와 경매 상품으로 보증금 정보를 찾기
     Optional<BidDeposit> findByUserAndAuctionItem(User user, AuctionItem auctionItem);
 
-    // ✅ 특정 사용자의 모든 보증금 총액을 계산 (입찰 시 유효성 검증에 사용)
+    // 특정 사용자의 총 보증금(총 입찰액) 합산
     @Query("SELECT COALESCE(SUM(bd.amount), 0) FROM BidDeposit bd WHERE bd.user = :user")
-    int sumTotalAmountByUser(@Param("user") User user);
+    int sumAmountByUser(@Param("user") User user);
 
-    // ✅ 경매 종료 시 해당 경매의 모든 보증금 내역을 삭제 (스케줄러에서 사용)
+    // 특정 경매 상품과 관련된 모든 보증금 기록 삭제
     void deleteAllByAuctionItem(AuctionItem auctionItem);
+
+    // ✅ [추가] 특정 경매 상품과 관련된 모든 보증금 기록을 조회 (오류 해결)
+    List<BidDeposit> findAllByAuctionItem(AuctionItem auctionItem);
 }
