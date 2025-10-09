@@ -201,13 +201,14 @@ export const connectGlobal = (
     stompClient.connect(
         {},
         () => {
-            // console.log("🌍 글로벌 구독 연결 성공");
 
             safeSubscribe(`/sub/chat/user/${userId}`, (message: Message) => {
                 try {
                     const body: ChatMessage = JSON.parse(message.body);
                     onMessage(body);
-                    onUnreadIncrease?.(body.roomId);
+                    if (body.type === "SYSTEM" || body.type === "TEXT" || body.type === "IMAGE") {
+                        onUnreadIncrease?.(body.roomId);
+                    }
                 } catch (err) {
                     console.error("❌ 메시지 파싱 실패:", err);
                 }

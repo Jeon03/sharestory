@@ -34,4 +34,8 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     void deleteAllByRoomId(Long roomId);
 
     Optional<ChatMessage> findTopByRoomOrderByCreatedAtDesc(ChatRoom room);
+
+    @Query("select m.id from ChatMessage m where m.room.id = :roomId")
+    List<Long> findIdsByRoomId(@Param("roomId") Long roomId);
+    void deleteAllByRoom_Id(Long roomId);
 }

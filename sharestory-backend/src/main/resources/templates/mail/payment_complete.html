@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>안전거래 결제 완료 안내</title>
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f9f9f9; padding: 20px; color: #333; }
+        .container { background-color: white; padding: 24px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+        h2 { color: #0077cc; }
+        p { line-height: 1.6; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>📦 [[${itemTitle}]]의 안전거래 결제가 완료되었습니다.</h2>
+    <p>구매자가 안전거래 결제를 완료했습니다.</p>
+    <p>이제 송장을 등록해 배송을 시작해주세요.</p>
+    <hr/>
+    <p><strong>다음 단계:</strong> 판매 내역 → <em>송장 등록</em> 버튼을 눌러 택배 정보를 입력해주세요.</p>
+    <p>감사합니다.<br/>ShareStory 드림.</p>
+</div>
+</body>
+</html>

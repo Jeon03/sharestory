@@ -5,23 +5,25 @@ import com.sharestory.sharestory_backend.dto.ChatMessageDto;
 import com.sharestory.sharestory_backend.dto.ChatRoomDto;
 import com.sharestory.sharestory_backend.repo.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import java.util.*;
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatService {
+
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final ChatReadRepository chatReadRepository;
+    private final FcmService fcmService;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     @Transactional
     public ChatRoomDto createOrGetRoom(Long itemId, Long buyerId) {
@@ -29,9 +31,7 @@ public class ChatService {
                 .orElseThrow(() -> new RuntimeException("상품 없음"));
 
         Long sellerId = item.getUserId();
-        if (sellerId == null) {
-            throw new RuntimeException("상품에 판매자 정보가 없습니다.");
-        }
+        if (sellerId == null) throw new RuntimeException("상품에 판매자 정보가 없습니다.");
 
         return chatRoomRepository.findByItem_IdAndBuyerId(itemId, buyerId)
                 .map(room -> {
@@ -59,20 +59,17 @@ public class ChatService {
                 });
     }
 
-
     @Transactional(readOnly = true)
     public List<ChatRoomDto> getRooms(Long userId) {
         return chatRoomRepository.findByBuyerIdOrSellerId(userId, userId)
                 .stream()
                 .map(room -> {
-                    String partnerName =
-                            room.getBuyerId().equals(userId)
-                                    ? userRepository.findById(room.getSellerId()).get().getNickname()
-                                    : userRepository.findById(room.getBuyerId()).get().getNickname();
+                    String partnerName = room.getBuyerId().equals(userId)
+                            ? userRepository.findById(room.getSellerId()).get().getNickname()
+                            : userRepository.findById(room.getBuyerId()).get().getNickname();
 
                     String lastMsg = room.getMessages().isEmpty() ? "" :
-                            room.getMessages().get(room.getMessages().size()-1).getContent();
-
+                            room.getMessages().get(room.getMessages().size() - 1).getContent();
 
                     int unreadCount = chatReadRepository.countUnreadByRoomAndUser(room.getId(), userId);
                     return ChatRoomDto.from(room, partnerName, lastMsg, unreadCount);
@@ -91,6 +88,7 @@ public class ChatService {
                 .content(dto.getContent())
                 .type(dto.getType())
                 .createdAt(LocalDateTime.now())
+                .notified(false)
                 .build();
 
         ChatMessage saved = chatMessageRepository.save(msg);
@@ -111,9 +109,38 @@ public class ChatService {
         // ✅ 마지막 메시지 시간 갱신
         room.setUpdatedAt(LocalDateTime.now());
 
+        // ✅ FCM 알림 전송 (상대방에게만)
+        try {
+            // 보낸 사람 닉네임 조회
+            String senderName = userRepository.findById(dto.getSenderId())
+                    .map(User::getNickname)
+                    .orElse("알 수 없는 사용자");
+
+            // 클릭 시 이동할 URL (예: 채팅 페이지)
+            String clickAction = "/";
+
+            // 메시지 내용이 너무 길면 일부만 잘라서 표시
+            String bodyPreview = dto.getContent().length() > 40
+                    ? dto.getContent().substring(0, 40) + "..."
+                    : dto.getContent();
+
+            fcmService.sendToUser(
+                    receiverId,
+                    senderName + "님의 새 메시지",
+                    bodyPreview,
+                    clickAction,
+                    room.getId()
+            );
+
+            // notified 플래그 갱신 (보냈다고 표시)
+            saved.setNotified(true);
+
+        } catch (Exception e) {
+            log.error("❌ FCM 전송 실패 (userId={}): {}", receiverId, e.getMessage());
+        }
+
         return saved;
     }
-
 
     @Transactional(readOnly = true)
     public List<ChatMessageDto> getMessages(Long roomId, Long userId) {
@@ -122,8 +149,6 @@ public class ChatService {
 
         Long buyerId = room.getBuyerId();
         Long sellerId = room.getSellerId();
-
-        // 상대방 ID 계산 (내가 보낸 메시지 확인용)
         Long opponentId = buyerId.equals(userId) ? sellerId : buyerId;
 
         List<ChatMessage> messages = chatMessageRepository.findByRoom_IdOrderByCreatedAtAsc(roomId);
@@ -131,26 +156,21 @@ public class ChatService {
         return messages.stream()
                 .map(msg -> {
                     boolean read;
-
                     if (msg.getSenderId().equals(userId)) {
-                        // ✅ 내가 보낸 메시지 → 상대방이 읽었는지 확인
                         read = chatReadRepository.existsByMessage_IdAndUserIdAndReadTrue(msg.getId(), opponentId);
                     } else {
-                        // ✅ 내가 받은 메시지 → 나는 이미 읽었음
                         read = true;
                     }
-
                     return ChatMessageDto.from(msg, read);
                 })
                 .toList();
     }
 
-
     @Transactional(readOnly = true)
     public Map<String, Object> getItemByRoom(Long roomId) {
         ChatRoom room = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("채팅방 없음"));
-        Item item = room.getItem(); // 트랜잭션 안에서 Lazy 로딩
+        Item item = room.getItem();
 
         Map<String, Object> result = new HashMap<>();
         result.put("id", item.getId());
@@ -166,21 +186,12 @@ public class ChatService {
         chatReadRepository.markAllAsRead(roomId, userId);
     }
 
-
-    /**
-     * 유저의 전체 안읽은 메시지 합계
-     */
     public int getTotalUnreadCount(Long userId) {
         return chatMessageRepository.countUnreadMessages(userId);
     }
 
-    /**
-     * 유저가 속한 방별 안읽은 메시지 수를 계산
-     */
     public Map<Long, Integer> getUnreadCountPerRoom(Long userId) {
         Map<Long, Integer> result = new HashMap<>();
-
-        // ✅ 유저가 속한 모든 채팅방 가져오기
         List<ChatRoom> rooms = chatRoomRepository.findByBuyerIdOrSellerId(userId, userId);
 
         for (ChatRoom room : rooms) {
@@ -202,4 +213,87 @@ public class ChatService {
         return chatReadRepository.findReadMessageIds(roomId, userId);
     }
 
+    @Transactional
+    public void sendSystemMessage(Long itemId, String content) {
+        List<ChatRoom> rooms = chatRoomRepository.findByItem_Id(itemId);
+        // 채팅방이 없으면 자동 생성
+        if (rooms.isEmpty()) {
+            Item item = itemRepository.findById(itemId)
+                    .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다."));
+            Long sellerId = item.getUserId();
+            Long buyerId = item.getBuyerId(); // 안전거래 결제 시 buyerId가 존재
+
+            if (buyerId == null) {
+                log.warn("⚠️ 시스템 메시지를 보낼 수 없습니다 (buyerId 없음, itemId={})", itemId);
+                return;
+            }
+
+            ChatRoom newRoom = ChatRoom.builder()
+                    .item(item)
+                    .buyerId(buyerId)
+                    .sellerId(sellerId)
+                    .updatedAt(LocalDateTime.now())
+                    .build();
+
+            chatRoomRepository.save(newRoom);
+            rooms = List.of(newRoom);
+            log.info("✅ 채팅방 자동 생성 → roomId={}, itemId={}", newRoom.getId(), itemId);
+        }
+
+        for (ChatRoom room : rooms) {
+            ChatMessage systemMsg = ChatMessage.builder()
+                    .room(room)
+                    .senderId(0L) // 시스템 발신자
+                    .content(content)
+                    .type(ChatMessage.MessageType.SYSTEM)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+
+            ChatMessage saved = chatMessageRepository.save(systemMsg);
+
+            // ✅ 구매자/판매자 각각 읽음 테이블에 추가
+            Long buyerId = room.getBuyerId();
+            Long sellerId = room.getSellerId();
+
+            List<ChatRead> reads = List.of(
+                    ChatRead.builder()
+                            .message(saved)
+                            .userId(buyerId)
+                            .read(false)
+                            .build(),
+                    ChatRead.builder()
+                            .message(saved)
+                            .userId(sellerId)
+                            .read(false)
+                            .build()
+            );
+            chatReadRepository.saveAll(reads);
+
+            // ✅ 마지막 메시지 시간 갱신
+            room.setUpdatedAt(LocalDateTime.now());
+
+            // ✅ WebSocket 실시간 전송
+            simpMessagingTemplate.convertAndSend(
+                    "/sub/chat/room/" + room.getId(),
+                    ChatMessageDto.from(saved)
+            );
+
+            //실시간 WebSocket 송신
+            simpMessagingTemplate.convertAndSend("/sub/chat/room/" + room.getId(), ChatMessageDto.from(saved));
+            simpMessagingTemplate.convertAndSend("/sub/chat/user/" + room.getBuyerId(), ChatMessageDto.from(saved));
+            simpMessagingTemplate.convertAndSend("/sub/chat/user/" + room.getSellerId(), ChatMessageDto.from(saved));
+
+            //FCM
+            try {
+                String title = "📦 시스템 알림";
+                String body = content;
+                String clickAction = "/safe-items/" + room.getItem().getId();
+
+                fcmService.sendToUser(room.getBuyerId(), title, body, clickAction, room.getId());
+                fcmService.sendToUser(room.getSellerId(), title, body, clickAction, room.getId());
+            } catch (Exception e) {
+                log.error("❌ 시스템 메시지 FCM 전송 실패 (roomId={}): {}", room.getId(), e.getMessage());
+            }
+        }
+    }
 }
