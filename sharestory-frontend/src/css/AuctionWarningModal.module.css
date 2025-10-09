@@ -1,0 +1,97 @@
+.auction-warning-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+
+.auction-warning-modal {
+    background: #fff;
+    border-radius: 12px;
+    width: 480px;
+    max-width: 90%;
+    padding: 24px 28px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    animation: auction-warning-fadeIn 0.3s ease;
+}
+
+.auction-warning-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #333;
+    text-align: center;
+}
+
+.auction-warning-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    color: #444;
+    line-height: 1.6;
+}
+
+.auction-warning-list li {
+    margin: 6px 0;
+}
+
+.auction-warning-notice {
+    font-size: 14px;
+    text-align: center;
+    color: #007bff;
+    font-weight: 500;
+    margin-bottom: 20px;
+}
+
+.auction-warning-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.auction-warning-cancel-btn,
+.auction-warning-agree-btn {
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.auction-warning-cancel-btn {
+    background: #e0e0e0;
+    color: #333;
+}
+
+.auction-warning-cancel-btn:hover {
+    background: #d5d5d5;
+}
+
+.auction-warning-agree-btn {
+    background: #007bff;
+    color: white;
+}
+
+.auction-warning-agree-btn:hover {
+    background: #0069d9;
+}
+
+@keyframes auction-warning-fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

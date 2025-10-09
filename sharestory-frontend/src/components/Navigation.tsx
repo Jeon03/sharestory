@@ -1,5 +1,6 @@
 import {useRef, useState} from 'react';
 import '../css/Navigation.css';
+import { Link } from "react-router-dom";
 
 // 🔹 Navigation을 독립형으로 변경 (카테고리 props 제거)
 function Navigation() {
@@ -64,8 +65,12 @@ function Navigation() {
                     )}
                 </div>
 
-                <a href="#">중고거래</a>
-                <a href="#">물품경매</a>
+
+                <Link to="/">중고거래</Link>
+                <Link to="/auction">물품경매</Link>
+                <Link to="/auction/register">경매물품등록</Link>
+                <Link to="/community">커뮤니티</Link>
+
 
             </div>
         </nav>

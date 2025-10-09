@@ -38,7 +38,6 @@
     display: block;
 }
 
-
 .uploadedimage {
     display: none;
 }
@@ -73,7 +72,7 @@
 
 /* 미리보기 카드는 기준 좌표 */
 .previewItem {
-    position: relative;   /* ← 중요: X 버튼을 우상단에 고정 */
+    position: relative;
     width: var(--image-size);
     height: var(--image-size);
     border: 1px solid #e5e7eb;
@@ -94,7 +93,7 @@
     position: absolute;
     top: 6px;
     right: 6px;
-    width: 24px;            /* 터치도 가능한 크기 */
+    width: 24px;
     height: 24px;
     border: none;
     border-radius: 50%;
@@ -106,7 +105,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    z-index: 1;             /* 이미지 위에 올라오도록 */
+    z-index: 1;
     transition: background 0.2s, transform 0.05s;
 }
 .removeBtn:hover { background: rgba(0,0,0,0.8); }
@@ -180,7 +179,7 @@
 
 .selected {
     background-color: gold !important;
-    border: 2px solid black;
+    border: 2px solid black ;
     color: black ;
     height: 50px;
     width: 100px;
@@ -209,14 +208,14 @@
     text-align: right;
 }
 
-/* ===== 가격 ===== */
+/* ===== 경매시작가 ===== */
 .price {
     display: flex;
     align-items: center;
 }
 
 .price input {
-    margin-left: 66px;
+    margin-left: 51.5px;
     border: 1px solid #aaaaaa;
     padding-left: 5px;
     width: 300px;
@@ -242,15 +241,158 @@
     color: gray;
 }
 
-/* ===== 거래 ===== */
-.exchangeMethod {
+/* ===== 입찰단위 ===== */
+.bidUnit {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
 }
 
-.transactionStyle {
-    width: 100vw;
+.bidUnit input {
+    margin-left: 66px;
+    border: 1px solid #aaaaaa;
+    padding-left: 5px;
+    width: 300px;
+    height: 50px;
 }
+
+.bidUnitInputWrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.bidUnitInputWrapper input {
+    padding-right: 40px;
+    box-sizing: border-box;
+}
+
+.bidUnitwon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: gray;
+}
+
+/* ===== 즉시구매 여부 라디오 버튼 ===== */
+.immediatePurchase {
+    display: grid;
+    grid-template-columns: 106px 1fr; /* 1열: h4, 2열: 버튼 + input */
+    grid-auto-rows: min-content;
+    gap: 10px 20px; /* row-gap column-gap */
+    align-items: start;
+}
+
+.immediatePurchase h4 {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+    margin: 0;
+}
+
+.immediatePurchaseRadio {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.immediatePurchaseRadio label {
+    display: flex;
+    cursor: pointer;
+    align-items: center;
+    gap: 8px;
+}
+
+.immediatePurchaseRadio input[type="radio"] {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    position: relative;
+    transition: 0.3s;
+}
+
+.immediatePurchaseRadio input[type="radio"]:checked {
+    background-color: gold;
+    border-color: gold;
+}
+
+.immediatePurchaseRadio input[type="radio"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: white;
+}
+
+/* 즉시구매 가격 입력 - 예 버튼 아래 2열 2행 */
+.immediatePriceWrapper {
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.5s ease;
+    margin-top: 8px;
+}
+
+.immediatePriceWrapper.active {
+    max-height: 100px;
+}
+
+.immediatePrice {
+    position: relative;
+    width: 300px;
+}
+
+.immediatePrice input {
+    width: 100%;
+    height: 50px;
+    padding-left: 5px;
+    padding-right: 40px;
+    border: 1px solid #aaaaaa;
+    box-sizing: border-box;
+}
+
+.immediatePrice span {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: gray;
+}
+
+
+/* ===== 경매 종료일시 ===== */
+.endDateTime {
+    display: grid;
+    grid-template-columns: 106px 1fr; /* 1열: 라벨, 2열: input + helperText */
+    grid-auto-rows: min-content;
+    gap: 5px 20px; /* row-gap 5px, column-gap 20px */
+    align-items: start;
+}
+
+
+.endDateTime input {
+    width: 293px;
+    height: 50px;
+    border: 1px solid #aaaaaa;
+    padding-left: 5px;
+}
+
+.endDateTime .helperText {
+    grid-column: 2; /* 2열에 위치 */
+    font-size: 12px;
+    color: #6b7280;
+    margin: 0; /* 필요시 row-gap으로 간격 조절 */
+}
+
 
 /* ===== 제출 ===== */
 .upload {
