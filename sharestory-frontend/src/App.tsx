@@ -24,6 +24,10 @@ import PointModal from "./components/PointModal.tsx";
 import SafeTradeItems from "./components/mypage/SafeTradeItems.tsx";
 import SafeTradeDetail from "./pages/SafeTradeDetail";
 import PurchasedItems from "./components/mypage/PurchasedItems.tsx";
+import AuctionItemRegister from "./pages/Item/AuctionItemRegister";
+import AuctionList from './pages/AuctionList';
+import TopBanner from "./components/TopBanner";
+
 
 function AppLayout({
                        user,
@@ -33,9 +37,11 @@ function AppLayout({
     setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }) {
     const { openLogin } = useAuth();
+
     return (
         <div className="App">
             <div className="heaerset">
+                <TopBanner />
                 <Header user={user} onLoginClick={openLogin} setUser={setUser} />
                 <Navigation />
             </div>
@@ -206,6 +212,7 @@ export default function App() {
                 <Route element={<AppLayout user={user} setUser={setUser} />}>
                     {/* 게스트 접근 가능 라우트 */}
                     <Route index element={<ProductList />} />
+                    <Route path="/auction" element={<AuctionList />} />
                     <Route path="/items/:id" element={<ProductDetail />} />
                     <Route path="/search" element={<SearchPage />} />
 
@@ -218,7 +225,14 @@ export default function App() {
                             </ProtectedRoute>
                         }
                     />
-
+                    <Route
+                        path="/auction/register"
+                        element={
+                            <ProtectedRoute user={user} isAuthLoading={isAuthLoading}>
+                                <AuctionItemRegister />
+                            </ProtectedRoute>
+                        }
+                    />
                     <Route
                         path="/registerItem"
                         element={
