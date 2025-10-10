@@ -1,0 +1,193 @@
+/* =========================
+   📦 전체 컨테이너
+========================= */
+.auction-detail-container {
+    padding: 24px;
+    background: #fff;
+    border-radius: 12px;
+    margin-top: 50px;
+}
+
+/* =========================
+   🔗 브레드크럼
+========================= */
+.auction-detail-breadcrumb {
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #666;
+}
+.auction-detail-breadcrumb a {
+    color: #007bff;
+    text-decoration: none;
+}
+.auction-detail-breadcrumb span {
+    margin: 0 4px;
+}
+
+/* =========================
+   🖼️ 메인 영역
+========================= */
+.auction-detail-main {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 36px;
+}
+
+/* =========================
+   📸 이미지 슬라이더
+========================= */
+.auction-detail-slider {
+    flex: 1 1 45%;
+    position: relative;
+}
+
+.auction-detail-image-wrapper {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.auction-detail-slide-image {
+    width: 100%;
+    height: 420px;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+/* 경매 종료 오버레이 */
+.auction-detail-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+/* =========================
+   🧾 정보 영역
+========================= */
+.auction-detail-info {
+    flex: 1 1 50%;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* 제목 */
+.auction-detail-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #222;
+    margin-top: -10px;
+}
+
+/* 카테고리, 등록일 */
+.auction-detail-meta {
+    font-size: 0.95rem;
+    color: #777;
+}
+
+/* 상품상태 / 설명 / 판매자 */
+.auction-detail-summary {
+    font-size: 14px;
+    color: #333;
+    line-height: 1.6;
+    margin-top: -10px;
+}
+
+.auction-detail-summary p {
+    margin: 4px 0;
+}
+
+/* =========================
+   💰 가격 박스
+========================= */
+.auction-detail-price-box {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.auction-detail-immediate {
+    color: #007bff;
+    font-weight: 600;
+}
+
+.auction-detail-timer {
+    margin-top: 6px;
+    font-weight: 500;
+    color: #333;
+}
+
+/* =========================
+   🪙 입찰 버튼 영역
+========================= */
+.auction-detail-bid-section {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    margin-top: 16px;
+}
+
+/* 두 버튼을 반반으로 꽉 채우기 */
+.auction-detail-bid-section button {
+    flex: 1;
+    height: 50px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* 입찰하기 버튼 */
+.auction-detail-bid-btn {
+    background: #222;
+    color: #fff;
+}
+.auction-detail-bid-btn:hover {
+    background: #000;
+}
+
+/* 즉시구매 버튼 */
+.auction-detail-buy-btn {
+    background: #007bff;
+    color: #fff;
+}
+.auction-detail-buy-btn:hover {
+    background: #0056b3;
+}
+
+/* =========================
+   ✏️ 기타 정보
+========================= */
+.auction-detail-desc {
+    margin-top: 20px;
+    font-size: 1rem;
+    color: #444;
+}
+
+.auction-detail-seller {
+    font-size: 1rem;
+    color: #555;
+    margin-top: 10px;
+}
+
+/* =========================
+   ⏳ 로딩/에러/빈 데이터
+========================= */
+.auction-detail-loading,
+.auction-detail-error,
+.auction-detail-empty {
+    text-align: center;
+    padding: 50px;
+    font-size: 1.2rem;
+    color: #666;
+}

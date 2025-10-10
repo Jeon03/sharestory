@@ -1,0 +1,146 @@
+/* ===== 카드 레이아웃 ===== */
+.auction-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 18px;
+    list-style: none;
+    padding: 0;
+}
+@media (max-width: 1200px) { .auction-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 992px) { .auction-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 768px) { .auction-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .auction-grid { grid-template-columns: 1fr; } }
+
+/* ===== 카드 전체 ===== */
+.auction-card {
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    min-height: 430px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.auction-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+}
+
+/* ===== 썸네일 ===== */
+.auction-thumb {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background-color: #fafafa;
+    overflow: hidden;
+}
+.auction-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+.auction-card:hover .auction-thumb img {
+    transform: scale(1.03);
+}
+
+/* ===== 오버레이 (종료 상품) ===== */
+.auction-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%; /* 썸네일 영역까지만 덮음 */
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.1rem;
+    letter-spacing: -0.5px;
+    z-index: 5;
+    pointer-events: none;
+}
+
+/* ===== 남은시간 배지 ===== */
+.auction-time-badge {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    font-size: 12px;
+    padding: 3px 7px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+.auction-time-badge.urgent { background: rgba(255, 64, 64, 0.9); }
+.auction-time-badge.ended { background: rgba(100, 100, 100, 0.8); }
+
+/* ===== 본문 ===== */
+.auction-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 14px;
+    height: 175px;   /* ✅ 고정 높이로 변경 */
+    box-sizing: border-box;
+    position: relative;
+}
+
+
+/* 제목 / 가격 */
+.auction-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 6px;
+}
+.auction-price-line {
+    font-size: 14px;
+    font-weight: 500;
+    color: #111;
+    margin-top: 2px;
+    line-height: 1.3;
+}
+.auction-price-line.buy-now {
+    color: #007bff;
+    font-weight: 600;
+}
+
+/* ===== meta를 아래 고정 ===== */
+.auction-meta {
+    margin-top: auto;
+    padding-top: 8px;
+    font-size: 12.5px;
+    color: #777;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding-bottom: 6px;
+}
+.auction-meta span {
+    display: flex;
+    align-items: center;
+}
+
+/* ===== 종료일자 (카드 하단 고정) ===== */
+.auction-end-date {
+    position: absolute;
+    bottom: 10px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12.5px;
+    color: #333;
+    border-top: 1px solid #eee;
+    padding-top: 6px;
+    background: #fff;
+}
+.auction-end-date svg { color: #555; }
+.auction-end-date.ended-date { color: #999; }

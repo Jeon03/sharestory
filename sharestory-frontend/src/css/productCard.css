@@ -1,12 +1,11 @@
 /* ===== 공통 상품 카드 그리드 ===== */
 .product-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr); /* ✅ 한 줄에 5개 */
-    gap: 16px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 18px;
     padding: 0;
     list-style: none;
 }
-
 .product-grid-my {
     display: grid;
     grid-template-columns: repeat(4, 1fr); /* ✅ 한 줄에 5개 */
@@ -14,184 +13,167 @@
     padding: 0;
     list-style: none;
 }
-
-/* 반응형 */
-@media (max-width: 1200px) {
-    .product-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
-@media (max-width: 992px) {
-    .product-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-@media (max-width: 768px) {
-    .product-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-@media (max-width: 480px) {
-    .product-grid {
-        grid-template-columns: 1fr;
-    }
-}
+@media (max-width: 1200px) { .product-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 992px)  { .product-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 768px)  { .product-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px)  { .product-grid { grid-template-columns: 1fr; } }
 
 /* ===== 공통 카드 ===== */
 .product-card {
     position: relative;
     background: #fff;
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 2px 6px rgba(0.1,0.1,0.1,0.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     display: flex;
     flex-direction: column;
-    height: 100%;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-.product-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    transition: all 0.25s ease;
+    cursor: pointer;
 }
 
-/* 이미지 */
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+/* ===== 이미지 영역 ===== */
 .product-image-wrapper {
     position: relative;
     width: 100%;
-    height: 180px;
+    aspect-ratio: 1 / 1;
+    background: #fafafa;
     overflow: hidden;
 }
+
 .product-image {
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    object-position: center;
-    transform: scale(0.9);
-    transform-origin: center;
-    border-radius: 5px;
+    object-fit: cover;
+    transition: transform 0.4s ease, filter 0.3s ease;
 }
 
+.product-card:hover .product-image {
+    transform: scale(1.05);
+    filter: brightness(0.95);
+}
 
-@font-face {
-    font-family: 'NanumGothicBold';
-    src: url('../../public/fonts/NanumGothicBold.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
-}
-/* 상태 배지 */
-.list-badge-reserved {
-    font-family: 'NanumGothicBold', sans-serif;
+/* ===== 상태 배지 ===== */
+.status-badge {
     position: absolute;
-    top: 9px;
-    left: 11px;
-    font-size: 12px;
-    font-weight: bolder;
-    padding: 4px 8px;
-    border-radius: 4px;
-    background-color: black;
-    color: gold;
-    z-index: 10;
-}
-.list-badge-safe {
-    font-family: 'NanumGothicBold', sans-serif;
-    position: absolute;
-    bottom: -40px;
+    top: 10px;
     left: 10px;
-    background: #ee7023;
-    color: white;
-    font-size: 11px;
-    font-weight: 550;
-    padding: 4px 8px;
-    border-radius: 4px;
-    z-index: 2;
-}
-.list-badge-sold {
-    position: absolute;
-    top: 8px;
-    left: 8px;
+    padding: 4px 9px;
     font-size: 12px;
-    font-weight: bold;
-    padding: 3px 6px;
-    border-radius: 4px;
-    background-color: #666;
-    color: white;
-    z-index: 10;
+    font-weight: 600;
+    border-radius: 6px;
+    color: #fff;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
+.status-badge.safe_pending { background: rgba(243,156,18,0.9); }
+.status-badge.safe_ready { background: rgba(52,152,219,0.9); }
+.status-badge.safe_start,
+.status-badge.safe_ing { background: rgba(39,174,96,0.9); }
+.status-badge.safe_complete { background: rgba(46,204,113,0.9); }
+.status-badge.safe_received { background: rgba(155,89,182,0.9); }
+.status-badge.safe_finished { background: rgba(52,73,94,0.9); }
 
-
-/* 카드 내부 */
+/* ===== 카드 내부 텍스트 ===== */
 .product-info {
     flex: 1;
-    padding: 8px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
+    padding: 12px 14px 14px 14px;
 }
+
 .favorite-and-views {
     display: flex;
-    justify-content: right;
+    justify-content: flex-end;
     gap: 10px;
     font-size: 13px;
-    color: #777;
+    color: #888;
     margin-bottom: 4px;
     min-height: 18px;
-    padding: 0 4px;
-    box-sizing: border-box;
 }
+
 .count {
     display: inline-flex;
     align-items: center;
     font-size: 13px;
     color: #777;
 }
+
+/* ===== 제목 ===== */
 .product-title {
     font-family: 'Noto Sans KR', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: #333;
-    margin-top: 7px;
-    white-space: nowrap;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #222;
+    margin-top: 6px;
+    margin-bottom: 6px;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 1.2;
-    height: 2.4em;
+    white-space: nowrap;
 }
+
+/* ===== 가격 ===== */
 .product-price {
     font-family: 'Noto Sans KR', sans-serif;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
-    color: #000;
-    margin-top: -15px;
+    color: #111;
+    margin-bottom: 6px;
 }
+
+/* ===== 날짜, 카테고리 ===== */
 .product-date {
     font-family: 'Noto Sans KR', sans-serif;
     font-size: 0.9rem;
-    color: #333;
+    color: #666;
     margin-top: auto;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 6px;
 }
 
-/* 상태 배지 공통 */
-.status-badge {
+/* ===== 상태 배지 커스텀 (추가) ===== */
+.list-badge-reserved {
+    font-family: 'NanumGothicBold', sans-serif;
     position: absolute;
-    top: 9px;
-    left: 11px;
-    padding: 4px 8px;
+    top: 10px;
+    left: 10px;
     font-size: 12px;
-    font-weight: bold;
-    border-radius: 4px;
-    color: #fff;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.7);
+    color: gold;
+    z-index: 10;
 }
 
-/* 상태별 색상 */
-.status-badge.safe_pending { background: #f39c12; }    /* 결제완료 (주황) */
-.status-badge.safe_ready { background: #3498db; }      /* 송장등록 (파랑) */
-.status-badge.safe_start,
-.status-badge.safe_ing { background: #27ae60; }        /* 배송중 (초록) */
-.status-badge.safe_complete { background: #2ecc71; }   /* 배송완료 (연두) */
-.status-badge.safe_received { background: #9b59b6; }   /* 수령확인 (보라) */
-.status-badge.safe_finished { background: #34495e; }   /* 거래완료 (회색) */
+.list-badge-safe {
+    font-family: 'NanumGothicBold', sans-serif;
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: #ee7023;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 550;
+    padding: 4px 8px;
+    border-radius: 6px;
+    z-index: 2;
+}
 
-/* product-image-wrapper를 relative로 만들어야 오버레이 가능 */
-.product-image-wrapper {
-    position: relative;
+.list-badge-sold {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: rgba(100,100,100,0.8);
+    color: white;
+    z-index: 10;
 }
