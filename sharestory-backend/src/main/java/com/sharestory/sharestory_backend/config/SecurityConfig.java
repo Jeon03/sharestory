@@ -46,6 +46,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/admin/items/**",
+                                "/api/admin/auctions/**",
                                 "/api/health",
                                 "/error",
                                 "/oauth2/**",
@@ -59,7 +60,9 @@ public class SecurityConfig {
                                 "/api/favorites/**",
                                 "/api/main",
                                 "/api/items/autocomplete",
-                                "/ws-connect/**"
+                                "/ws-connect/**",
+                                "/api/auctions/list",
+                                "/api/auctions/{id}"
                         ).permitAll()
                         .requestMatchers(
                                 "/api/users/location",

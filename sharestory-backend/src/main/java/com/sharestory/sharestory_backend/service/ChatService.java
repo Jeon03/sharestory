@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -213,7 +214,7 @@ public class ChatService {
         return chatReadRepository.findReadMessageIds(roomId, userId);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void sendSystemMessage(Long itemId, String content) {
         List<ChatRoom> rooms = chatRoomRepository.findByItem_Id(itemId);
         // 채팅방이 없으면 자동 생성

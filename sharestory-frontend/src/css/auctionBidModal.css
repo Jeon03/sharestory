@@ -1,0 +1,88 @@
+.auction-bid-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.auction-bid-modal {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    width: 340px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    animation: fadeIn 0.25s ease-in;
+}
+
+.auction-bid-modal h3 {
+    margin-bottom: 10px;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.auction-bid-stepper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 0;
+}
+
+.auction-bid-stepper button {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: #eee;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.auction-bid-stepper button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.auction-bid-stepper span {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.auction-bid-total {
+    margin-bottom: 16px;
+    font-size: 17px;
+}
+
+.auction-bid-btns {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.auction-bid-btns button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.auction-bid-btns .confirm {
+    background: #2b7cff;
+    color: white;
+}
+
+.auction-bid-btns .cancel {
+    background: #eee;
+    color: #333;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

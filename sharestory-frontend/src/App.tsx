@@ -26,6 +26,7 @@ import SafeTradeDetail from "./pages/SafeTradeDetail";
 import PurchasedItems from "./components/mypage/PurchasedItems.tsx";
 import AuctionItemRegister from "./pages/Item/AuctionItemRegister";
 import AuctionList from './pages/AuctionList';
+import AuctionDetail from "./pages/AuctionDetail";
 import TopBanner from "./components/TopBanner";
 
 
@@ -213,6 +214,7 @@ export default function App() {
                     {/* 게스트 접근 가능 라우트 */}
                     <Route index element={<ProductList />} />
                     <Route path="/auction" element={<AuctionList />} />
+                    <Route path="/auction/:id" element={<AuctionDetail />} />
                     <Route path="/items/:id" element={<ProductDetail />} />
                     <Route path="/search" element={<SearchPage />} />
 

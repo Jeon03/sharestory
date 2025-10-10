@@ -29,6 +29,51 @@ const AuctionItemRegister = () => {
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+    const handleSubmit = async () => {
+        try {
+            const formData = new FormData();
+
+            // 기본 상품 정보
+            formData.append("title", productName);
+            formData.append("category", selectedCategory);
+            formData.append("condition", selectedCondition);
+            formData.append("description", productExplain);
+
+            // 경매 정보
+            formData.append("startPrice", startPrice.replace(/,/g, ""));
+            formData.append("bidUnit", bidUnit.replace(/,/g, ""));
+            formData.append("endDateTime", endDateTime);
+
+            // 즉시구매 정보
+            formData.append("isImmediatePurchase", isImmediatePurchase); // "yes" | "no"
+            if (isImmediatePurchase === "yes" && immediatePrice) {
+                formData.append("immediatePrice", immediatePrice.replace(/,/g, ""));
+            }
+
+            // 이미지 파일 추가
+            images.forEach((file) => formData.append("images", file));
+
+            // 서버 요청
+            const response = await fetch("/api/auctions/register", {
+                method: "POST",
+                body: formData,
+                credentials: "include", // 로그인 세션 유지용 (OAuth2 포함)
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(text || "서버 오류가 발생했습니다.");
+            }
+
+            alert("✅ 경매 상품이 등록되었습니다!");
+            // window.location.href = "/auction-list"; // 등록 후 이동할 페이지 (원하는 경로로 변경 가능)
+
+        } catch (error) {
+            console.error(error);
+            alert("등록 실패: " + (error as Error).message);
+        }
+    };
+
     // ✅ 즉시구매가 실시간 유효성 검사
     useEffect(() => {
         if (isImmediatePurchase === "yes") {
@@ -302,7 +347,10 @@ const AuctionItemRegister = () => {
 
             {showAgreeModal && (
                 <AuctionWarningModal
-                    onAgree={() => setShowAgreeModal(false)}
+                    onAgree={() => {
+                        setShowAgreeModal(false);
+                        handleSubmit(); // ✅ 실제 서버 전송
+                    }}
                     onCancel={() => setShowAgreeModal(false)}
                 />
             )}
