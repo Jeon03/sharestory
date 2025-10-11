@@ -12,7 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType; // ✅ import 추가
+import org.springframework.web.multipart.MultipartFile; // ✅ import 추가
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -24,15 +27,16 @@ public class CommunityController {
     private final CommunityService communityService;
 
     // 새 게시글 작성 API
-    @PostMapping("/posts")
+    @PostMapping(value = "/posts", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<PostResponseDto> createPost(
             @AuthenticationPrincipal CustomUserDetails user,
-            @RequestBody PostRequestDto requestDto
-    ) {
+            @RequestPart("post") PostRequestDto requestDto, // JSON 데이터
+            @RequestPart(value = "image", required = false) MultipartFile image // 이미지 파일
+    ) throws IOException {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        PostResponseDto newPost = communityService.createPost(user.getId(), requestDto);
+        PostResponseDto newPost = communityService.createPost(user.getId(), requestDto, image);
         return ResponseEntity.status(HttpStatus.CREATED).body(newPost);
     }
 
@@ -41,9 +45,11 @@ public class CommunityController {
     public ResponseEntity<List<PostResponseDto>> getPostsByLocation(
             @RequestParam Double lat,
             @RequestParam Double lon,
-            @RequestParam(defaultValue = "5.0") Double distance
+            @RequestParam(defaultValue = "5.0") Double distance,
+            // ✅ [수정] category 파라미터를 선택적으로 받도록 추가
+            @RequestParam(required = false) String category
     ) {
-        List<PostResponseDto> posts = communityService.getPostsByLocation(lat, lon, distance);
+        List<PostResponseDto> posts = communityService.getPostsByLocation(lat, lon, distance, category);
         return ResponseEntity.ok(posts);
     }
 
@@ -108,4 +114,25 @@ public class CommunityController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // 권한 없을 시 403 Forbidden
         }
     }
+    // CommunityController.java
+// ...
+    // ✅ [추가] 게시글 수정 API
+    @PutMapping(value = "/posts/{id}", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<PostResponseDto> updatePost(
+            @AuthenticationPrincipal CustomUserDetails user,
+            @PathVariable Long id,
+            @RequestPart("post") PostRequestDto requestDto,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) throws IOException {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            PostResponseDto updatedPost = communityService.updatePost(user.getId(), id, requestDto, image);
+            return ResponseEntity.ok(updatedPost);
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+    }
+// ...
 }

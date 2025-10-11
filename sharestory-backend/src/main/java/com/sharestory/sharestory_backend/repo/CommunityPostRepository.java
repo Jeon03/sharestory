@@ -9,16 +9,31 @@ import java.util.List;
 
 public interface CommunityPostRepository extends JpaRepository<CommunityPost, Long> {
 
-    // Haversine 공식을 사용하여 거리 계산 (MySQL/MariaDB 기준)
-    // 6371을 곱하면 km 단위로 거리가 나옵니다.
+    // 위치 기반 조회
     @Query(value = "SELECT * FROM community_post p WHERE " +
             "(6371 * acos(cos(radians(:lat)) * cos(radians(p.latitude)) * " +
             "cos(radians(p.longitude) - radians(:lon)) + sin(radians(:lat)) * " +
             "sin(radians(p.latitude)))) < :distance " +
-            "ORDER BY p.created_at DESC", nativeQuery = true)
+            // ✅ [수정] created_at -> created_date
+            "ORDER BY p.created_date DESC", nativeQuery = true)
     List<CommunityPost> findPostsByLocation(
             @Param("lat") Double lat,
             @Param("lon") Double lon,
             @Param("distance") Double distance
+    );
+
+    // 위치 + 카테고리 기반 조회
+    @Query(value = "SELECT * FROM community_post p WHERE " +
+            "(6371 * acos(cos(radians(:lat)) * cos(radians(p.latitude)) * " +
+            "cos(radians(p.longitude) - radians(:lon)) + sin(radians(:lat)) * " +
+            "sin(radians(p.latitude)))) < :distance " +
+            "AND p.category = :category " +
+            // ✅ [수정] created_at -> created_date
+            "ORDER BY p.created_date DESC", nativeQuery = true)
+    List<CommunityPost> findPostsByLocationAndCategory(
+            @Param("lat") Double lat,
+            @Param("lon") Double lon,
+            @Param("distance") Double distance,
+            @Param("category") String category
     );
 }

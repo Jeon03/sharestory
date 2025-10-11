@@ -17,7 +17,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile; // ✅ import 추가
 
+import java.io.IOException; // ✅ import 추가
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -29,20 +31,28 @@ import java.util.stream.Collectors;
 @Transactional
 public class CommunityService {
 
+    private final S3Service s3Service;
     private final CommunityPostRepository postRepository;
     private final CommunityCommentRepository commentRepository;
     private final UserRepository userRepository;
     private final PostLikeRepository postLikeRepository;
     // 게시글 생성 로직
-    public PostResponseDto createPost(Long userId, PostRequestDto requestDto) {
+    public PostResponseDto createPost(Long userId, PostRequestDto requestDto, MultipartFile image) throws IOException {
         User author = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        String imageUrl = null;
+        // ✅ [추가] 이미지가 있으면 S3에 업로드하고 URL을 받아옵니다.
+        if (image != null && !image.isEmpty()) {
+            imageUrl = s3Service.uploadFile(image, "community");
+        }
 
         CommunityPost newPost = CommunityPost.builder()
                 .author(author)
                 .category(requestDto.getCategory())
                 .title(requestDto.getTitle())
                 .content(requestDto.getContent())
+                .imageUrl(imageUrl) // ✅ 저장된 이미지 URL 설정
                 .latitude(author.getMyLatitude())
                 .longitude(author.getMyLongitude())
                 .build();
@@ -52,13 +62,20 @@ public class CommunityService {
         return PostResponseDto.fromEntity(savedPost);
     }
     @Transactional(readOnly = true)
-    public List<PostResponseDto> getPostsByLocation(Double lat, Double lon, Double distance) {
-        List<CommunityPost> posts = postRepository.findPostsByLocation(lat, lon, distance);
+    // ✅ [수정] String category 파라미터 추가
+    public List<PostResponseDto> getPostsByLocation(Double lat, Double lon, Double distance, String category) {
+        List<CommunityPost> posts;
+        // ✅ [수정] category 값이 있는지 확인하는 분기 처리
+        if (category != null && !category.isBlank()) {
+            posts = postRepository.findPostsByLocationAndCategory(lat, lon, distance, category);
+        } else {
+            posts = postRepository.findPostsByLocation(lat, lon, distance);
+        }
+
         return posts.stream()
                 .map(PostResponseDto::fromEntity)
                 .collect(Collectors.toList());
     }
-
     public PostResponseDto getPostById(Long postId, Long userId) {
         CommunityPost post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다: " + postId));
@@ -131,26 +148,37 @@ public class CommunityService {
                 "isLiked", isLiked
         );
     }
-    public PostResponseDto updatePost(Long userId, Long postId, PostRequestDto requestDto) {
+    // CommunityService.java
+// ...
+    // ✅ [수정] updatePost 메소드 시그니처 변경 (MultipartFile image 추가)
+    public PostResponseDto updatePost(Long userId, Long postId, PostRequestDto requestDto, MultipartFile image) throws IOException {
         CommunityPost post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));
 
-        // 작성자 본인인지 확인
         if (!post.getAuthor().getId().equals(userId)) {
             throw new AccessDeniedException("수정 권한이 없습니다.");
         }
 
-        // DTO의 내용으로 게시글 필드 업데이트
+        // ✅ [추가] 이미지 수정 로직
+        if (image != null && !image.isEmpty()) {
+            // 기존 이미지가 있다면 S3에서 삭제 (선택적 기능)
+            if (post.getImageUrl() != null) {
+                s3Service.deleteFile(post.getImageUrl());
+            }
+            // 새 이미지 업로드
+            String newImageUrl = s3Service.uploadFile(image, "community");
+            post.setImageUrl(newImageUrl);
+        }
+
         post.setCategory(requestDto.getCategory());
         post.setTitle(requestDto.getTitle());
         post.setContent(requestDto.getContent());
-        // updatedAt은 BaseTimeEntity에 의해 자동으로 업데이트 됩니다.
 
-        // transactional에 의해 메소드 종료 시 자동으로 DB에 저장(더티 체킹)되지만, 명시적으로 save 호출도 가능
         CommunityPost updatedPost = postRepository.save(post);
 
         return PostResponseDto.fromEntity(updatedPost);
     }
+    // ...
     public void deletePost(Long userId, Long postId) {
         CommunityPost post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));

@@ -41,4 +41,5 @@ public class CommunityPost extends BaseTimeEntity {
 
     @Builder.Default
     private int commentCount = 0;
+    private String imageUrl; // ✅ 이 필드를 추가해주세요.
 }

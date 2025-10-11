@@ -92,3 +92,80 @@
     align-items: center;
     gap: 4px;
 }
+/* CommunityPage.css에 추가 */
+.community-main-content {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.community-sidebar {
+    flex-shrink: 0;
+    width: 180px;
+}
+
+.category-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.category-menu button {
+    width: 100%;
+    padding: 12px;
+    background-color: transparent;
+    border: none;
+    border-radius: 8px;
+    text-align: left;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.category-menu button:hover {
+    background-color: #f0f0f0;
+}
+
+.category-menu button.active {
+    background-color: #e0e7ff;
+    color: #4f46e5;
+    font-weight: bold;
+}
+
+.post-list-area {
+    flex-grow: 1;
+    min-width: 0; /* flex item이 줄어들 수 있도록 함 */
+}
+
+.floating-write-button {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #535bf2;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: bold;
+    z-index: 100;
+}
+/* CommunityPage.css 에 추가 */
+.post-card {
+    display: flex; /* 레이아웃 변경 */
+    gap: 16px;
+}
+.post-thumbnail {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+.post-card-content {
+    flex-grow: 1;
+}

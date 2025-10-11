@@ -21,7 +21,7 @@ public class PostResponseDto {
     private boolean isLiked; // ✅ 현재 사용자의 좋아요 여부 추가
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
+    private String imageUrl; // ✅ imageUrl 필드 추가
     // 기존 fromEntity 메소드 (isLiked 정보가 필요 없을 때 사용)
     public static PostResponseDto fromEntity(CommunityPost post) {
         return fromEntity(post, false); // 기본값은 false
@@ -40,6 +40,7 @@ public class PostResponseDto {
                 .likeCount(post.getLikeCount())
                 .commentCount(post.getCommentCount())
                 .isLiked(isLiked) // isLiked 설정
+                .imageUrl(post.getImageUrl())
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
                 .build();
