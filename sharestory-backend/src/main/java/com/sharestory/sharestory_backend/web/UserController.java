@@ -1,11 +1,13 @@
 package com.sharestory.sharestory_backend.web;
 
 import com.sharestory.sharestory_backend.domain.User;
-import com.sharestory.sharestory_backend.dto.LocationUpdateRequest;
-import com.sharestory.sharestory_backend.repo.UserRepository;
+import com.sharestory.sharestory_backend.dto.LocationUpdateRequestDto; // ✅ DTO를 LocationUpdateRequestDto로 통일
 import com.sharestory.sharestory_backend.security.CustomUserDetails;
+import com.sharestory.sharestory_backend.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -15,7 +17,8 @@ import java.util.Map;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class UserController {
-    private final UserRepository userRepository;
+
+    private final UserService userService;
 
     // 로그인된 사용자 정보 조회 (위치 포함)
     @GetMapping("/main")
@@ -23,59 +26,41 @@ public class UserController {
         if (authentication == null || authentication.getPrincipal() == null) {
             return Map.of("authenticated", false);
         }
-
         try {
-            CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
-            User u = userRepository.findById(user.getId()).orElseThrow();
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            User user = userService.getUserById(userDetails.getId());
 
             Map<String, Object> result = new HashMap<>();
             result.put("id", user.getId());
             result.put("email", user.getEmail());
             result.put("nickname", user.getNickname());
             result.put("role", user.getRole());
-            result.put("myLatitude", u.getMyLatitude());
-            result.put("myLongitude", u.getMyLongitude());
-            result.put("addressName", u.getAddressName());
-            result.put("points", u.getPoints());
+            result.put("myLatitude", user.getMyLatitude());
+            result.put("myLongitude", user.getMyLongitude());
+            result.put("addressName", user.getAddressName());
+            result.put("points", user.getPoints());
             result.put("authenticated", true);
-
             return result;
         } catch (Exception e) {
             return Map.of("authenticated", false, "error", e.getMessage());
         }
     }
 
+    // ✅ [수정된 부분] 위치 업데이트 API
     @PutMapping("/users/location")
-    public Map<String, Object> updateLocation(
-            @RequestBody LocationUpdateRequest request,
-            Authentication authentication
+    public ResponseEntity<Map<String, Object>> updateUserLocation(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            // DTO를 LocationUpdateRequestDto로 변경하여 UserService와 일치시킴
+            @RequestBody LocationUpdateRequestDto dto
     ) {
-        if (authentication == null || authentication.getPrincipal() == null) {
-            return Map.of("success", false, "message", "로그인이 필요합니다.");
-        }
+        // ✅ [핵심] userRepository를 직접 사용하는 대신, UserService의 메소드를 호출합니다.
+        userService.updateUserLocation(userDetails.getId(), dto);
 
-        try {
-            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            User user = userRepository.findById(userDetails.getId())
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        // 성공 응답을 Map 객체(JSON)로 반환합니다.
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "사용자 위치 정보가 업데이트되었습니다.");
 
-            // 위치 정보 업데이트
-            user.setMyLatitude(request.getMyLatitude());
-            user.setMyLongitude(request.getMyLongitude());
-            user.setAddressName(request.getAddressName());
-
-            userRepository.save(user);
-
-            Map<String, Object> result = new HashMap<>();
-            result.put("success", true);
-            result.put("message", "위치가 업데이트되었습니다.");
-            result.put("addressName", user.getAddressName());
-            result.put("myLatitude", user.getMyLatitude());
-            result.put("myLongitude", user.getMyLongitude());
-
-            return result;
-        } catch (Exception e) {
-            return Map.of("success", false, "message", e.getMessage());
-        }
+        return ResponseEntity.ok(response);
     }
 }

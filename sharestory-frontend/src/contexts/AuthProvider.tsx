@@ -21,7 +21,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     // ✅ 사용자 정보 새로 불러오기
     const refreshUser = useCallback(async () => {
         try {
-            const res = await fetch(`${API_BASE}/api/main`, { credentials: "include" });
+            const res = await fetch(`${API_BASE}/main`, { credentials: "include" });
             if (res.ok) {
                 const data: User = await res.json();
                 setUser(data);

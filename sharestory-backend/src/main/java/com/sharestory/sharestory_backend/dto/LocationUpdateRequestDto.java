@@ -7,9 +7,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class LocationUpdateRequest {
-    // UserController의 필드 이름과 정확히 일치해야 합니다.
-    private Double myLatitude;
-    private Double myLongitude;
+public class LocationUpdateRequestDto {
+    private Double latitude;
+    private Double longitude;
     private String addressName;
 }

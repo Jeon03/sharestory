@@ -49,6 +49,8 @@ declare global {
             setCenter(latlng: LatLng): void;
             setLevel(level: number): void;
             relayout(): void;
+            getCenter(): LatLng; // ✅ 이 줄을 추가해주세요.
+
         }
 
         interface Marker {
