@@ -130,3 +130,87 @@
     font-weight: bold;
     color: black;
 }
+
+/* 🔔 알림 버튼 */
+.notification-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.notification-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: relative;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ff3b30;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 드롭다운 */
+.notification-dropdown {
+    position: absolute;
+    top: 30px;
+    right: 0;
+    width: 240px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    z-index: 999;
+    overflow: hidden;
+}
+
+.notification-item {
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.notification-item:hover {
+    background: #f8f8f8;
+}
+
+.notification-item.unread {
+    background: #fffbea;
+    font-weight: 600;
+}
+
+.notification-item.read {
+    color: #777;
+}
+
+.notification-message {
+    margin: 0;
+}
+
+.notification-time {
+    display: block;
+    font-size: 11px;
+    color: #999;
+    margin-top: 4px;
+    text-align: right;
+}
+
+.notification-empty {
+    padding: 14px;
+    text-align: center;
+    color: #999;
+    font-size: 13px;
+}
+
