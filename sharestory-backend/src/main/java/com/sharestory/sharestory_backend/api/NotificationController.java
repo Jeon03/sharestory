@@ -34,7 +34,7 @@ public class NotificationController {
         return ResponseEntity.ok(Map.of("count", count));
     }
 
-    // 모든 알림을 읽음 처리
+    // 모든 알림을 읽음 처리 rlawnstjd10/29
     @PostMapping("/read-all")
     public ResponseEntity<Void> markAllAsRead(@AuthenticationPrincipal CustomUserDetails user) {
         notificationService.markAllAsRead(user.getId());
