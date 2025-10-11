@@ -8,16 +8,15 @@ import com.sharestory.sharestory_backend.dto.CommentRequestDto; // ✅ 추가: C
 import com.sharestory.sharestory_backend.dto.CommentResponseDto; // ✅ 추가: CommentResponseDto 클래스 import
 import com.sharestory.sharestory_backend.dto.PostRequestDto;
 import com.sharestory.sharestory_backend.dto.PostResponseDto;
-import com.sharestory.sharestory_backend.repo.CommunityCommentRepository;
-import com.sharestory.sharestory_backend.repo.CommunityPostRepository;
-import com.sharestory.sharestory_backend.repo.PostLikeRepository;
-import com.sharestory.sharestory_backend.repo.UserRepository;
+import com.sharestory.sharestory_backend.fcm.FirebaseService;
+import com.sharestory.sharestory_backend.repo.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile; // ✅ import 추가
+import com.sharestory.sharestory_backend.domain.Notification;
 
 import java.io.IOException; // ✅ import 추가
 import java.util.List;
@@ -31,6 +30,8 @@ import java.util.stream.Collectors;
 @Transactional
 public class CommunityService {
 
+    private final NotificationRepository notificationRepository; // 주입
+    private final FirebaseService firebaseService;
     private final S3Service s3Service;
     private final CommunityPostRepository postRepository;
     private final CommunityCommentRepository commentRepository;
@@ -100,6 +101,7 @@ public class CommunityService {
                 .collect(Collectors.toList());
     }
 
+    // ✅ [수정] addComment 메소드 전체를 교체해주세요.
     public CommentResponseDto addComment(Long userId, Long postId, CommentRequestDto requestDto) {
         User author = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
@@ -116,6 +118,10 @@ public class CommunityService {
 
         post.setCommentCount(post.getCommentCount() + 1);
         postRepository.save(post);
+
+        // --- 🚀 알림 발송 로직 시작 🚀 ---
+        sendCommentNotification(post, author);
+        // ------------------------------------
 
         return CommentResponseDto.fromEntity(newComment);
     }
@@ -189,5 +195,33 @@ public class CommunityService {
         }
 
         postRepository.delete(post);
+    }
+
+
+    private void sendCommentNotification(CommunityPost post, User newCommenter) {
+        String title = "🔔 새 댓글 알림";
+        String body = String.format("'%s' 게시글에 새 댓글이 달렸습니다.", post.getTitle());
+        String link = "/community/posts/" + post.getId(); // 알림 클릭 시 이동할 링크
+
+        // 1. 게시글 작성자에게 알림
+        User postAuthor = post.getAuthor();
+        if (!postAuthor.getId().equals(newCommenter.getId())) {
+            firebaseService.sendPushNotificationToUser(postAuthor.getId(), title, body);
+            // DB에 알림 저장
+            notificationRepository.save(Notification.builder()
+                    .recipient(postAuthor).message(body).link(link).build());
+        }
+
+        // 2. 다른 댓글 작성자들에게 알림
+        List<Long> allCommenterIds = commentRepository.findDistinctAuthorIdsByPostId(post.getId());
+        for (Long commenterId : allCommenterIds) {
+            if (!commenterId.equals(postAuthor.getId()) && !commenterId.equals(newCommenter.getId())) {
+                firebaseService.sendPushNotificationToUser(commenterId, title, body);
+                // DB에 알림 저장
+                User recipient = new User(commenterId); // ID만으로 프록시 User 객체 생성
+                notificationRepository.save(Notification.builder()
+                        .recipient(recipient).message(body).link(link).build());
+            }
+        }
     }
 }
