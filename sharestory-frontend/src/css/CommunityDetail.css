@@ -1,0 +1,143 @@
+.detail-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    color: #213547;
+}
+
+.post-header {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+}
+.post-header .post-category {
+    display: inline-block;
+    background-color: #f0f0f0;
+    color: #555;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+.post-header .post-title {
+    font-size: 28px;
+    margin: 8px 0;
+}
+.post-header .post-meta, .post-header .post-stats {
+    display: flex;
+    gap: 12px;
+    font-size: 14px;
+    color: #888;
+}
+.post-header .post-stats {
+    margin-top: 8px;
+}
+.post-header .post-stats span {
+    display: flex; align-items: center; gap: 4px;
+}
+
+.post-content {
+    font-size: 16px;
+    line-height: 1.7;
+    min-height: 200px;
+}
+
+.comment-section {
+    margin-top: 40px;
+    border-top: 2px solid #333;
+    padding-top: 20px;
+}
+.comment-list {
+    list-style: none; padding: 0;
+}
+.comment-item {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 16px 0;
+}
+.comment-author { font-weight: bold; }
+.comment-content { margin: 8px 0; }
+.comment-date { font-size: 12px; color: #888; }
+
+.comment-form {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+}
+.comment-form textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: vertical;
+    font-size: 14px;
+}
+.comment-form button {
+    margin-top: 8px;
+    align-self: flex-end;
+    padding: 8px 24px;
+    background-color: #1a1a1a;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.comment-form button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+/* src/css/CommunityDetail.css 맨 아래에 추가 */
+.like-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    color: #888;
+}
+.like-button:hover {
+    color: #535bf2;
+}
+/* src/css/CommunityDetail.css 맨 아래에 추가 */
+.like-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    color: #888;
+}
+.like-button:hover {
+    color: #535bf2;
+}
+/* CommunityDetail.css 파일 맨 아래에 추가 */
+
+.post-actions {
+    margin-left: auto; /* 버튼들을 오른쪽 끝으로 보냄 */
+}
+
+.action-button {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    margin-left: 10px;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.action-button.delete {
+    color: #d9534f;
+}
+
+.action-button:hover {
+    text-decoration: underline;
+}

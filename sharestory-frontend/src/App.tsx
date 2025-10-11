@@ -28,8 +28,10 @@ import SafeTradeDetail from "./pages/SafeTradeDetail";
 import PurchasedItems from "./components/mypage/PurchasedItems.tsx";
 import AuctionRegister from "./pages/Item/AuctionRegister.tsx";
 // --- [추가된 코드 1] ---
+import CommunityPage from './pages/CommunityPage'; // 새로 추가
+import CommunityDetail from './pages/CommunityDetail'; // 새로 추가
 import { requestPermissionAndRegisterToken } from './services/firebaseMessaging';
-
+import CommunityWrite from './pages/CommunityWrite';
 
 function AppLayout({
                        user,
@@ -212,7 +214,20 @@ export default function App() {
                     <Route index element={<ProductList />} />
                     <Route path="/items/:id" element={<ProductDetail />} />
                     <Route path="/search" element={<SearchPage />} />
-
+                    <Route path="/community/posts/:id" element={<CommunityDetail />} />
+                    {/* ===== 여기에 수정 경로를 추가해주세요 ===== */}
+                    <Route
+                        path="/community/posts/:id/edit"
+                        element={
+                            <ProtectedRoute user={user} isAuthLoading={isAuthLoading}>
+                                <CommunityWrite />
+                            </ProtectedRoute>
+                        }
+                    />
+                    {/* ======================================= */}
+                    {/* ===== 여기에 아래 코드를 추가해주세요 ===== */}
+                    <Route path="/community" element={<CommunityPage />} />
+                    {/* ======================================= */}
                     <Route path="/auctions" element={<AuctionList />} />
                     <Route path="/auctions/:id" element={<AuctionItemPage />} />
                     <Route path="/auctionRegister" element={<AuctionRegister /> }/>
@@ -291,7 +306,20 @@ export default function App() {
                         path="/oauth2/redirect"
                         element={<OAuth2Redirect onLogin={fetchMe} />}
                     />
-                </Route>
+                    {/* ===== 여기에 추가해주세요 ===== */}
+                    <Route
+                        path="/community/write"
+                        element={
+                            <ProtectedRoute user={user} isAuthLoading={isAuthLoading}>
+                                <CommunityWrite />
+                            </ProtectedRoute>
+                        }
+                    />
+                    {/* ============================== */}
+
+
+
+            </Route>
             </Routes>
             <PointModal
                 isOpen={isPointModalOpen}
@@ -303,6 +331,7 @@ export default function App() {
                 }}
             />
             <GlobalChat />
+
         </>
     );
 }

@@ -66,6 +66,7 @@ function Navigation() {
 
                 <a href="/">중고거래</a>
                 <a href="/auctions">물품경매</a>
+                <a href="/community">동네생활</a> {/* '동네생활' 링크 추가 */}
 
             </div>
         </nav>
