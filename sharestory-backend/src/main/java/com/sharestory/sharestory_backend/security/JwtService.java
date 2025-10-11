@@ -72,6 +72,22 @@ public class JwtService {
         return false;
     }
 
+    // ✅ 토큰에서 userId 추출 (StompAuthInterceptor용)
+    public Long getUserIdFromToken(String token) {
+        try {
+            Claims claims = parse(token).getBody();
+            String subject = claims.getSubject();
+            if (subject == null) {
+                log.warn("⚠️ JWT에 subject(userId)가 없습니다.");
+                return null;
+            }
+            return Long.parseLong(subject);
+        } catch (Exception e) {
+            log.error("❌ getUserIdFromToken() 실패: {}", e.getMessage());
+            return null;
+        }
+    }
+
     // ✅ StompAuthInterceptor / JwtAuthenticationFilter 에서 사용할 Authentication 반환
     public Authentication getAuthentication(String token) {
         Claims claims = parse(token).getBody();

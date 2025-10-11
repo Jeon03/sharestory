@@ -58,4 +58,15 @@ public class NotificationService {
             log.error("❌ [NotificationService] 알림 처리 실패: {}", e.getMessage(), e);
         }
     }
+
+    @Transactional
+    public void markAsRead(Long id) {
+        Notification noti = notificationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 알림이 존재하지 않습니다."));
+        if (!noti.isRead()) {
+            noti.setRead(true);
+            notificationRepository.save(noti);
+            log.info("✅ [NotificationService] DB 읽음 상태 업데이트 완료 → id={}", id);
+        }
+    }
 }

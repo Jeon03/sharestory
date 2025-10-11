@@ -7,6 +7,7 @@ import com.sharestory.sharestory_backend.repo.FcmTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -22,6 +23,7 @@ public class FcmService {
 
     private static final long NOTIFY_COOLDOWN_SECONDS = 3;
 
+    @Async
     public void sendToUser(Long userId, String title, String body, String clickAction, Long roomId) {
         String redisKey = "fcm:chat:lastSent:" + userId;
 

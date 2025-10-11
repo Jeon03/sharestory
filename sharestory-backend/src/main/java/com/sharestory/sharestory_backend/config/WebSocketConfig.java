@@ -26,7 +26,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws-connect")
-                .addInterceptors(httpHandshakeInterceptor) // 👈 추가
+                .addInterceptors(httpHandshakeInterceptor)
                 .setAllowedOriginPatterns("*")
                 .withSockJS();
     }
@@ -34,8 +34,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     // pub/sub 설정
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.setApplicationDestinationPrefixes("/pub"); // 발행 prefix
-        registry.enableSimpleBroker("/sub");                // 구독 prefix
+        registry.setApplicationDestinationPrefixes("/pub");
+        registry.enableSimpleBroker("/sub", "/queue");
+        registry.setUserDestinationPrefix("/user");
     }
 
     @Override
