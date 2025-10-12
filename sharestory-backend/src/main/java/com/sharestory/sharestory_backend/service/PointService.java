@@ -20,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.HttpHeaders;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -124,5 +126,25 @@ public class PointService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
         return historyRepository.findByUserOrderByCreatedAtDesc(user);
+    }
+
+    @Transactional
+    public void payAuctionSafeTrade(Long buyerId, int amount) {
+        User buyer = userRepository.findById(buyerId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
+
+        if (buyer.getPoints() < amount) {
+            throw new IllegalStateException("포인트가 부족합니다.");
+        }
+
+        buyer.setPoints(buyer.getPoints() - amount);
+
+        historyRepository.save(PointHistory.builder()
+                .user(buyer)
+                .amount(-amount)
+                .type("AUCTION_SAFE_PAYMENT")
+                .description("경매 안전거래 결제 (배송비 + 수수료)")
+                .createdAt(Instant.now())
+                .build());
     }
 }

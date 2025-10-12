@@ -19,6 +19,7 @@ interface DeliveryTrackingModalProps {
     itemId: number;
     isOpen: boolean;
     onClose: () => void;
+    isAuction?: boolean;
 }
 
 const API_BASE = import.meta.env.VITE_API_BASE || "";
@@ -27,20 +28,24 @@ export default function DeliveryTrackingModal({
                                                   itemId,
                                                   isOpen,
                                                   onClose,
+                                                  isAuction = false, // 기본값: 일반 상품
                                               }: DeliveryTrackingModalProps) {
     const [tracking, setTracking] = useState<TrackingInfo | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // ✅ API 호출 함수 분리
+    /** ✅ API 호출 */
     const fetchTracking = async () => {
         try {
             setLoading(true);
             setError(null);
-            const res = await fetch(
-                `${API_BASE}/api/items/${itemId}/delivery/tracking`,
-                { credentials: "include" }
-            );
+
+            // ✅ 경매 상품이면 다른 API 호출
+            const url = isAuction
+                ? `${API_BASE}/api/orders/auction/${itemId}/delivery/tracking`
+                : `${API_BASE}/api/items/${itemId}/delivery/tracking`;
+
+            const res = await fetch(url, { credentials: "include" });
             if (!res.ok) throw new Error(await res.text());
             const data = (await res.json()) as TrackingInfo;
             setTracking(data);
@@ -51,15 +56,13 @@ export default function DeliveryTrackingModal({
         }
     };
 
-    // ✅ Polling (1분 주기)
+    /** ✅ Polling (1분 주기) */
     useEffect(() => {
         if (!isOpen) return;
-
-        fetchTracking(); // 모달 열릴 때 1회 실행
+        fetchTracking();
         const interval = setInterval(fetchTracking, 60 * 1000);
-
         return () => clearInterval(interval);
-    }, [isOpen, itemId]);
+    }, [isOpen, itemId, isAuction]);
 
     return (
         <AnimatePresence>
@@ -99,8 +102,12 @@ export default function DeliveryTrackingModal({
                             {!loading && !error && tracking && (
                                 <>
                                     <section className="delivery-summary">
-                                        <p><b>택배사:</b> {tracking.courier}</p>
-                                        <p><b>송장번호:</b> {tracking.trackingNumber}</p>
+                                        <p>
+                                            <b>택배사:</b> {tracking.courier}
+                                        </p>
+                                        <p>
+                                            <b>송장번호:</b> {tracking.trackingNumber}
+                                        </p>
                                         <p>
                                             <b>현재 상태:</b>{" "}
                                             <span className="delivery-status">{tracking.status}</span>

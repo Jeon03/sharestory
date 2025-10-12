@@ -10,8 +10,11 @@ import java.util.Optional;
 
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
-    Optional<Order> findByItem(Item item);
     List<Order> findByStatus(OrderStatus status);
+    List<Order> findByStatusAndAuctionItemIdNotNull(OrderStatus status);
     Optional<Order> findByItem_Id(Long itemId);
     boolean existsByItem_Id(Long itemId);
+    Optional<Order> findByAuctionItemId(Long auctionItemId);
+    Optional<Order> findByAuctionItem_Id(Long auctionItemId);
+
 }

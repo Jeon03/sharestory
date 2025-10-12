@@ -21,7 +21,8 @@ public class AuctionItem {
 
     // ✅ 판매자, 낙찰자
     private Long sellerId;
-    private Long buyerId;
+    private Long winnerId;  // 낙찰자 ID
+    private Integer winningPrice; // 낙찰 금액
 
     // ✅ 기본 상품 정보
     private String title;
@@ -49,11 +50,16 @@ public class AuctionItem {
 
     // ✅ 경매 상태 (추가하면 편리 — 예: 진행중, 종료됨 등)
     @Enumerated(EnumType.STRING)
+    @Column(length = 30, nullable = false)
     private AuctionStatus status;
 
     // ✅ 이미지 리스트 (양방향 매핑)
     @OneToMany(mappedBy = "auctionItem", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<AuctionImage> images = new ArrayList<>();
+
+    // ✅ 배송 추적 정보 (1:1 연결)
+    @OneToOne(mappedBy = "auctionItem", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private DeliveryTracking deliveryTracking;
 }
 

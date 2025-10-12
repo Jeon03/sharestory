@@ -4,6 +4,7 @@ import com.sharestory.sharestory_backend.domain.AuctionImage;
 import com.sharestory.sharestory_backend.domain.AuctionItem;
 import com.sharestory.sharestory_backend.domain.User;
 import com.sharestory.sharestory_backend.dto.AuctionItemDto;
+import com.sharestory.sharestory_backend.dto.AuctionStatus;
 import com.sharestory.sharestory_backend.repo.AuctionImageRepository;
 import com.sharestory.sharestory_backend.repo.AuctionItemRepository;
 import com.sharestory.sharestory_backend.repo.UserRepository;
@@ -62,6 +63,7 @@ public class AuctionItemService {
                 .viewCount(0)
                 .bidCount(0)
                 .createdAt(LocalDateTime.now())
+                .status(AuctionStatus.ONGOING)
                 .build();
 
         auctionItemRepository.saveAndFlush(item); // ID 확보
@@ -113,7 +115,7 @@ public class AuctionItemService {
                             .id(item.getId())
                             .sellerId(item.getSellerId())
                             .sellerNickname(sellerNickname)
-                            .buyerId(item.getBuyerId())
+                            .winnerId(item.getWinnerId())
                             .title(item.getTitle())
                             .description(item.getDescription())
                             .category(item.getCategory())
@@ -147,7 +149,7 @@ public class AuctionItemService {
                 .id(item.getId())
                 .sellerId(item.getSellerId())
                 .sellerNickname(sellerNickname)
-                .buyerId(item.getBuyerId())
+                .winnerId(item.getWinnerId())
                 .title(item.getTitle())
                 .description(item.getDescription())
                 .category(item.getCategory())

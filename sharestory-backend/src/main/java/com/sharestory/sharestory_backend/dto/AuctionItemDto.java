@@ -13,7 +13,7 @@ public class AuctionItemDto {
     private Long id;
     private Long sellerId;
     private String sellerNickname;
-    private Long buyerId;
+    private Long winnerId;
     private String title;
     private String description;
     private String category;
@@ -38,7 +38,7 @@ public class AuctionItemDto {
         return AuctionItemDto.builder()
                 .id(item.getId())
                 .sellerId(item.getSellerId())
-                .buyerId(item.getBuyerId())
+                .winnerId(item.getWinnerId())
                 .title(item.getTitle())
                 .description(item.getDescription())
                 .category(item.getCategory())

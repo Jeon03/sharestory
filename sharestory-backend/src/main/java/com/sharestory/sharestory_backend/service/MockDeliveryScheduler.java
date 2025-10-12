@@ -33,7 +33,10 @@ public class MockDeliveryScheduler {
     @Transactional
     public void progressMockDelivery() {
         // 1️⃣ SAFE_DELIVERY → SAFE_DELIVERY_START
-        List<Order> readyOrders = orderRepository.findByStatus(OrderStatus.SAFE_DELIVERY);
+        List<Order> readyOrders = orderRepository.findByStatus(OrderStatus.SAFE_DELIVERY)
+                .stream()
+                .filter(o -> o.getAuctionItem() == null)
+                .toList();
         if (!readyOrders.isEmpty()) {
             for (Order order : readyOrders) {
                 updateOrderStatus(order, OrderStatus.SAFE_DELIVERY_START, "배송 시작");
@@ -58,7 +61,10 @@ public class MockDeliveryScheduler {
         }
 
         // 2️⃣ SAFE_DELIVERY_START → SAFE_DELIVERY_ING
-        List<Order> startOrders = orderRepository.findByStatus(OrderStatus.SAFE_DELIVERY_START);
+        List<Order> startOrders = orderRepository.findByStatus(OrderStatus.SAFE_DELIVERY_START)
+                .stream()
+                .filter(o -> o.getAuctionItem() == null)
+                .toList();
         if (!startOrders.isEmpty()) {
             for (Order order : startOrders) {
                 updateOrderStatus(order, OrderStatus.SAFE_DELIVERY_ING, "배송 중");
@@ -68,7 +74,10 @@ public class MockDeliveryScheduler {
         }
 
         // 3️⃣ SAFE_DELIVERY_ING → SAFE_DELIVERY_COMPLETE
-        List<Order> ingOrders = orderRepository.findByStatus(OrderStatus.SAFE_DELIVERY_ING);
+        List<Order> ingOrders = orderRepository.findByStatus(OrderStatus.SAFE_DELIVERY_ING)
+                .stream()
+                .filter(o -> o.getAuctionItem() == null)
+                .toList();
         if (!ingOrders.isEmpty()) {
             for (Order order : ingOrders) {
                 updateOrderStatus(order, OrderStatus.SAFE_DELIVERY_COMPLETE, "배송 완료");
