@@ -20,9 +20,14 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // ✅ 일반 상품 거래용 (Item)
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id", unique = true)
     private Item item;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "auction_item_id")
+    private AuctionItem auctionItem;
 
     private Long buyerId;   // 구매자
     private Long sellerId;  // 판매자

@@ -1,6 +1,10 @@
 package com.sharestory.sharestory_backend.dto;
 
 public enum OrderStatus {
+
+    //경매 또는 일반 거래 결제 직후(안전거래 생성 직후)
+    SAFE_PENDING,              // 결제 완료 / 낙찰 후 안전거래 대기
+
     PENDING,              // 결제 완료 → 송장 대기
     SAFE_DELIVERY,        // 송장 등록됨
     SAFE_DELIVERY_START,  // 배송 시작

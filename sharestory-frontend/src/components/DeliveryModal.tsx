@@ -2,18 +2,20 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Select from "react-select";
 import { COURIERS } from "../constants/couriers";
 import type { CourierOption } from "../constants/couriers";
-import { getDeliveryInfo, registerInvoice, type DeliveryInfo } from "../api/delivery";
+import api from "../api/axios";
+import type { DeliveryInfo } from "../api/delivery";
 import "../css/deliveryModal.css";
 
 type Props = {
-    itemId: number;
+    itemId: number; // 일반 or 경매 id 공용 사용
     onClose: () => void;
+    isAuction?: boolean; // ✅ 경매 여부
     onSuccess?: (payload: { courierCode: string; trackingNumber: string }) => void;
 };
 
 type Option = { value: string; label: string };
 
-export default function DeliveryModal({ itemId, onClose, onSuccess }: Props) {
+export default function DeliveryModal({ itemId, onClose, onSuccess, isAuction = false }: Props) {
     const [courier, setCourier] = useState<CourierOption | null>(null);
     const [trackingNumber, setTrackingNumber] = useState("");
     const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo | null>(null);
@@ -26,20 +28,23 @@ export default function DeliveryModal({ itemId, onClose, onSuccess }: Props) {
         []
     );
 
-    // ✅ 배송지 정보 로딩
+    /** ✅ 배송지 정보 조회 (일반 / 경매 자동 분기) */
     useEffect(() => {
         (async () => {
             try {
-                const info = await getDeliveryInfo(itemId);
-                setDeliveryInfo(info);
+                const endpoint = isAuction
+                    ? `/orders/auction/${itemId}/delivery`
+                    : `/items/${itemId}/delivery-info`;
+                const res = await api.get<DeliveryInfo>(endpoint);
+                setDeliveryInfo(res.data);
             } catch (err) {
-                console.error("배송지 정보 로딩 실패", err);
+                console.error("🚫 배송지 정보 로딩 실패:", err);
             }
         })();
-    }, [itemId]);
+    }, [itemId, isAuction]);
 
+    /** ✅ ESC 닫기 */
     useEffect(() => {
-        // ESC 닫기
         const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
         window.addEventListener("keydown", onKey);
         return () => window.removeEventListener("keydown", onKey);
@@ -50,6 +55,7 @@ export default function DeliveryModal({ itemId, onClose, onSuccess }: Props) {
         [courier]
     );
 
+    /** ✅ 유효성 검사 */
     const validate = () => {
         if (!courier) return "배송사를 선택해주세요.";
         const tn = trackingNumber.trim();
@@ -63,6 +69,7 @@ export default function DeliveryModal({ itemId, onClose, onSuccess }: Props) {
         return null;
     };
 
+    /** ✅ 송장 등록 */
     const handleSubmit = async () => {
         const v = validate();
         if (v) {
@@ -76,7 +83,11 @@ export default function DeliveryModal({ itemId, onClose, onSuccess }: Props) {
         try {
             if (!courier) throw new Error("배송사를 선택해주세요.");
 
-            await registerInvoice(itemId, {
+            const endpoint = isAuction
+                ? `/orders/auction/${itemId}/delivery/invoice`
+                : `/items/${itemId}/delivery/invoice`;
+
+            await api.post(endpoint, {
                 courier: courier.value,
                 trackingNumber: trackingNumber.trim(),
             });
@@ -85,18 +96,18 @@ export default function DeliveryModal({ itemId, onClose, onSuccess }: Props) {
                 courierCode: courier.value,
                 trackingNumber: trackingNumber.trim(),
             });
+
+            alert("🚚 송장이 등록되었습니다!");
             onClose();
         } catch (e) {
-            if (e instanceof Error) {
-                setError(e.message);
-            } else {
-                setError("등록 중 알 수 없는 오류가 발생했습니다.");
-            }
+            if (e instanceof Error) setError(e.message);
+            else setError("등록 중 알 수 없는 오류가 발생했습니다.");
         } finally {
             setSubmitting(false);
         }
     };
 
+    /** ✅ 오버레이 클릭시 닫기 */
     const onOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
         if (e.target === e.currentTarget) onClose();
     };
@@ -105,7 +116,7 @@ export default function DeliveryModal({ itemId, onClose, onSuccess }: Props) {
         <div className="safe-delivery-overlay" onClick={onOverlayClick}>
             <div className="safe-delivery-modal">
                 <div className="safe-delivery-header">
-                    <h3>송장 등록</h3>
+                    <h3>{isAuction ? "경매 송장 등록" : "송장 등록"}</h3>
                     <button className="safe-delivery-close" onClick={onClose} aria-label="close">
                         ×
                     </button>

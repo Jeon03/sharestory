@@ -258,20 +258,20 @@ public class ItemController {
     }
 
     @PatchMapping("/items/{itemId}/confirm-receipt")
-    public ResponseEntity<?> confirmItemReceipt(
+    public ResponseEntity<String> confirmItemReceipt(
             @PathVariable Long itemId,
             @AuthenticationPrincipal(expression = "id") Long buyerId
     ) {
-        orderService.confirmReceiveByItemId(itemId, buyerId);
+        orderService.confirmReceive(itemId, buyerId, false); // ← isAuction=false
         return ResponseEntity.ok("물품 수령이 확인되었습니다.");
     }
 
     @PatchMapping("/items/{itemId}/payout")
-    public ResponseEntity<String> payoutToSeller(
+    public ResponseEntity<String> payoutToSellerForItem(
             @PathVariable Long itemId,
-            @AuthenticationPrincipal CustomUserDetails user
+            @AuthenticationPrincipal(expression = "id") Long sellerId
     ) {
-        orderService.payoutToSeller(itemId, user.getId());
+        orderService.payoutToSeller(itemId, sellerId, false); // ← isAuction=false
         return ResponseEntity.ok("포인트가 판매자에게 지급되었습니다.");
     }
 
