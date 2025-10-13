@@ -22,6 +22,11 @@ public class ChatRoom {
     @JsonIgnore
     private Item item;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "auction_item_id")
+    @JsonIgnore
+    private AuctionItem auctionItem;
+
     private Long buyerId;   // 구매자
     private Long sellerId;  // 판매자
 

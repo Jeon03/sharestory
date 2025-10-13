@@ -28,6 +28,7 @@ import AuctionItemRegister from "./pages/Item/AuctionItemRegister";
 import AuctionList from './pages/AuctionList';
 import AuctionDetail from "./pages/AuctionDetail";
 import TopBanner from "./components/TopBanner";
+import AuctionTradeItems from "./components/mypage/AuctionTradeItems.tsx";
 
 
 function AppLayout({
@@ -275,7 +276,9 @@ export default function App() {
                                     />
                                     <MyItems />
                                     <PurchasedItems />
+                                    <AuctionTradeItems />
                                     <SafeTradeItems />
+
                                 </>
                             }
                         />
@@ -285,7 +288,8 @@ export default function App() {
                         <Route path="purchased" element={<PurchasedItems />} />
                         {/* 안전거래 상품 */}
                         <Route path="safe" element={<SafeTradeItems />} />
-
+                        {/* 경매 상품 */}
+                        <Route path="auction" element={<AuctionTradeItems />} />
                         <Route
                             path="points"
                             element={

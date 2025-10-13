@@ -12,7 +12,7 @@ public class AuctionStatusMapper {
         orderToAuction.put(OrderStatus.SAFE_PENDING, AuctionStatus.TRADE_PENDING);
 
         // 🚚 송장 등록 / 배송 중
-        orderToAuction.put(OrderStatus.SAFE_DELIVERY, AuctionStatus.TRADE_PENDING);
+        orderToAuction.put(OrderStatus.SAFE_DELIVERY, AuctionStatus.TRADE_DELIVERY);
         orderToAuction.put(OrderStatus.SAFE_DELIVERY_START, AuctionStatus.TRADE_DELIVERY);
         orderToAuction.put(OrderStatus.SAFE_DELIVERY_ING, AuctionStatus.TRADE_DELIVERY);
 

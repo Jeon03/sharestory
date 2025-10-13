@@ -18,4 +18,6 @@ public interface AuctionBidRepository extends JpaRepository<AuctionBid, Long> {
     Optional<AuctionBid> findByAuctionItemIdAndUserId(Long auctionItemId, Long userId);
 
     Optional<AuctionBid> findTopByAuctionItemIdOrderByBidPriceDesc(Long auctionItemId);
+
+    List<AuctionBid> findByAuctionItemId(Long auctionItemId);
 }

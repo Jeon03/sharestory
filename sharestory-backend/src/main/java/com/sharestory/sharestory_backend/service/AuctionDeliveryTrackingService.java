@@ -46,7 +46,7 @@ public class AuctionDeliveryTrackingService {
         // 6️⃣ 송장 정보 저장
         DeliveryTracking tracking = DeliveryTracking.builder()
                 .order(order)
-                .auctionItem(auctionItem) // ✅ 수정 완료: 실제 엔티티 객체 전달
+                .auctionItem(auctionItem)
                 .courier(req.getCourier())
                 .trackingNumber(req.getTrackingNumber())
                 .status("배송 준비중")
@@ -62,6 +62,9 @@ public class AuctionDeliveryTrackingService {
         info.setTrackingNumber(req.getTrackingNumber());
         order.setDeliveryInfo(info);
         orderRepository.save(order);
+
+        auctionItem.setStatus(AuctionStatus.TRADE_DELIVERY);
+        auctionItemRepository.save(auctionItem);
 
         // 8️⃣ 배송 이력 기록
         historyRepository.save(TrackingHistory.builder()

@@ -11,6 +11,18 @@
 @media (max-width: 768px) { .auction-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 480px) { .auction-grid { grid-template-columns: 1fr; } }
 
+/* ===== 카드 레이아웃 ===== */
+.auction-grid2 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    list-style: none;
+    padding: 0;
+}
+@media (max-width: 1200px) { .auction-grid2 { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 992px) { .auction-grid2 { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 768px) { .auction-grid2 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .auction-grid2 { grid-template-columns: 1fr; } }
 /* ===== 카드 전체 ===== */
 .auction-card {
     position: relative;
@@ -144,3 +156,30 @@
 }
 .auction-end-date svg { color: #555; }
 .auction-end-date.ended-date { color: #999; }
+.auction-list-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60vh;
+    color: #555;
+    font-size: 15px;
+    user-select: none;
+    pointer-events: none; /* ✅ 비활성화 */
+    opacity: 0.8;
+}
+
+.loading-spinner {
+    width: 36px;
+    height: 36px;
+    border: 4px solid #ddd;
+    border-top: 4px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 12px;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}

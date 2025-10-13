@@ -93,4 +93,81 @@ public class NotificationTemplateService {
             }
         }
     }
+
+    // ✅ 신규: 경매 전용 안전거래 메일
+    public void sendAuctionTradeMail(Order order, OrderStatus status) {
+
+        // ✅ 경매 제목 가져오기
+        String auctionTitle = "(제목 없음)";
+        try {
+            if (order.getAuctionItem() != null && order.getAuctionItem().getTitle() != null) {
+                auctionTitle = order.getAuctionItem().getTitle() + " (경매)";
+            }
+        } catch (Exception e) {
+            auctionTitle = "(제목 불러오기 오류)";
+        }
+
+        // ✅ 템플릿 변수 구성
+        Map<String, Object> vars = new HashMap<>();
+        vars.put("itemTitle", auctionTitle);
+        if (order.getDeliveryInfo() != null) {
+            vars.put("courier", order.getDeliveryInfo().getCourier());
+            vars.put("trackingNumber", order.getDeliveryInfo().getTrackingNumber());
+        } else {
+            vars.put("courier", "-");
+            vars.put("trackingNumber", "-");
+        }
+
+        // ✅ 이메일 조회
+        String buyerEmail = userRepository.findById(order.getBuyerId())
+                .map(User::getEmail)
+                .orElseThrow(() -> new IllegalArgumentException("구매자 정보 없음"));
+        String sellerEmail = userRepository.findById(order.getSellerId())
+                .map(User::getEmail)
+                .orElseThrow(() -> new IllegalArgumentException("판매자 정보 없음"));
+
+        String to;
+        String subject;
+        String template;
+
+        switch (status) {
+
+            // ✅ 배송정보 등록 완료 → 판매자 송장등록 요청
+            case SAFE_DELIVERY -> {
+                to = sellerEmail;
+                subject = "[ShareStory] 구매자가 결제 및 배송정보를 등록했습니다 (경매 송장등록 요청)";
+                template = "auction_invoice_request.html";
+                mailService.sendMail(to, subject, template, vars);
+            }
+
+            // ✅ 배송 시작 → 구매자 + 판매자
+            case SAFE_DELIVERY_START -> {
+                subject = "[ShareStory] [경매] 배송이 시작되었습니다";
+                template = "delivery_start.html";
+                mailService.sendMail(buyerEmail, subject, template, vars);
+                mailService.sendMail(sellerEmail, subject, template, vars);
+            }
+
+            // ✅ 배송 완료 → 구매자 + 판매자
+            case SAFE_DELIVERY_COMPLETE -> {
+                subject = "[ShareStory] [경매] 물품이 배송 완료되었습니다";
+                template = "delivery_complete.html";
+                mailService.sendMail(buyerEmail, subject, template, vars);
+                mailService.sendMail(sellerEmail, subject, template, vars);
+            }
+
+            // ✅ 구매자 수령 완료 → 판매자
+            case SAFE_DELIVERY_RECEIVED -> {
+                to = sellerEmail;
+                subject = "[ShareStory] [경매] 거래가 완료되어 포인트가 지급됩니다";
+                template = "receive_complete.html";
+                mailService.sendMail(to, subject, template, vars);
+            }
+
+            default -> {
+                // 처리하지 않는 상태 무시
+            }
+        }
+    }
+
 }

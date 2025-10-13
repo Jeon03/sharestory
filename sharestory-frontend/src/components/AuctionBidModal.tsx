@@ -36,9 +36,9 @@ export default function AuctionBidModal({
             <div className="auction-bid-modal">
                 <h3>입찰하기</h3>
                 <p>
-                    현재가: <strong>{currentPrice.toLocaleString()}원</strong>
+                    현재가: <strong>{(currentPrice ?? 0).toLocaleString()}원</strong>
                 </p>
-                <p>입찰 단위: +{bidUnit.toLocaleString()}원</p>
+                <p>입찰 단위: +{(bidUnit ?? 0).toLocaleString()}원</p>
 
                 <div className="auction-bid-stepper">
                     <button onClick={decrease} disabled={bidStep <= 1}>
@@ -49,7 +49,7 @@ export default function AuctionBidModal({
                 </div>
 
                 <p className="auction-bid-total">
-                    입찰 금액: <strong>{bidPrice.toLocaleString()}원</strong>
+                    입찰 금액: <strong>{(bidPrice ?? 0).toLocaleString()}원</strong>
                 </p>
 
                 <div className="auction-bid-btns">

@@ -62,7 +62,8 @@ public class SecurityConfig {
                                 "/api/items/autocomplete",
                                 "/ws-connect/**",
                                 "/api/auctions/list",
-                                "/api/auctions/{id}"
+                                "/api/auctions/{id}",
+                                "/api/auction/**"
                         ).permitAll()
                         .requestMatchers(
                                 "/api/users/location",

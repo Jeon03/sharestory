@@ -2,9 +2,12 @@ package com.sharestory.sharestory_backend.service;
 
 import com.sharestory.sharestory_backend.domain.AuctionBid;
 import com.sharestory.sharestory_backend.domain.AuctionItem;
+import com.sharestory.sharestory_backend.domain.PointHistory;
 import com.sharestory.sharestory_backend.dto.AuctionStatus;
+import com.sharestory.sharestory_backend.event.AuctionEventPublisher;
 import com.sharestory.sharestory_backend.repo.AuctionBidRepository;
 import com.sharestory.sharestory_backend.repo.AuctionItemRepository;
+import com.sharestory.sharestory_backend.repo.PointHistoryRepository;
 import com.sharestory.sharestory_backend.repo.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -24,10 +27,10 @@ public class AuctionScheduler {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final OrderService orderService;
+    private final ChatService chatService;
+    private final AuctionEventPublisher auctionEventPublisher;
+    private final PointHistoryRepository pointHistoryRepository;
 
-    /**
-     * ⏰ 매 1분마다 실행되어 종료된 경매 자동 낙찰 처리
-     */
     @Scheduled(fixedRate = 10000)
     @Transactional
     public void checkEndedAuctions() {
@@ -64,6 +67,9 @@ public class AuctionScheduler {
             item.setStatus(AuctionStatus.FINISHED);
             auctionItemRepository.save(item);
 
+            // ✅ 비낙찰자 포인트 환불 처리 추가
+            refundLosers(item.getId(), topBid.getUserId(), item.getTitle());
+
             try {
                 System.out.println("🛒 [Scheduler] 안전거래(Order) 생성 시도...");
                 orderService.createSafeOrderFromAuction(item);
@@ -73,14 +79,21 @@ public class AuctionScheduler {
                 e.printStackTrace();
             }
 
-            sendNotifications(item, topBid);
+            // ✅ 트랜잭션 커밋 이후 메시지 전송을 위한 이벤트 발행
+            try {
+                auctionEventPublisher.publishAuctionEndedEvent(item.getId());
+                System.out.println("📢 [Scheduler] AuctionEndedEvent 발행 완료 → auctionId=" + item.getId());
+            } catch (Exception e) {
+                System.err.println("❌ [Scheduler] AuctionEndedEvent 발행 실패: " + e.getMessage());
+            }
+
+            sendNotifications(item, topBid); // (기존 NotificationService 유지)
         } else {
             System.out.println("⚠️ [Scheduler] 입찰자 없음 → 경매 취소 처리");
             item.setStatus(AuctionStatus.CANCELLED);
             auctionItemRepository.save(item);
         }
     }
-
 
     private void sendNotifications(AuctionItem item, AuctionBid topBid) {
         // 판매자에게 알림
@@ -103,5 +116,48 @@ public class AuctionScheduler {
                         item.getId()
                 )
         );
+    }
+
+    private void refundLosers(Long auctionId, Long winnerId, String title) {
+        List<AuctionBid> allBids = auctionBidRepository.findByAuctionItemId(auctionId);
+
+        if (allBids.isEmpty()) {
+            System.out.println("💤 [Scheduler] 환불 대상 입찰자 없음");
+            return;
+        }
+
+        for (AuctionBid bid : allBids) {
+            if (bid.getUserId().equals(winnerId)) continue; // 낙찰자 제외
+
+            userRepository.findById(bid.getUserId()).ifPresent(loser -> {
+                int refundAmount = bid.getBidPrice();
+                int newBalance = loser.getPoints() + refundAmount;
+                loser.setPoints(newBalance);
+                userRepository.save(loser);
+
+                // ✅ 포인트 내역 기록
+                pointHistoryRepository.save(PointHistory.builder()
+                        .user(loser)
+                        .amount(refundAmount)
+                        .balance(newBalance)
+                        .type("AUCTION_REFUND")
+                        .description(String.format("[%s] 경매 낙찰 실패로 포인트 환불", title))
+                        .build());
+
+                // ✅ 알림 발송
+                try {
+                    notificationService.sendNotification(
+                            loser,
+                            "AUCTION_REFUND",
+                            String.format("[%s] 경매가 종료되어 입찰금이 환불되었습니다.", title),
+                            auctionId
+                    );
+                } catch (Exception e) {
+                    System.err.println("⚠️ [Scheduler] 환불 알림 실패: " + e.getMessage());
+                }
+
+                System.out.println("💰 [Scheduler] 환불 완료 → userId=" + loser.getId() + ", 금액=" + refundAmount);
+            });
+        }
     }
 }

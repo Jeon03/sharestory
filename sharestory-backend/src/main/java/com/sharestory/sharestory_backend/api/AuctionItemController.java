@@ -3,9 +3,11 @@ package com.sharestory.sharestory_backend.api;
 import com.sharestory.sharestory_backend.domain.AuctionItem;
 import com.sharestory.sharestory_backend.dto.AuctionItemDto;
 import com.sharestory.sharestory_backend.dto.AuctionItemResponseDto;
+import com.sharestory.sharestory_backend.repo.UserRepository;
 import com.sharestory.sharestory_backend.security.CustomUserDetails;
 import com.sharestory.sharestory_backend.service.AuctionItemService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -87,9 +89,27 @@ public class AuctionItemController {
         return ResponseEntity.ok(dtoList);
     }
 
+    @Autowired
+    private UserRepository userRepository;
+
     @GetMapping("/{id}")
-    public ResponseEntity<AuctionItemDto> getAuctionDetail(@PathVariable Long id) {
-        AuctionItemDto dto = auctionItemService.getAuctionDetail(id);
+    public ResponseEntity<AuctionItemResponseDto> getAuctionDetail(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        Long currentUserId = (user != null) ? user.getId() : null;
+
+        AuctionItem item = auctionItemService.findById(id);
+        AuctionItemResponseDto dto = AuctionItemResponseDto.from(item, currentUserId,userRepository);
+        // ✅ 로그 출력 (누가 조회했고 어떤 권한 플래그가 내려갔는지 확인)
+        System.out.printf(
+                "📦 [AuctionDetail] userId=%s | auctionId=%d | isSeller=%b | isBuyer=%b | canViewTrade=%b%n",
+                currentUserId,
+                item.getId(),
+                dto.isSeller(),
+                dto.isBuyer(),
+                dto.isCanViewTrade()
+        );
         return ResponseEntity.ok(dto);
     }
 }

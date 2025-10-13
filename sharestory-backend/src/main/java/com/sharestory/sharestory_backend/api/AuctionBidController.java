@@ -37,12 +37,28 @@ public class AuctionBidController {
 
         try {
             AuctionItem updated = auctionBidService.placeBid(auctionId, user.getId(), bidPrice);
-            return ResponseEntity.ok(AuctionItemResponseDto.from(updated));
+            return ResponseEntity.ok(AuctionItemResponseDto.from(updated, user.getId()));
 
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             e.printStackTrace(); // 디버깅용
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{auctionId}/buy")
+    public ResponseEntity<?> buyNow(
+            @PathVariable Long auctionId,
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        try {
+            AuctionItem updated = auctionBidService.buyNow(auctionId, user.getId());
+            return ResponseEntity.ok(AuctionItemResponseDto.from(updated, user.getId()));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
     }

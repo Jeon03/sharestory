@@ -2,10 +2,12 @@ package com.sharestory.sharestory_backend.service;
 
 import com.sharestory.sharestory_backend.domain.*;
 import com.sharestory.sharestory_backend.dto.*;
+import com.sharestory.sharestory_backend.event.SafeOrderCreatedEvent;
 import com.sharestory.sharestory_backend.repo.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -23,7 +25,7 @@ public class OrderService {
     private final AuctionItemRepository auctionItemRepository;
     private final NotificationTemplateService notificationTemplateService;
     private final ChatService chatService;
-
+    private final ApplicationEventPublisher eventPublisher;
     /* ✅ 일반 상품용 안전거래 생성 */
     @Transactional
     public void createSafeOrder(Long itemId, Long buyerId, DeliveryInfo deliveryInfo) {
@@ -71,12 +73,14 @@ public class OrderService {
                 .createdAt(LocalDateTime.now())
                 .build();
         orderRepository.save(order);
+        log.info("📦 주문 생성 완료 → orderId={}, status={}", order.getId(), order.getStatus());
 
         // ✅ 아이템 상태 동기화
         item.setBuyerId(buyer.getId());
         item.setSellerId(seller.getId());
         item.setStatus(StatusMapper.toItemStatus(OrderStatus.PENDING));
         itemRepository.save(item);
+        itemRepository.flush(); // 반영 보장
 
         // ✅ 판매자에게 메일 알림
         try {
@@ -86,8 +90,12 @@ public class OrderService {
             log.error("❌ [메일 발송 실패] 결제 완료 메일 실패 → {}", e.getMessage());
         }
 
-        chatService.sendSystemMessage(item.getId(), "💰 구매자가 안전거래 결제를 완료했습니다.");
+        // ✅ 트랜잭션 커밋 후 실행될 이벤트 발행 (시스템 메시지 전송은 리스너에서 처리)
+        eventPublisher.publishEvent(new SafeOrderCreatedEvent(item.getId()));
+
+        log.info("✅ [END] 안전거래 결제 프로세스 완료 → itemId={}", item.getId());
     }
+
 
     /* ✅ 일반 + 경매 공통 수령 확인 */
     @Transactional
@@ -152,8 +160,16 @@ public class OrderService {
         User seller = userRepository.findById(sellerId)
                 .orElseThrow(() -> new IllegalArgumentException("판매자 없음"));
 
-        int payoutPoint = order.getPrice();
-
+        int payoutPoint;
+        if (isAuction && order.getAuctionItem() != null) {
+            // ✅ 경매의 경우 낙찰가만큼 지급
+            payoutPoint = order.getAuctionItem().getWinningPrice();
+        } else if (order.getItem() != null) {
+            // ✅ 일반 거래의 경우 상품 가격만큼 지급
+            payoutPoint = order.getItem().getPrice();
+        } else {
+            throw new IllegalStateException("지급할 대상 상품이 없습니다.");
+        }
         // ✅ 포인트 적립
         seller.setPoints(seller.getPoints() + payoutPoint);
         userRepository.save(seller);
@@ -172,19 +188,55 @@ public class OrderService {
         // ✅ 상태 업데이트
         order.setStatus(OrderStatus.SAFE_DELIVERY_FINISHED);
 
+        Long msgTargetId;   // 시스템 메시지/FCM clickAction 에 사용할 타겟 id
+
+
         if (isAuction && order.getAuctionItem() != null) {
             AuctionItem auctionItem = order.getAuctionItem();
             auctionItem.setStatus(AuctionStatus.TRADE_COMPLETE);
             auctionItemRepository.save(auctionItem);
+
+            msgTargetId = auctionItem.getId();
+
         } else if (order.getItem() != null) {
             Item item = order.getItem();
             item.setStatus(ItemStatus.SAFE_FINISHED);
             itemRepository.save(item);
+
+            msgTargetId = item.getId();
+
+        } else {
+            // 방어 로직: 이 경우가 나오면 알림 스킵
+            log.warn("⚠️ payoutToSeller: 대상 엔티티가 없습니다. (isAuction={}, targetId={})", isAuction, targetId);
+            log.info("💰 [포인트 지급 완료] 판매자ID={}, 금액={}, 타입={}", sellerId, payoutPoint, isAuction ? "경매" : "일반");
+            return;
         }
 
         log.info("💰 [포인트 지급 완료] 판매자ID={}, 금액={}, 타입={}",
                 sellerId, payoutPoint, isAuction ? "경매" : "일반");
+
+    /* ============================
+       ✅ 거래 종료 알림 (채팅 + FCM)
+       ============================ */
+        try {
+            String systemMessage = "🎉 거래가 완료되었습니다. 포인트가 판매자에게 지급되었습니다.";
+
+            if (isAuction) {
+                // ✅ 경매용 메시지 전송
+                chatService.sendSystemMessageForAuction(msgTargetId, systemMessage);
+                log.info("💬 [경매 시스템 메시지 전송 완료] auctionId={}", msgTargetId);
+            } else {
+                // ✅ 일반 안전거래용 메시지 전송
+                chatService.sendSystemMessage(msgTargetId, systemMessage);
+                log.info("💬 [일반 거래 시스템 메시지 전송 완료] itemId={}", msgTargetId);
+            }
+
+        } catch (Exception e) {
+            log.error("❌ [시스템 메시지 전송 실패] targetId={}, err={}", msgTargetId, e.getMessage());
+        }
+
     }
+
 
     /* ✅ 경매 낙찰 시 자동 안전거래 생성 */
     @Transactional

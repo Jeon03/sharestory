@@ -4,6 +4,7 @@ import com.sharestory.sharestory_backend.domain.AuctionImage;
 import com.sharestory.sharestory_backend.domain.AuctionItem;
 import com.sharestory.sharestory_backend.domain.User;
 import com.sharestory.sharestory_backend.dto.AuctionItemDto;
+import com.sharestory.sharestory_backend.dto.AuctionItemResponseDto;
 import com.sharestory.sharestory_backend.dto.AuctionStatus;
 import com.sharestory.sharestory_backend.repo.AuctionImageRepository;
 import com.sharestory.sharestory_backend.repo.AuctionItemRepository;
@@ -27,7 +28,6 @@ public class AuctionItemService {
     private final AuctionImageRepository auctionImageRepository;
     private final S3Service s3Service;
     private final UserRepository userRepository;
-
 
     public AuctionItem registerAuctionItem(
             String title,
@@ -173,6 +173,29 @@ public class AuctionItemService {
         return auctionImageRepository.findAllByAuctionItem_Id(itemId)
                 .stream()
                 .map(AuctionImage::getUrl)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public AuctionItem findById(Long id) {
+        return auctionItemRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("경매 상품을 찾을 수 없습니다. id=" + id));
+    }
+
+
+    // ✅ 내가 입찰한 경매 목록
+    public List<AuctionItemResponseDto> getMyParticipatedAuctions(Long userId) {
+        List<AuctionItem> items = auctionItemRepository.findParticipatedAuctions(userId);
+        return items.stream()
+                .map(AuctionItemResponseDto::from)
+                .toList();
+    }
+
+    // ✅ 내가 등록한 경매 목록
+    public List<AuctionItemResponseDto> getMySellingAuctions(Long sellerId) {
+        List<AuctionItem> items = auctionItemRepository.findBySellerId(sellerId);
+        return items.stream()
+                .map(AuctionItemResponseDto::from)
                 .toList();
     }
 }

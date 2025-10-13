@@ -27,7 +27,7 @@ public class AuctionOrderController {
     private final OrderRepository orderRepository;
     private final DeliveryTrackingService deliveryTrackingService;
 
-    /** ✅ 배송정보 등록 (구매자) */
+    /**배송정보 등록 (구매자) */
     @PutMapping("/{auctionId}/delivery")
     public ResponseEntity<String> registerDeliveryInfo(
             @PathVariable Long auctionId,
@@ -38,7 +38,7 @@ public class AuctionOrderController {
         return ResponseEntity.ok("배송정보 및 결제가 완료되었습니다.");
     }
 
-    /** ✅ 배송정보 조회 (판매자용) */
+    /**배송정보 조회 (판매자용) */
     @GetMapping("/{auctionId}/delivery")
     public ResponseEntity<DeliveryInfo> getDeliveryInfo(
             @PathVariable Long auctionId,
@@ -47,7 +47,7 @@ public class AuctionOrderController {
         return ResponseEntity.ok(auctionOrderService.getDeliveryInfo(auctionId, user.getId()));
     }
 
-    /** ✅ 송장 등록 (판매자) */
+    /** 송장 등록 (판매자) */
     @PostMapping("/{auctionId}/delivery/invoice")
     public ResponseEntity<String> registerInvoice(
             @PathVariable Long auctionId,
@@ -58,7 +58,7 @@ public class AuctionOrderController {
         return ResponseEntity.ok("송장이 등록되었습니다.");
     }
 
-    /** 📦 경매 물품 수령 확인 (구매자) */
+    /**경매 물품 수령 확인 (구매자) */
     @PatchMapping("/{auctionId}/confirm-receipt")
     public ResponseEntity<String> confirmAuctionReceipt(
             @PathVariable Long auctionId,

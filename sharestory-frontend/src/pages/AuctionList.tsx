@@ -12,6 +12,7 @@ interface AuctionItem {
     createdAt: string;
     category?: string;
     endDateTime?: string;
+    status?: "ONGOING" | "FINISHED" | "TRADE_PENDING" | string;
 }
 
 const API_BASE = import.meta?.env?.VITE_API_BASE || "";
@@ -62,7 +63,7 @@ export default function AuctionList() {
     const [urgentItems, setUrgentItems] = useState<Record<number, boolean>>({});
     const [endedItems, setEndedItems] = useState<Record<number, boolean>>({});
     const [loading, setLoading] = useState(true);
-
+    const [timeLoading, setTimeLoading] = useState(true);
     useEffect(() => {
         (async () => {
             try {
@@ -79,7 +80,33 @@ export default function AuctionList() {
             }
         })();
     }, []);
+    useEffect(() => {
+        const timer = setInterval(() => {
+            const newTimes: Record<number, string> = {};
+            const newUrgent: Record<number, boolean> = {};
+            const newEnded: Record<number, boolean> = {};
 
+            auctionItems.forEach((item) => {
+                if (item.status === "ONGOING" && item.endDateTime) {
+                    const { text, urgent, ended } = getRemainingTime(item.endDateTime);
+                    newTimes[item.id] = text;
+                    newUrgent[item.id] = urgent;
+                    newEnded[item.id] = ended;
+                }
+            });
+
+            setTimeLeft(newTimes);
+            setUrgentItems(newUrgent);
+            setEndedItems(newEnded);
+
+            // ✅ 첫 계산 끝났을 때 timeLoading 해제
+            if (Object.keys(newTimes).length > 0 && timeLoading) {
+                setTimeLoading(false);
+            }
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [auctionItems]);
     // 남은 시간 실시간 갱신
     useEffect(() => {
         const timer = setInterval(() => {
@@ -88,7 +115,7 @@ export default function AuctionList() {
             const newEnded: Record<number, boolean> = {};
 
             auctionItems.forEach((item) => {
-                if (item.endDateTime) {
+                if (item.status === "ONGOING" && item.endDateTime) {
                     const { text, urgent, ended } = getRemainingTime(item.endDateTime);
                     newTimes[item.id] = text;
                     newUrgent[item.id] = urgent;
@@ -104,7 +131,16 @@ export default function AuctionList() {
         return () => clearInterval(timer);
     }, [auctionItems]);
 
-    if (loading) return <div>로딩 중...</div>;
+    if (loading || timeLoading) {
+        return (
+            <div className="auction-list-loading">
+                <div className="loading-spinner" />
+                <p>경매 목록을 불러오는 중입니다...</p>
+            </div>
+        );
+    }
+
+    const ongoingItems = auctionItems.filter(item => item.status === "ONGOING");
 
     return (
         <div className="auction-list container">
@@ -116,7 +152,7 @@ export default function AuctionList() {
                             현재 진행 중인 경매 상품이 없습니다.
                         </p>
                     ) : (
-                        [...auctionItems]
+                        [...ongoingItems]
                             .sort((a, b) => {
                                 const aEnded = endedItems[a.id];
                                 const bEnded = endedItems[b.id];

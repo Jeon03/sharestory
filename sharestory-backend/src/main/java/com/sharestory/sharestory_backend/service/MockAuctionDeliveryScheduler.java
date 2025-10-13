@@ -32,7 +32,7 @@ public class MockAuctionDeliveryScheduler {
      * ⚙️ Mock 경매 배송 단계 시뮬레이터
      * 5초마다 자동으로 한 단계씩 전환
      */
-    @Scheduled(fixedRate = 5000)
+    @Scheduled(fixedRate = 10000)
     @Transactional
     public void progressMockAuctionDelivery() {
         // 1️⃣ SAFE_DELIVERY_START → SAFE_DELIVERY_ING
@@ -46,20 +46,24 @@ public class MockAuctionDeliveryScheduler {
                 updateAuctionOrderStatus(order, OrderStatus.SAFE_DELIVERY_ING, "배송 중");
                 log.info("📦 경매 배송 중 → orderId={}", order.getId());
 
-//                // 메일 발송
-//                try {
-//                    notificationTemplateService.sendSafeTradeMail(order, OrderStatus.SAFE_DELIVERY_ING);
-//                    log.info("✅ 경매 배송 중 메일 발송 완료 → orderId={}", order.getId());
-//                } catch (Exception e) {
-//                    log.error("❌ 경매 배송 중 메일 발송 실패 → orderId={}, error={}", order.getId(), e.getMessage());
-//                }
+                // ✅ 메일 발송
+                try {
+                    notificationTemplateService.sendAuctionTradeMail(order, OrderStatus.SAFE_DELIVERY_START);
+                    log.info("✅ [메일] 경매 배송 시작 알림 발송 완료 → orderId={}", order.getId());
+                } catch (Exception e) {
+                    log.error("❌ [메일 실패] 경매 배송 시작 알림 실패 → orderId={}, error={}", order.getId(), e.getMessage());
+                }
 
-//                // 시스템 메시지 전송
-//                try {
-//                    chatService.sendSystemMessage(order.getAuctionItem().getId(), "📦 경매 상품이 배송 중입니다.");
-//                } catch (Exception e) {
-//                    log.error("❌ 경매 시스템 메시지 전송 실패 (배송 중) → orderId={}, error={}", order.getId(), e.getMessage());
-//                }
+                // ✅ 시스템 메시지 전송 (채팅방)
+                try {
+                    chatService.sendSystemMessageForAuction(
+                            order.getAuctionItem().getId(),
+                            "📦 경매 상품의 배송이 시작되었습니다."
+                    );
+                    log.info("✅ [시스템 메시지] 경매 배송 시작 메시지 전송 완료 → auctionId={}", order.getAuctionItem().getId());
+                } catch (Exception e) {
+                    log.error("❌ [시스템 메시지 실패] 경매 배송 시작 알림 실패 → auctionId={}, error={}", order.getAuctionItem().getId(), e.getMessage());
+                }
             }
             return;
         }
@@ -75,20 +79,24 @@ public class MockAuctionDeliveryScheduler {
                 updateAuctionOrderStatus(order, OrderStatus.SAFE_DELIVERY_COMPLETE, "배송 완료");
                 log.info("✅ 경매 배송 완료 → orderId={}", order.getId());
 
-//                // 배송 완료 메일 발송
-//                try {
-//                    notificationTemplateService.sendSafeTradeMail(order, OrderStatus.SAFE_DELIVERY_COMPLETE);
-//                    log.info("✅ 경매 배송 완료 메일 발송 완료 → orderId={}", order.getId());
-//                } catch (Exception e) {
-//                    log.error("❌ 경매 배송 완료 메일 발송 실패 → orderId={}, error={}", order.getId(), e.getMessage());
-//                }
+                // ✅ 메일 발송
+                try {
+                    notificationTemplateService.sendAuctionTradeMail(order, OrderStatus.SAFE_DELIVERY_COMPLETE);
+                    log.info("✅ [메일] 경매 배송 완료 알림 발송 완료 → orderId={}", order.getId());
+                } catch (Exception e) {
+                    log.error("❌ [메일 실패] 경매 배송 완료 알림 실패 → orderId={}, error={}", order.getId(), e.getMessage());
+                }
 
-//                // 시스템 메시지 전송
-//                try {
-//                    chatService.sendSystemMessage(order.getAuctionItem().getId(), "✅ 경매 상품의 배송이 완료되었습니다.");
-//                } catch (Exception e) {
-//                    log.error("❌ 경매 시스템 메시지 전송 실패 (배송 완료) → orderId={}, error={}", order.getId(), e.getMessage());
-//                }
+                // ✅ 시스템 메시지 전송
+                try {
+                    chatService.sendSystemMessageForAuction(
+                            order.getAuctionItem().getId(),
+                            "배송이 완료되었습니다.\n📦 물품을 수령하면 수령완료 버튼을 눌러주세요."
+                    );
+                    log.info("✅ [시스템 메시지] 경매 배송 완료 메시지 전송 완료 → auctionId={}", order.getAuctionItem().getId());
+                } catch (Exception e) {
+                    log.error("❌ [시스템 메시지 실패] 경매 배송 완료 알림 실패 → auctionId={}, error={}", order.getAuctionItem().getId(), e.getMessage());
+                }
             }
         }
     }
