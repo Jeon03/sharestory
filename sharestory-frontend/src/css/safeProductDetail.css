@@ -2,6 +2,9 @@
     padding: 24px;
 }
 
+/* ============================= */
+/* 공통 구조 */
+/* ============================= */
 .safe-breadcrumb {
     margin-bottom: 16px;
     font-size: 14px;
@@ -13,7 +16,9 @@
     gap: 32px;
 }
 
+/* ============================= */
 /* 이미지 영역 */
+/* ============================= */
 .safe-detail-slider {
     flex: 0 0 40%;
     max-width: 40%;
@@ -28,7 +33,9 @@
     position: relative;
 }
 
+/* ============================= */
 /* 오른쪽 정보 영역 */
+/* ============================= */
 .safe-detail-info {
     flex: 1 1 50%;
     min-width: 50%;
@@ -82,6 +89,9 @@
     margin: 0 0 6px;
 }
 
+/* ============================= */
+/* 로딩 / 상태 영역 */
+/* ============================= */
 .safe-detail-loading {
     padding: 24px;
     font-size: 16px;
@@ -94,32 +104,64 @@
     margin-top: 20px;
     display: flex;
     flex-direction: column;
-    align-items: flex-start; /* 설명 라인과 맞춤 */
+    align-items: flex-start;
     gap: 10px;
-}
-
-/* 상태 배너 */
-.safe-detail-status-banner {
-    display: block;
-    padding: 10px 14px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 8px;
     width: 100%;
 }
-.safe-detail-status-banner.green {
-    background-color: #e6f4ea;
-    color: #2e7d32;
-    border: 1px solid #c8e6c9;
+
+/* ============================= */
+/* 진행 단계 (progress bar) */
+/* ============================= */
+.safe-detail-progress {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* ✅ 균등 폭 */
+    gap: 8px;
+    margin: 12px 0;
+    font-size: 13px;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
 }
-.safe-detail-status-banner.yellow {
-    background-color: #fff3cd;
+.safe-detail-progress span {
+    padding: 6px 8px;
+    border-radius: 4px;
+    background: #f1f1f1;
+    color: #666;
+    font-weight: 500;
+}
+.safe-detail-progress .done {
+    background: #c8e6c9;
+    color: #2e7d32;
+}
+.safe-detail-progress .active {
+    background: #ffeeba;
     color: #856404;
-    border: 1px solid #ffeeba;
 }
 
+/* ============================= */
+/* 버튼 + 배너 컨테이너 */
+/* ============================= */
+.safe-detail-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch; /* ✅ 자식 요소 폭 동일 */
+    gap: 10px;
+    width: 100%;
+    margin-top: -3px;
+    box-sizing: border-box;
+}
+
+/* 진행바 / 버튼 / 배너 폭 통일 */
+.safe-detail-buttons .safe-detail-progress,
+.safe-detail-buttons .safe-detail-btn,
+.safe-detail-buttons .safe-detail-status-banner {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* ============================= */
 /* 버튼 */
+/* ============================= */
 .safe-detail-btn {
     padding: 10px 18px;
     border: none;
@@ -131,57 +173,105 @@
 }
 .safe-detail-btn-green {
     background-color: #28a745;
-    color: white;
+    color: #ffffff;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    border: none;
+    border-radius: 6px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
 }
+
 .safe-detail-btn-green:hover {
-    background-color: #218838;
+    background-color: #218838; /* 호버 시 어두운 그린 */
+    transform: translateY(-1px);
 }
 .safe-detail-btn-blue {
-    background-color: #007bff;
-    color: white;
+    background-color: #007bff;   /* 기본 블루 */
+    color: #ffffff;              /* 순백색 */
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25); /* ✅ 글자 대비 향상 */
+    transition: background-color 0.2s ease, transform 0.1s ease;
 }
+
 .safe-detail-btn-blue:hover {
-    background-color: #0069d9;
+    background-color: #0069d9;  /* 살짝 진한 블루 */
+    transform: translateY(-1px); /* 살짝 떠오르는 느낌 */
 }
 
-/* 진행 단계 (progress bar) */
-.safe-detail-progress {
-    display: flex;
-    gap: 10px;
-    margin: 12px 0;
-    font-size: 13px;
+/* ============================= */
+/* 상태 배너 */
+/* ============================= */
+.safe-detail-status-banner {
+    display: block;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0;
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
 }
-.safe-detail-progress span {
-    padding: 4px 8px;
-    border-radius: 4px;
-    background: #f1f1f1;
-    color: #666;
-}
-.safe-detail-progress .done {
-    background: #c8e6c9;
+.safe-detail-status-banner.green {
+    background-color: #e6f4ea;
     color: #2e7d32;
-}
-.safe-detail-progress .active {
-    background: #ffeeba;
-    color: #856404;
+    border: 1px solid #c8e6c9;
 }
 
+.safe-detail-status-banner.yellow {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+.safe-detail-status-banner.bbb {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+    margin-top: 10px;
+}
+.safe-detail-status-banner.gray {
+    margin-top: 10px;
+    background-color: #f1f1f1;
+    color: #444;
+    border: 1px solid #ddd;
+}
+
+/* ============================= */
 /* 안내 텍스트 */
+/* ============================= */
 .safe-detail-subtext {
     font-size: 13px;
     color: #777;
+    width: 100%;
+    text-align: center;
 }
-.safe-detail-buttons {
+
+.auction-detail-loading {
     display: flex;
-    flex-direction: column;   /* ✅ 세로 정렬 */
-    gap: 10px;                /* 버튼 간격 */
-    margin-top: -3px;         /* 위쪽 여백 */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 70vh;
+    color: #555;
+    font-size: 15px;
+    user-select: none;
+    pointer-events: none; /* ✅ 비활성화 */
+    opacity: 0.8;
 }
 
-.safe-detail-buttons .safe-detail-btn {
-    width: 100%;              /* 버튼 전체 너비 */
-    padding: 10px 14px;
-    font-size: 14px;
-    border-radius: 6px;
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #ddd;
+    border-top: 4px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 12px;
+}
 
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }

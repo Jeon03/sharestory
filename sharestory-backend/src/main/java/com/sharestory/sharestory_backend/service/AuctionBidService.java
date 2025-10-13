@@ -25,6 +25,7 @@ public class AuctionBidService {
     private final UserRepository userRepository;
     private final PointHistoryRepository pointHistoryRepository;
     private final NotificationService notificationService;
+    private final OrderService orderService;
 
     @Transactional
     public AuctionItem placeBid(Long auctionId, Long userId, int bidPrice) {
@@ -129,7 +130,7 @@ public class AuctionBidService {
                 .amount(-bidPrice)
                 .balance(newBalance)
                 .type("AUCTION_BID")
-                .description("경매 입찰 참여 (임시 차감)")
+                .description("경매 입찰 참여")
                 .build());
 
         // ✅ 11️⃣ 입찰 정보 저장 (기존 존재 시 업데이트)
@@ -179,4 +180,109 @@ public class AuctionBidService {
 
         return auctionItemRepository.save(item);
     }
+
+    @Transactional
+    public AuctionItem buyNow(Long auctionId, Long buyerId) {
+        AuctionItem item = auctionItemRepository.findByIdForUpdate(auctionId)
+                .orElseThrow(() -> new IllegalArgumentException("경매를 찾을 수 없습니다."));
+
+        if (item.getEndDateTime().isBefore(LocalDateTime.now())) {
+            throw new IllegalStateException("이미 종료된 경매입니다.");
+        }
+
+        if (item.getImmediatePrice() == null || item.getImmediatePrice() <= 0) {
+            throw new IllegalStateException("즉시구매가 설정되지 않은 상품입니다.");
+        }
+
+        if (item.getSellerId().equals(buyerId)) {
+            throw new IllegalStateException("자신의 상품은 구매할 수 없습니다.");
+        }
+
+        User buyer = userRepository.findById(buyerId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // ✅ 포인트 부족 확인
+        if (buyer.getPoints() < item.getImmediatePrice()) {
+            throw new IllegalStateException("보유 포인트가 부족합니다.");
+        }
+
+        // ✅ 기존 입찰자 환불 처리
+        List<AuctionBid> existingBids = auctionBidRepository.findByAuctionItemId(item.getId());
+        for (AuctionBid prevBid : existingBids) {
+            if (!prevBid.getUserId().equals(buyerId)) { // 즉시구매자 제외
+                userRepository.findById(prevBid.getUserId()).ifPresent(prevUser -> {
+                    int refundAmount = prevBid.getBidPrice();
+                    int newBalance = prevUser.getPoints() + refundAmount;
+                    prevUser.setPoints(newBalance);
+                    userRepository.save(prevUser);
+
+                    pointHistoryRepository.save(PointHistory.builder()
+                            .user(prevUser)
+                            .amount(refundAmount)
+                            .balance(newBalance)
+                            .type("AUCTION_REFUND")
+                            .description(String.format("[%s] 경매 즉시구매로 기존 입찰금 환불", item.getTitle()))
+                            .build());
+
+                    // 💬 알림 전송 (선택)
+                    try {
+                        notificationService.sendNotification(
+                                prevUser,
+                                "AUCTION_REFUND",
+                                String.format("[%s] 경매가 즉시구매로 종료되어 입찰금이 환불되었습니다.", item.getTitle()),
+                                item.getId()
+                        );
+                    } catch (Exception e) {
+                        System.err.println("⚠️ 알림 전송 실패: " + e.getMessage());
+                    }
+                });
+            }
+        }
+
+        // ✅ 포인트 차감 및 히스토리 기록
+        int newBalance = buyer.getPoints() - item.getImmediatePrice();
+        buyer.setPoints(newBalance);
+        userRepository.save(buyer);
+
+        pointHistoryRepository.save(PointHistory.builder()
+                .user(buyer)
+                .amount(-item.getImmediatePrice())
+                .balance(newBalance)
+                .type("AUCTION_IMMEDIATE_BUY")
+                .description("경매 즉시구매")
+                .build());
+
+        // ✅ 경매 상태 업데이트
+        item.setWinnerId(buyerId);
+        item.setWinningPrice(item.getImmediatePrice());
+        item.setCurrentPrice(item.getImmediatePrice());
+        item.setEndDateTime(LocalDateTime.now()); // 경매 종료
+        item.setBidCount(item.getBidCount() + 1);
+        item.setStatus(com.sharestory.sharestory_backend.dto.AuctionStatus.TRADE_PENDING);
+        auctionItemRepository.save(item);
+
+        // ✅ 안전거래(Order) 자동 생성
+        try {
+            System.out.println("🛒 [즉시구매] 안전거래(Order) 생성 시도...");
+            orderService.createSafeOrderFromAuction(item);
+            System.out.println("✅ [즉시구매] Order 생성 완료");
+        } catch (Exception e) {
+            System.err.println("❌ [즉시구매] Order 생성 실패: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+
+        // ✅ 판매자 알림
+        userRepository.findById(item.getSellerId()).ifPresent(seller -> {
+            notificationService.sendNotification(
+                    seller,
+                    "AUCTION_IMMEDIATE_BUY",
+                    String.format("[%s] 경매 상품이 즉시구매로 낙찰되었습니다.", item.getTitle()),
+                    item.getId()
+            );
+        });
+
+        return item;
+    }
+
 }

@@ -26,9 +26,14 @@ interface ChatMsg {
 interface ItemInfo {
     id: number;
     title: string;
-    price: number;
-    imageUrl: string;
-    description: string;
+    price?: number; // 일반 거래
+    currentPrice?: number; // 경매 현재가
+    startPrice?: number; // 경매 시작가
+    immediatePrice?: number; // 즉시구매가
+    imageUrl?: string;
+    mainImageUrl?: string;
+    description?: string;
+    type?: 'ITEM' | 'AUCTION'; // 백엔드에서 추가한 type 필드도 반영
 }
 
 interface ServerMessage {
@@ -281,7 +286,7 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                 <div className="chat-room-item-header">
                     <img src={item.imageUrl} alt={item.title} className="chat-room-item-thumb" />
                     <div className="chat-room-item-info">
-                        <div className="chat-room-item-price">{item.price.toLocaleString()}원</div>
+                        <div className="chat-room-item-price">{(item.price ?? item.currentPrice ?? 0).toLocaleString()}원</div>
                         <div className="chat-room-item-desc">{item.description}</div>
                     </div>
                 </div>

@@ -27,6 +27,7 @@ public class AuctionOrderService {
     private final DeliveryTrackingRepository trackingRepository;
     private final TrackingHistoryRepository historyRepository;
     private final NotificationTemplateService notificationTemplateService;
+    private final ChatService chatService;
 
     /** ✅ 1. 구매자 배송정보 등록 + 결제 */
     public void saveDeliveryInfoAndPay(Long auctionId, Long buyerId, DeliveryInfoRequest req) {
@@ -49,6 +50,8 @@ public class AuctionOrderService {
         int safeFee = (int) Math.round(auctionItem.getWinningPrice() * 0.035);
         int total = shippingFee + safeFee;
 
+        User seller = userRepository.findById(order.getSellerId())
+                .orElseThrow(() -> new IllegalArgumentException("판매자 정보 없음"));
         // ✅ 포인트 차감
         User buyer = userRepository.findById(buyerId)
                 .orElseThrow(() -> new IllegalArgumentException("구매자 없음"));
@@ -79,8 +82,25 @@ public class AuctionOrderService {
         auctionItem.setStatus(AuctionStatus.TRADE_PENDING);
         auctionItemRepository.save(auctionItem);
 
-        // ✅ 판매자에게 송장등록 요청 메일 전송
-//        notificationTemplateService.sendSafeTradeMail(order, OrderStatus.SAFE_DELIVERY);
+        // ✅ ① 송장등록 요청 메일 전송
+        try {
+            notificationTemplateService.sendAuctionTradeMail(order, OrderStatus.SAFE_DELIVERY);
+            log.info("📧 [경매 메일 발송] 송장등록 요청 → seller={}", seller.getNickname());
+        } catch (Exception e) {
+            log.error("❌ [경매 메일 실패] 송장등록 요청 메일 실패: {}", e.getMessage());
+        }
+
+        // ✅ ② 시스템 메시지 전송
+        try {
+            chatService.sendSystemMessageForAuction(
+                    auctionItem.getId(),
+                    "📦 구매자가 결제 및 배송정보를 등록했습니다.\n" +
+                            "판매자님은 송장을 등록해주세요."
+            );
+            log.info("💬 [시스템 메시지] 송장등록 요청 메시지 발송 완료");
+        } catch (Exception e) {
+            log.error("❌ 시스템 메시지 발송 실패: {}", e.getMessage());
+        }
 
         log.info("📦 [경매 배송정보 등록 완료] OrderID={}, Buyer={}, 결제액={}", order.getId(), buyerId, total);
     }
@@ -142,10 +162,34 @@ public class AuctionOrderService {
                 .timestamp(LocalDateTime.now())
                 .build());
 
-        // ✅ 구매자에게 배송 시작 알림
-//        notificationTemplateService.sendSafeTradeMail(order, OrderStatus.SAFE_DELIVERY_START);
+        AuctionItem auctionItem = order.getAuctionItem();
+        if (auctionItem != null) {
+            auctionItem.setStatus(com.sharestory.sharestory_backend.dto.AuctionStatus.TRADE_DELIVERY);
+            auctionItemRepository.save(auctionItem);
+        }
 
-        log.info("🚚 [경매 송장 등록 완료] OrderID={}, Courier={}, Tracking={}", order.getId(), req.getCourier(), req.getTrackingNumber());
+        // ✅ ① 구매자에게 배송 시작 메일 발송
+        try {
+            notificationTemplateService.sendAuctionTradeMail(order, OrderStatus.SAFE_DELIVERY_START);
+            log.info("📧 [메일 발송] 경매 송장등록 → 구매자에게 배송시작 메일 전송 완료");
+        } catch (Exception e) {
+            log.error("❌ [메일 발송 실패] 경매 송장등록 메일 전송 실패: {}", e.getMessage());
+        }
+
+        // ✅ ② 채팅 시스템 메시지 발송 (구매자에게도 표시)
+        try {
+            chatService.sendSystemMessageForAuction(
+                    auctionItem.getId(),
+                    "🚚 판매자가 송장을 등록했습니다.\n📦 배송이 곧 시작됩니다."
+            );
+            log.info("💬 [시스템 메시지] 경매 송장등록 알림 전송 완료 → auctionId={}", auctionItem.getId());
+        } catch (Exception e) {
+            log.error("❌ [시스템 메시지 실패] 경매 송장등록 알림 실패: {}", e.getMessage());
+        }
+
+        log.info("🚚 [경매 송장 등록 완료] OrderID={}, Courier={}, Tracking={}",
+                order.getId(), req.getCourier(), req.getTrackingNumber());
+
     }
 
 
@@ -167,9 +211,24 @@ public class AuctionOrderService {
 
         // ✅ 상태 변경
         auction.setStatus(AuctionStatus.TRADE_RECEIVED);
-
-        // ✅ DB 반영
         auctionItemRepository.save(auction);
+
+        Order order = orderRepository.findByAuctionItemId(auctionId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 경매의 주문이 존재하지 않습니다."));
+        order.setStatus(OrderStatus.SAFE_DELIVERY_RECEIVED);
+        orderRepository.save(order);
+
+        // ✅ 시스템 메시지 + FCM (경매용)
+        try {
+            chatService.sendSystemMessageForAuction(
+                    auctionId,
+                    "구매자가 수령을 확인했습니다. 판매자는 ‘포인트 수령하기’를 눌러 정산을 완료해주세요."
+            );
+            log.info("💬 [시스템 메시지] 경매 수령 확인 알림 전송 완료 → auctionId={}", auctionId);
+        } catch (Exception e) {
+            log.error("❌ [시스템 메시지 실패] 경매 수령 확인 알림 실패 → auctionId={}, err={}", auctionId, e.getMessage());
+        }
+
     }
 
     @Transactional
@@ -192,6 +251,7 @@ public class AuctionOrderService {
         seller.setPoints(seller.getPoints() + payoutPoint);
         userRepository.save(seller);
 
+
         pointHistoryRepository.save(PointHistory.builder()
                 .user(seller)
                 .amount(payoutPoint)
@@ -200,6 +260,16 @@ public class AuctionOrderService {
                 .description("경매 낙찰 상품 포인트 정산")
                 .createdAt(Instant.now())
                 .build());
+
+        try {
+            String message = "거래가 완료되었습니다!\n" +
+                    "포인트가 판매자에게 지급되었으며, 거래가 성공적으로 종료되었습니다.";
+
+            chatService.sendSystemMessageForAuction(auctionId, message);
+            log.info("💬 [시스템 메시지 전송 완료] 경매 포인트 정산 완료 알림 → auctionId={}", auctionId);
+        } catch (Exception e) {
+            log.error("❌ [시스템 메시지 전송 실패] 경매 포인트 정산 알림 실패 → auctionId={}, error={}", auctionId, e.getMessage());
+        }
 
         // 상태 업데이트
         auction.setStatus(AuctionStatus.TRADE_COMPLETE);

@@ -222,7 +222,7 @@ export default function SafeProductDetail() {
                                                 <>
                                                     <div className="safe-detail-progress">
                                                         <span className="done">✔ 결제 완료</span>
-                                                        <span className="active">📦 송장 등록 대기중</span>
+                                                        <span className="active">📦 송장 등록</span>
                                                         <span>🚚 배송중</span>
                                                         <span>📥 수령</span>
                                                         <span>💳 포인트 지급</span>
@@ -268,11 +268,21 @@ export default function SafeProductDetail() {
                                                         {item.itemStatus === "SAFE_FINISHED" && (
                                                             <button className="safe-detail-btn safe-detail-btn-green" onClick={() => navigate("/mypage/points")}>포인트 적립 내역보기</button>
                                                         )}
+
+                                                        {item.itemStatus === "SAFE_FINISHED" && (
+                                                            <p className="safe-detail-status-banner gray">거래가 완료되었습니다. 포인트가 판매자에게 지급되었습니다.</p>
+                                                        )}
+
+                                                        {/* 🚚 배송 중(진행 중)일 때 안내 문구 */}
+                                                        {(item.itemStatus === "SAFE_START" ||
+                                                            item.itemStatus === "SAFE_ING" ||
+                                                            item.itemStatus === "SAFE_COMPLETE") && (
+                                                            <p className="safe-detail-status-banner yellow">
+                                                                🚚 상품이 배송 중입니다. 구매자가 수령 확인을 할 때까지 기다려주세요.
+                                                            </p>
+                                                        )}
                                                     </div>
 
-                                                    {item.itemStatus === "SAFE_FINISHED" && (
-                                                        <p className="safe-detail-status-banner gray">🎉 거래가 완료되었습니다. 배송은 종료되었으며 포인트가 판매자에게 지급되었습니다.</p>
-                                                    )}
                                                 </>
                                             )}
                                         </div>
@@ -283,7 +293,7 @@ export default function SafeProductDetail() {
                                                 <>
                                                     <div className="safe-detail-progress">
                                                         <span className="done">✔ 결제 완료</span>
-                                                        <span className="active">📦 송장 등록 대기중</span>
+                                                        <span className="active">📦 송장 등록</span>
                                                         <span>🚚 배송중</span>
                                                         <span>📥 수령</span>
                                                         <span>💳 포인트 지급</span>
@@ -347,9 +357,10 @@ export default function SafeProductDetail() {
                                                     </div>
                                                     <div className="safe-detail-buttons">
                                                         <button className="safe-detail-btn safe-detail-btn-blue" onClick={() => setShowTrackingModal(true)}>상품 배송 조회하기</button>
+                                                        <p className="safe-detail-status-banner gray">수령 확인이 완료되었습니다. 판매자가 포인트를 수령할 때까지 기다려주세요.</p>
                                                     </div>
-                                                    <p className="safe-detail-status-banner gray">✅ 수령 확인이 완료되었습니다. 판매자가 포인트를 수령할 때까지 기다려주세요.</p>
                                                 </>
+
                                             )}
 
                                             {item.itemStatus === "SAFE_FINISHED" && (
@@ -363,8 +374,9 @@ export default function SafeProductDetail() {
                                                     </div>
                                                     <div className="safe-detail-buttons">
                                                         <button className="safe-detail-btn safe-detail-btn-blue" onClick={() => setShowTrackingModal(true)}>상품 배송 조회하기</button>
+                                                        <p className="safe-detail-status-banner gray">거래가 완료되었습니다. 포인트가 판매자에게 지급되었습니다.</p>
                                                     </div>
-                                                    <p className="safe-detail-status-banner gray">🎉 거래가 완료되었습니다. 포인트가 판매자에게 지급되었습니다.</p>
+
                                                 </>
                                             )}
                                         </div>

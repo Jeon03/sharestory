@@ -5,7 +5,8 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -19,29 +20,42 @@ public class ChatRoomDto {
     private int itemPrice;
     private int unreadCount;
 
-
     public static ChatRoomDto from(ChatRoom room, String partnerName, String lastMessage) {
-        return ChatRoomDto.builder()
-                .roomId(room.getId())
-                .itemTitle(room.getItem().getTitle())
-                .partnerName(partnerName)
-                .lastMessage(lastMessage)
-                .updatedAt(room.getUpdatedAt())
-                .itemThumbnail(room.getItem().getImageUrl())  // Item 엔티티에 대표이미지 URL 있음
-                .itemPrice(room.getItem().getPrice())
-                .build();
+        return from(room, partnerName, lastMessage, 0);
     }
 
-
     public static ChatRoomDto from(ChatRoom room, String partnerName, String lastMessage, int unreadCount) {
+        String title;
+        String thumbnail;
+        int price;
+
+        // ✅ 일반 상품 채팅방
+        if (room.getItem() != null) {
+            title = room.getItem().getTitle();
+            thumbnail = room.getItem().getImageUrl();
+            price = room.getItem().getPrice();
+        }
+        // ✅ 경매 상품 채팅방
+        else if (room.getAuctionItem() != null) {
+            title = "[경매] " + room.getAuctionItem().getTitle();
+            thumbnail = room.getAuctionItem().getMainImageUrl();
+            price = room.getAuctionItem().getCurrentPrice();
+        }
+        // ✅ 안전 장치 (둘 다 null일 경우)
+        else {
+            title = "(삭제된 상품)";
+            thumbnail = null;
+            price = 0;
+        }
+
         return ChatRoomDto.builder()
                 .roomId(room.getId())
-                .itemTitle(room.getItem().getTitle())
+                .itemTitle(title)
                 .partnerName(partnerName)
                 .lastMessage(lastMessage)
                 .updatedAt(room.getUpdatedAt())
-                .itemThumbnail(room.getItem().getImageUrl())  // Item 엔티티에 대표이미지 URL 있음
-                .itemPrice(room.getItem().getPrice())
+                .itemThumbnail(thumbnail)
+                .itemPrice(price)
                 .unreadCount(unreadCount)
                 .build();
     }

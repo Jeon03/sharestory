@@ -32,7 +32,7 @@ public class PointHistory {
     private int balance;
 
     // 내역 타입 (CHARGE, USE, REFUND 등)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 50)
     private String type;
 
     // 상세 설명

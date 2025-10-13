@@ -25,6 +25,7 @@ public class ChatService {
     private final ChatReadRepository chatReadRepository;
     private final FcmService fcmService;
     private final SimpMessagingTemplate simpMessagingTemplate;
+    private final AuctionItemRepository auctionItemRepository;
 
     @Transactional
     public ChatRoomDto createOrGetRoom(Long itemId, Long buyerId) {
@@ -171,15 +172,37 @@ public class ChatService {
     public Map<String, Object> getItemByRoom(Long roomId) {
         ChatRoom room = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("채팅방 없음"));
-        Item item = room.getItem();
 
         Map<String, Object> result = new HashMap<>();
-        result.put("id", item.getId());
-        result.put("title", item.getTitle());
-        result.put("price", item.getPrice());
-        result.put("imageUrl", item.getImageUrl());
-        result.put("description", item.getDescription());
-        return result;
+
+        // ✅ 일반 상품 거래방
+        if (room.getItem() != null) {
+            Item item = room.getItem();
+            result.put("type", "ITEM");
+            result.put("id", item.getId());
+            result.put("title", item.getTitle());
+            result.put("price", item.getPrice());
+            result.put("imageUrl", item.getImageUrl());
+            result.put("description", item.getDescription());
+            return result;
+        }
+
+        // ✅ 경매 상품 거래방
+        if (room.getAuctionItem() != null) {
+            AuctionItem auction = room.getAuctionItem();
+            result.put("type", "AUCTION");
+            result.put("id", auction.getId());
+            result.put("title", auction.getTitle());
+            result.put("startPrice", auction.getStartPrice());
+            result.put("currentPrice", auction.getCurrentPrice());
+            result.put("immediatePrice", auction.getImmediatePrice());
+            result.put("imageUrl", auction.getMainImageUrl());
+            result.put("description", auction.getDescription());
+            result.put("status", auction.getStatus().name());
+            return result;
+        }
+
+        throw new RuntimeException("상품 정보가 없는 채팅방입니다.");
     }
 
     @Transactional
@@ -297,4 +320,73 @@ public class ChatService {
             }
         }
     }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void sendSystemMessageForAuction(Long auctionItemId, String content) {
+        List<ChatRoom> rooms = chatRoomRepository.findByAuctionItem_Id(auctionItemId);
+
+        // ✅ 채팅방이 없으면 자동 생성
+        if (rooms.isEmpty()) {
+            AuctionItem auctionItem = auctionItemRepository.findById(auctionItemId)
+                    .orElseThrow(() -> new IllegalArgumentException("경매상품이 존재하지 않습니다."));
+
+            Long sellerId = auctionItem.getSellerId();
+            Long buyerId = auctionItem.getWinnerId();
+
+            if (buyerId == null) {
+                log.warn("⚠️ 시스템 메시지를 보낼 수 없습니다 (buyerId 없음, auctionItemId={})", auctionItemId);
+                return;
+            }
+
+            ChatRoom newRoom = ChatRoom.builder()
+                    .auctionItem(auctionItem)
+                    .buyerId(buyerId)
+                    .sellerId(sellerId)
+                    .updatedAt(LocalDateTime.now())
+                    .build();
+
+            chatRoomRepository.save(newRoom);
+            rooms = List.of(newRoom);
+            log.info("✅ 경매 채팅방 자동 생성 → roomId={}, auctionItemId={}", newRoom.getId(), auctionItemId);
+        }
+
+        for (ChatRoom room : rooms) {
+            ChatMessage systemMsg = ChatMessage.builder()
+                    .room(room)
+                    .senderId(0L)
+                    .content(content)
+                    .type(ChatMessage.MessageType.SYSTEM)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+
+            ChatMessage saved = chatMessageRepository.save(systemMsg);
+
+            // ✅ 읽음처리
+            List<ChatRead> reads = List.of(
+                    ChatRead.builder().message(saved).userId(room.getBuyerId()).read(false).build(),
+                    ChatRead.builder().message(saved).userId(room.getSellerId()).read(false).build()
+            );
+            chatReadRepository.saveAll(reads);
+
+            room.setUpdatedAt(LocalDateTime.now());
+
+            // ✅ 실시간 전송
+            simpMessagingTemplate.convertAndSend("/sub/chat/room/" + room.getId(), ChatMessageDto.from(saved));
+            simpMessagingTemplate.convertAndSend("/sub/chat/user/" + room.getBuyerId(), ChatMessageDto.from(saved));
+            simpMessagingTemplate.convertAndSend("/sub/chat/user/" + room.getSellerId(), ChatMessageDto.from(saved));
+
+            // ✅ FCM
+            try {
+                String title = "📦 경매 시스템 알림";
+                String body = content;
+                String clickAction = "/auction/" + room.getAuctionItem().getId();
+
+                fcmService.sendToUser(room.getBuyerId(), title, body, clickAction, room.getId());
+                fcmService.sendToUser(room.getSellerId(), title, body, clickAction, room.getId());
+            } catch (Exception e) {
+                log.error("❌ 경매 시스템 FCM 전송 실패 (roomId={}): {}", room.getId(), e.getMessage());
+            }
+        }
+    }
+
 }

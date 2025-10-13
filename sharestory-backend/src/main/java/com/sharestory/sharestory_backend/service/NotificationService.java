@@ -1,7 +1,9 @@
 package com.sharestory.sharestory_backend.service;
 
+import com.sharestory.sharestory_backend.domain.FcmToken;
 import com.sharestory.sharestory_backend.domain.Notification;
 import com.sharestory.sharestory_backend.domain.User;
+import com.sharestory.sharestory_backend.repo.FcmTokenRepository;
 import com.sharestory.sharestory_backend.repo.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +14,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
+import java.util.Optional;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -19,6 +23,8 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final FcmTokenRepository fcmTokenRepository;
+    private final FcmService fcmService;
 
     @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -53,6 +59,17 @@ public class NotificationService {
             );
             log.info("📡 [NotificationService] STOMP 전송 완료 → 대상 사용자 ID={}, 목적지=/user/{}/queue/notifications",
                     user.getId(), user.getId());
+
+
+            // 3️⃣ FCM 푸시 전송
+            Optional<FcmToken> optionalToken = fcmTokenRepository.findByUserId(user.getId());
+            if (optionalToken.isPresent()) {
+                String token = optionalToken.get().getToken();
+                fcmService.sendNotification(token, "ShareStory 알림", message);
+                log.info("📱 [NotificationService] FCM 알림 전송 완료 → token={}", token);
+            } else {
+                log.warn("⚠️ [NotificationService] FCM 토큰이 존재하지 않아 푸시 생략 → userId={}", user.getId());
+            }
 
         } catch (Exception e) {
             log.error("❌ [NotificationService] 알림 처리 실패: {}", e.getMessage(), e);

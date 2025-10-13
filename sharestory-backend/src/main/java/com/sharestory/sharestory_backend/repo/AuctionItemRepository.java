@@ -19,5 +19,24 @@ public interface AuctionItemRepository extends JpaRepository<AuctionItem, Long> 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM AuctionItem a WHERE a.id = :id")
     Optional<AuctionItem> findByIdForUpdate(@Param("id") Long id);
+
     List<AuctionItem> findByStatusAndEndDateTimeBefore(AuctionStatus status, LocalDateTime now);
+
+    // 내가 등록한 경매
+    List<AuctionItem> findBySellerId(Long sellerId);
+
+    // 🔹 내가 입찰한 경매
+    @Query("""
+        SELECT DISTINCT a
+        FROM AuctionItem a
+        WHERE a.id IN (
+            SELECT b.auctionItemId
+            FROM AuctionBid b
+            WHERE b.userId = :userId
+        )
+        ORDER BY a.createdAt DESC
+    """)
+    List<AuctionItem> findParticipatedAuctions(@Param("userId") Long userId);
+
+
 }

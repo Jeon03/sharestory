@@ -16,6 +16,8 @@ interface NotificationItem {
     referenceId?: number;
 }
 
+const API_BASE = import.meta.env.VITE_API_URL || "";
+
 export default function Header({
                                    user,
                                    onLoginClick,
@@ -52,7 +54,7 @@ export default function Header({
     // ✅ 로그아웃
     const handleLogout = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/logout`, {
+            const res = await fetch(`${API_BASE}/logout`, {
                 method: "POST",
                 credentials: "include",
             });
@@ -71,7 +73,7 @@ export default function Header({
         }
     };
 
-    // ✅ 드롭다운 외부 클릭 시 닫기
+    // ✅ 외부 클릭 시 닫기
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             const target = e.target as Node;
@@ -89,12 +91,12 @@ export default function Header({
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // ✅ 알림 클릭 시 읽음 + 이동
+// ✅ 알림 클릭 시 읽음 + 이동 + 새로고침
     const handleNotificationClick = async (noti: NotificationItem) => {
         if (!noti) return;
 
         try {
-            // 1️⃣ 로컬 상태 즉시 반영 (뱃지 실시간 감소)
+            // 1️⃣ 로컬 상태 즉시 반영 (뱃지 감소)
             setNotifications((prev) =>
                 prev.map((n) => (n.id === noti.id ? { ...n, isRead: true } : n))
             );
@@ -108,15 +110,34 @@ export default function Header({
             // 4️⃣ 관련 페이지 이동
             if (noti.referenceId) {
                 navigate(`/auction/${noti.referenceId}`);
+
+                // ✅ 이동 후 새로고침
+                setTimeout(() => {
+                    window.location.reload();
+                }, 300); // navigate 직후 실행 (300ms 딜레이)
             }
         } catch (err) {
             console.error("❌ 알림 클릭 처리 실패:", err);
         }
     };
 
-    useEffect(() => {
-        console.log("🔁 Header 리렌더 - 알림 수:", unreadNotiCount);
-    }, [unreadNotiCount]);
+    // ✅ 알림 삭제
+    const handleDeleteNotification = async (notiId: number) => {
+        try {
+            // 1️⃣ 로컬에서 제거
+            setNotifications((prev) => prev.filter((n) => n.id !== notiId));
+
+            // 2️⃣ 서버 DELETE 요청
+            await fetch(`${API_BASE}/api/notifications/${notiId}`, {
+                method: "DELETE",
+                credentials: "include",
+            });
+
+            console.log(`🗑️ 알림 ${notiId} 삭제 완료`);
+        } catch (err) {
+            console.error("❌ 알림 삭제 실패:", err);
+        }
+    };
 
     return (
         <>
@@ -131,7 +152,7 @@ export default function Header({
                     <LocationSelector onLoginClick={onLoginClick} />
                 </div>
 
-                {/* 🔹 메뉴 영역 */}
+                {/* 🔹 메뉴 */}
                 <div className="menu-links">
                     {user ? (
                         <>
@@ -159,7 +180,7 @@ export default function Header({
                                     채팅하기
                                 </a>
                             </div>
-
+                            <span className="divider">|</span>
                             {/* 🔔 알림 */}
                             <div
                                 className="notification-wrapper"
@@ -170,7 +191,7 @@ export default function Header({
                                     className="notification-btn"
                                     onClick={() => setIsNotiOpen((prev) => !prev)}
                                 >
-                                    <i className="bi-bell" style={{ fontSize: "20px" }}></i>
+                                    <i className="bi-bell"></i>
                                     {unreadNotiCount > 0 && (
                                         <span className="notification-badge">
                                             {unreadNotiCount}
@@ -180,34 +201,51 @@ export default function Header({
 
                                 {/* 🔹 알림 드롭다운 */}
                                 {isNotiOpen && (
-                                    <div className="notification-dropdown">
+                                    <div className="notification-dropdown expanded">
                                         {notifications.length === 0 ? (
-                                            <div className="notification-empty">
-                                                새 알림이 없습니다.
-                                            </div>
+                                            <div className="notification-empty">새 알림이 없습니다.</div>
                                         ) : (
-                                            notifications.slice(0, 5).map((noti) => (
-                                                <div
-                                                    key={noti.id}
-                                                    className={`notification-item ${noti.isRead ? "read" : "unread"}`}
-                                                    onClick={() => handleNotificationClick(noti)} // ✅ 클릭 시 처리
-                                                    style={{ cursor: "pointer" }}
-                                                >
-                                                    <p className="notification-message">{noti.message}</p>
-                                                    <span className="notification-time">
-            {new Date(noti.createdAt).toLocaleTimeString("ko-KR", {
-                hour: "2-digit",
-                minute: "2-digit",
-            })}
-          </span>
-                                                </div>
-                                            ))
-                                        )}
+                                            <div className="notification-scroll">
+                                                {notifications.map((noti) => (
+                                                    <div
+                                                        key={noti.id}
+                                                        className={`notification-item ${noti.isRead ? "read" : "unread"}`}
+                                                        style={{
+                                                            display: "flex",
+                                                            justifyContent: "space-between",
+                                                            alignItems: "center",
+                                                            gap: "6px",
+                                                        }}
+                                                    >
+                                                        {/* 왼쪽 클릭 영역 */}
+                                                        <div
+                                                            style={{ flex: 1, cursor: "pointer" }}
+                                                            onClick={() => handleNotificationClick(noti)}
+                                                        >
+                                                            <p className="notification-message">{noti.message}</p>
+                                                            <span className="notification-time">
+                                {new Date(noti.createdAt).toLocaleString("ko-KR", {
+                                    month: "2-digit",
+                                    day: "2-digit",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                })}
+                            </span>
+                                                        </div>
 
-                                        {notifications.length > 5 && (
-                                            <Link to="/notifications" className="notification-more">
-                                                더보기 →
-                                            </Link>
+                                                        {/* ❌ 삭제 버튼 */}
+                                                        <button
+                                                            className="notification-delete-btn"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteNotification(noti.id);
+                                                            }}
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         )}
                                     </div>
                                 )}
@@ -218,7 +256,10 @@ export default function Header({
                             {/* 🛍 판매하기 */}
                             <div className="menu-item">
                                 <i className="bi-bag-dash"></i>
-                                <a href="/registerItem" onClick={handleProductRegisterClick}>
+                                <a
+                                    href="/registerItem"
+                                    onClick={handleProductRegisterClick}
+                                >
                                     판매하기
                                 </a>
                             </div>
@@ -235,7 +276,10 @@ export default function Header({
                                 </button>
                                 {isDropdownOpen && (
                                     <div className="header-dropdown-menu">
-                                        <Link to="/mypage" className="dropdown-item">
+                                        <Link
+                                            to="/mypage"
+                                            className="dropdown-item"
+                                        >
                                             마이페이지
                                         </Link>
                                         <button
@@ -317,7 +361,9 @@ export default function Header({
                 points={user?.points ?? 0}
                 user={user}
                 setPoints={(newBalance: number) => {
-                    setUser((prev) => (prev ? { ...prev, points: newBalance } : prev));
+                    setUser((prev) =>
+                        prev ? { ...prev, points: newBalance } : prev
+                    );
                 }}
             />
         </>
