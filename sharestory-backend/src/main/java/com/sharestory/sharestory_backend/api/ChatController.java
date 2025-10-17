@@ -43,7 +43,7 @@ public class ChatController {
 
     @MessageMapping("/message")
     public void message(ChatMessageDto dto) {
-        // 1️⃣ DB 저장
+        // 1️⃣ DB 저장 (+ FCM 전송 포함)
         ChatMessage saved = chatService.saveMessage(dto);
 
         // 2️⃣ 실시간 채팅방(STOMP)
@@ -52,42 +52,10 @@ public class ChatController {
                 ChatMessageDto.from(saved)
         );
 
-        // 3️⃣ ChatRoom 정보 조회 (한 번만)
+        // 3️⃣ 글로벌 알림 (STOMP)
         ChatRoom room = chatService.findRoom(dto.getRoomId());
         Long sellerId = room.getSellerId();
         Long buyerId = room.getBuyerId();
-
-        // 4️⃣ 수신자 판별 (본인이 보낸 경우엔 제외)
-        Long receiverId = dto.getSenderId().equals(sellerId) ? buyerId : sellerId;
-        if (receiverId == null || receiverId.equals(dto.getSenderId())) {
-            log.info("⚠️ 자기 자신에게는 FCM 알림 전송 안 함");
-            return;
-        }
-
-        // 5️⃣ FCM 알림 한 번만 전송
-        try {
-            String senderName = userRepository.findById(dto.getSenderId())
-                    .map(User::getNickname)
-                    .orElse("알 수 없는 사용자");
-
-            String clickAction = "/chat/" + room.getId();
-
-            String bodyPreview = dto.getContent().length() > 40
-                    ? dto.getContent().substring(0, 40) + "..."
-                    : dto.getContent();
-
-            fcmService.sendToUser(
-                    receiverId,
-                    senderName + "님의 새 메시지",
-                    bodyPreview,
-                    clickAction,
-                    room.getId()
-            );
-        } catch (Exception e) {
-            log.error("❌ FCM 알림 전송 실패: {}", e.getMessage(), e);
-        }
-
-        // 6️⃣ 글로벌 알림 (STOMP)
         ChatMessageDto payload = ChatMessageDto.from(saved);
 
         if (!dto.getSenderId().equals(sellerId)) {

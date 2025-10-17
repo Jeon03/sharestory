@@ -26,12 +26,16 @@ public class FcmService {
 
     @Async
     public void sendToUser(Long userId, String title, String body, String clickAction, Long roomId) {
+        if (firebaseMessaging == null) {
+            log.warn("⚠️ FirebaseMessaging 비활성화 상태 → FCM 전송 스킵 (userId={})", userId);
+            return;
+        }
+
         String redisKey = "fcm:chat:lastSent:" + userId;
 
         try {
-
             if (redisTemplate.hasKey(redisKey)) {
-                log.info("⏳ userId={} 생략", userId);
+                log.info("⏳ FCM 쿨다운 중 → userId={} 생략", userId);
                 return;
             }
 
@@ -49,9 +53,22 @@ public class FcmService {
                     String response = firebaseMessaging.send(message);
                     log.info("✅ FCM 전송 성공 → userId={}, roomId={}, response={}", userId, roomId, response);
 
+                    // ✅ 쿨다운 적용 (3초)
                     redisTemplate.opsForValue().set(redisKey, "sent", Duration.ofSeconds(NOTIFY_COOLDOWN_SECONDS));
+
                 } catch (FirebaseMessagingException e) {
-                    log.error("❌ FCM 전송 실패: {}", e.getMessage());
+                    String errMsg = e.getMessage();
+                    log.error("❌ FCM 전송 실패 → userId={}, 이유={}", userId, errMsg);
+
+                    // ✅ 만료된 토큰 자동 삭제 처리
+                    if (errMsg != null && (
+                            errMsg.contains("Requested entity was not found") ||
+                                    errMsg.contains("NotRegistered") ||
+                                    errMsg.contains("InvalidRegistration")
+                    )) {
+                        log.warn("🗑️ 무효 FCM 토큰 감지 → DB에서 삭제: {}", token.getToken());
+                        tokenRepo.delete(token);
+                    }
                 }
             }, () -> log.warn("⚠️ userId={} FCM 토큰이 없습니다.", userId));
 
@@ -61,6 +78,11 @@ public class FcmService {
     }
 
     public void sendNotification(String token, String title, String body) {
+        if (firebaseMessaging == null) {
+            log.warn("⚠️ FirebaseMessaging 비활성화 상태 → 알림 스킵 (token={})", token);
+            return;
+        }
+
         try {
             Message message = Message.builder()
                     .setToken(token)
@@ -74,8 +96,22 @@ public class FcmService {
 
             firebaseMessaging.send(message);
             log.info("✅ [FCM] 푸시 전송 성공 → token={}", token);
+
+        } catch (FirebaseMessagingException e) {
+            String errMsg = e.getMessage();
+            log.error("❌ [FCM] 푸시 전송 실패 → token={}, 이유={}", token, errMsg);
+
+            // ✅ 무효 토큰 즉시 삭제
+            if (errMsg != null && (
+                    errMsg.contains("Requested entity was not found") ||
+                            errMsg.contains("NotRegistered") ||
+                            errMsg.contains("InvalidRegistration")
+            )) {
+                log.warn("🗑️ 무효 FCM 토큰 감지 → DB에서 삭제: {}", token);
+                tokenRepo.deleteByToken(token);
+            }
         } catch (Exception e) {
-            log.error("❌ [FCM] 푸시 전송 실패: {}", e.getMessage());
+            log.error("❌ [FCM] 알림 전송 중 예외 발생 → {}", e.getMessage(), e);
         }
     }
 }

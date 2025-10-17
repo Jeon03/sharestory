@@ -20,7 +20,8 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
     private final String provider;
     private final String providerId;
 
-    private final Map<String, Object> attributes; // ✅ OAuth2User용
+    private final Map<String, Object> attributes;
+    private final User user;
 
     // User 엔티티 기반 생성자
     public CustomUserDetails(User user) {
@@ -31,6 +32,7 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
         ));
     }
 
+
     // OAuth2User 기반 생성자
     public CustomUserDetails(User user, Map<String, Object> attributes) {
         this.id = user.getId();
@@ -40,6 +42,11 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
         this.provider = user.getProvider();
         this.providerId = user.getProviderId();
         this.attributes = attributes != null ? attributes : Collections.emptyMap();
+        this.user = user;
+    }
+
+    public User getUser() {
+        return this.user;
     }
 
     @Override

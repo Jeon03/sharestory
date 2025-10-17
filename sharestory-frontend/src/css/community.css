@@ -1,0 +1,749 @@
+/* ===============================
+   🏡 COMMUNITY GLOBAL LAYOUT
+================================= */
+.ss-community-container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+    background: #fff;
+    box-sizing: border-box;
+}
+/* ===============================
+   📍 REGION SELECT BUTTON
+================================= */
+.ss-region-button {
+    background: gold;           /* 💛 노란색 테마 */
+    color: #222;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;                      /* 아이콘과 텍스트 간격 */
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(239, 225, 116, 0.4);
+}
+
+.ss-region-button:hover {
+    background: #f7eb7b;
+    transform: translateY(-1px);
+}
+
+/* ===============================
+   🔹 HEADER AREA
+================================= */
+.ss-community-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.ss-community-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.ss-community-write-btn {
+    background: gold; /* 🌼 포인트 컬러: 따뜻한 노란색 */
+    color: #222;         /* 글자는 진한 회색으로 대비 */
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 14px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(239, 225, 116, 0.4); /* 부드러운 그림자 */
+}
+
+.ss-community-write-btn:hover {
+    background: #f7eb7b; /* 🌟 살짝 밝은 노랑으로 호버 효과 */
+    transform: translateY(-1px);
+}
+
+/* ===============================
+   🗞️ COMMUNITY LIST
+================================= */
+.ss-community-post-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid #eee;
+    text-decoration: none;
+    color: #222;
+    transition: background 0.15s ease;
+}
+.ss-community-post-card:hover {
+    background: #fef9db;
+}
+
+.ss-community-post-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.ss-community-post-info h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #111;
+    line-height: 1.3;
+}
+
+.ss-community-content-preview {
+    font-size: 14px;
+    color: #555;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.ss-community-meta {
+    font-size: 13px;
+    color: #777;
+    margin-top: 4px;
+}
+
+/* 썸네일 */
+.ss-community-thumbnail {
+    width: 90px;
+    height: 90px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid #eee;
+}
+
+@media (max-width: 768px) {
+    .ss-community-thumbnail {
+        width: 70px;
+        height: 70px;
+    }
+}
+
+/* ===============================
+   ✏️ WRITE PAGE
+================================= */
+.ss-community-write-container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px;
+    background: #fff;
+    border-radius: 10px;
+}
+.ss-community-write-container input[type="text"],
+.ss-community-write-container textarea {
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 15px;
+    margin-bottom: 14px;
+    resize: none;
+    background-color: #fafafa;
+    transition: border 0.2s ease;
+}
+.ss-community-write-container input:focus,
+.ss-community-write-container textarea:focus {
+    border-color: #ff7e36;
+    outline: none;
+    background: #fff;
+}
+.ss-community-upload-label {
+    display: inline-block;
+    margin: 8px 0;
+    cursor: pointer;
+    color: #555;
+    font-size: 14px;
+    transition: color 0.2s ease;
+}
+.ss-community-upload-label:hover {
+    color: #ff7e36;
+}
+
+.ss-community-image-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+.ss-community-image-preview img {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.ss-community-image-preview img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ===============================
+   🗺️ MAP
+================================= */
+.ss-community-map-container {
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    overflow: hidden;
+}
+.ss-community-map-container:empty {
+    display: none;
+}
+
+/* ===============================
+   📰 DETAIL PAGE
+================================= */
+.ss-community-detail {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px 16px;
+    background: #fff;
+    border-radius: 10px;
+}
+.ss-community-detail-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #222;
+}
+
+/* 작성자 정보 */
+.ss-community-detail-author {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 14px;
+    line-height: 1.4;
+}
+.ss-author-name {
+    font-weight: 600;
+    font-size: 15px;
+    color: #222;
+    margin: 0 0 2px 0;
+}
+.ss-author-meta {
+    font-size: 13px;
+    color: #777;
+    margin: 0;
+}
+
+/* 본문 */
+.ss-community-detail-content {
+    font-size: 15px;
+    line-height: 1.6;
+    color: #333;
+    margin-bottom: 18px;
+}
+
+
+.ss-community-detail-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+    justify-content: flex-start;
+}
+
+/* ✅ 이미지 비율 고정 + 크기 확장 */
+.ss-community-detail-images img {
+    width: 300px;
+    height: auto;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    object-fit: contain;
+    background: #fafafa;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.ss-community-detail-images img:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* ✅ 반응형 조정 */
+@media (max-width: 1024px) {
+    .ss-community-detail-images img {
+        width: 48%;
+        height: auto;
+    }
+}
+
+@media (max-width: 600px) {
+    .ss-community-detail-images img {
+        width: 100%;
+        height: auto;
+    }
+}
+
+/* 지도 미리보기 */
+.ss-community-map-preview {
+    margin-top: 24px;
+}
+.ss-community-map-preview h4 {
+    font-size: 16px;
+    color: #444;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+.ss-community-map-preview .ss-community-map-container {
+    width: 75%;
+    height: 320px;
+}
+@media (max-width: 768px) {
+    .ss-community-map-preview .ss-community-map-container {
+        height: 260px;
+    }
+}
+
+/* ===============================
+   📚 COMMUNITY LAYOUT (공통)
+================================= */
+.ss-community-layout {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: row; /* 왼쪽 메인, 오른쪽 사이드 */
+    align-items: flex-start;
+    justify-content: center;
+    gap: 10px;
+    max-width: 1200px;
+    padding: 20px 16px 40px;
+
+
+}
+
+/* 🔹 메인 콘텐츠: 왼쪽 정렬 */
+.ss-community-main {
+    flex: 1;
+    min-width: 0;
+
+    margin-right: 80px;
+}
+
+/* 🔹 사이드바: 오른쪽 고정 */
+.ss-community-sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    border-right: 1px solid #eee;
+    padding-left: 20px;
+
+}
+
+.ss-community-sidebar h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #e94f37;
+}
+.ss-community-sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.ss-community-sidebar li {
+    font-size: 17px;
+    color: #333;
+    margin: 12px 0;
+    cursor: pointer;
+    transition: color 0.2s ease;
+
+}
+.ss-community-sidebar li:hover {
+    color: #f2e475;
+}
+.ss-community-sidebar li.active {
+    font-weight: 700;
+    color: #000;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .ss-community-layout {
+        flex-direction: column;
+    }
+    .ss-community-sidebar {
+        display: none;
+    }
+}
+
+.ss-community-category {
+    margin-bottom: 16px;
+}
+
+.ss-community-category label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #333;
+}
+
+.ss-community-category select {
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+    background: #fafafa;
+}
+
+/* ===============================
+   📍 REGION SELECT MODAL (지역 변경)
+================================= */
+.ss-region-modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.25s ease;
+}
+
+.ss-region-modal {
+    width: 360px;
+    background: #fff;
+    border-radius: 14px;
+    padding: 22px 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    animation: fadeIn 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* 헤더 */
+.ss-region-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 6px;
+}
+
+.ss-region-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.ss-region-modal-header button {
+    border: none;
+    background: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #888;
+    transition: color 0.2s ease;
+}
+.ss-region-modal-header button:hover {
+    color: #ff7e36;
+}
+
+/* 검색 영역 */
+.ss-region-search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.ss-region-search {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px 36px 10px 12px;
+    font-size: 14px;
+    color: #333;
+    background: #fafafa;
+    transition: all 0.2s ease;
+}
+.ss-region-search:focus {
+    border-color: gold;
+    background: #fff;
+    outline: none;
+}
+
+.ss-region-clear {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #aaa;
+    transition: color 0.2s ease;
+}
+.ss-region-clear:hover {
+    color: gold;
+}
+
+/* 현재 위치 버튼 */
+.ss-region-locate-btn {
+    background: gold;        /* 💛 노란색 메인 */
+    color: #333;                /* 글씨 대비 높이기 */
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(239, 225, 116, 0.3); /* 부드러운 그림자 */
+}
+
+.ss-region-locate-btn:hover {
+    background: #f4e98b;        /* 💛 밝은 노랑 */
+    transform: translateY(-1px);
+}
+.ss-region-locate-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* 검색 결과 리스트 */
+.ss-region-list {
+    max-height: 280px;
+    overflow-y: auto;
+    border-top: 1px solid #eee;
+    margin-top: 10px;
+}
+
+.ss-region-item {
+    padding: 10px 12px;
+    font-size: 14px;
+    border-bottom: 1px solid #f5f5f5;
+    cursor: pointer;
+    color: #333;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.ss-region-item:hover {
+    background: #fff5ef;
+    color: #ff7e36;
+}
+
+.ss-region-loading,
+.ss-region-empty {
+    text-align: center;
+    color: #888;
+    font-size: 14px;
+    padding: 12px 0;
+}
+
+/* 모바일 대응 */
+@media (max-width: 768px) {
+    .ss-region-modal {
+        width: 90%;
+        max-width: 360px;
+        padding: 18px;
+    }
+}
+.ss-community-delete-btn {
+    background: #ff4d4f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 14px;
+    transition: all 0.2s ease;
+    margin-top: 20px;
+}
+.ss-community-delete-btn:hover {
+    background: #ff6a6c;
+    transform: translateY(-1px);
+}
+
+/* ===============================
+   📷 이미지 업로드 영역
+================================= */
+.ss-community-upload-label {
+    display: inline-block;
+    background: #f9f9f9;
+    border: 1px dashed #ccc;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 14px;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    margin-top: 8px;
+}
+
+.ss-community-upload-label:hover {
+    background: #fffceb; /* 💛 노란빛 hover */
+    border-color: #efe174;
+    color: #333;
+}
+
+/* 이미지 미리보기 */
+.ss-community-image-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.ss-community-image-preview img {
+    width: 200px;
+    height: auto;
+    object-fit: contain;
+    border-radius: 10px;
+    border: 2px solid #f3f3f3;
+    transition: all 0.2s ease;
+    background: #fafafa;
+}
+
+.ss-community-image-preview img:hover {
+    transform: scale(1.05);
+    border-color: #efe174;
+    box-shadow: 0 2px 6px rgba(239, 225, 116, 0.4);
+}
+
+/* ===============================
+   📍 위치 공유 버튼 및 안내문
+================================= */
+.ss-community-location-btn {
+    background: #f9f9f9;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ss-community-location-btn:hover {
+    background: #fffceb;
+    border-color: #efe174;
+    transform: translateY(-1px);
+}
+
+.ss-community-location-btn:active {
+    background: #f4e98b;
+    transform: translateY(0);
+}
+
+/* 위치 안내 텍스트 */
+.ss-community-location-selected {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #666;
+    background: #fffdf1;
+    border-left: 3px solid #efe174;
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+/* ===============================
+   🟡 등록 버튼 (글쓰기 페이지)
+================================= */
+.ss-community-submit-btn {
+    background: gold;          /* 💛 따뜻한 노랑 메인 */
+    color: #333;                  /* 대비 높은 텍스트 */
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 18px;
+    transition: all 0.25s ease;
+    box-shadow: 0 3px 8px rgba(239, 225, 116, 0.3);
+    display: inline-block;
+}
+
+.ss-community-submit-btn:hover {
+    background: #f4e98b;          /* hover 시 좀 더 밝은 노랑 */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(239, 225, 116, 0.4);
+}
+
+.ss-community-submit-btn:active {
+    background: #e5d85f;          /* 클릭 시 살짝 어두운 노랑 */
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+/* 모달 오버레이 */
+.ss-community-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1200;
+    padding: 16px; /* 모바일 여백 */
+}
+
+/* 모달 박스 */
+.ss-community-modal-content {
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    width: 860px;              /* 데스크톱 넓이 */
+    max-width: 96vw;           /* 화면 넘치지 않게 */
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* 지도 컨테이너 (모달 전용) */
+.ss-community-map-modal {
+    width: 100%;
+    height: 560px;             /* 데스크톱 높이 크게 */
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    overflow: hidden;
+}
+
+/* 닫기 버튼 */
+.ss-community-map-close-btn {
+    align-self: flex-end;
+    background: gold;       /* 노란 테마 */
+    color: #333;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(239,225,116,0.3);
+}
+.ss-community-map-close-btn:hover {
+    background: #f4e98b;
+    transform: translateY(-1px);
+}
+
+/* 모바일/태블릿 대응 */
+@media (max-width: 1024px) {
+    .ss-community-modal-content {
+        width: 96vw;
+    }
+    .ss-community-map-modal {
+        height: 60vh;          /* 뷰포트 기준으로 유연하게 */
+    }
+}
+@media (max-width: 480px) {
+    .ss-community-map-modal {
+        height: 56vh;
+    }
+}
