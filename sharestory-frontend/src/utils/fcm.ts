@@ -91,8 +91,8 @@ export async function registerFcmToken() {
     //포그라운드 알림 수신 (테스트용)
     onMessage(messaging, (payload: MessagePayload) => {
         console.log("📩 Foreground 메시지 수신:", payload);
-        const title = payload.notification?.title || payload.data?.title || "새 알림";
-        const body = payload.notification?.body || payload.data?.body || "";
-        new Notification(title, { body });
+        // const title = payload.notification?.title || payload.data?.title || "새 알림";
+        // const body = payload.notification?.body || payload.data?.body || "";
+        // new Notification(title, { body });
     });
 }

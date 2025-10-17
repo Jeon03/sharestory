@@ -18,7 +18,7 @@ RUN npm run build
 FROM nginx:alpine
 WORKDIR /usr/share/nginx/html
 
-# Nginx 설정 (SPA 라우팅 + API 프록시 + 캐싱)
+# Nginx 설정 (SPA 라우팅 + API 프록시 + WebSocket 프록시)
 RUN printf "server {\n\
   listen 80;\n\
   server_name _;\n\
@@ -44,7 +44,17 @@ RUN printf "server {\n\
     proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;\n\
     proxy_set_header X-Forwarded-Proto \$scheme;\n\
   }\n\
+\n\
+  # ✅ WebSocket 프록시 추가 (/ws-connect)\n\
+  location /ws-connect/ {\n\
+    proxy_pass http://backend:8081/ws-connect/;\n\
+    proxy_http_version 1.1;\n\
+    proxy_set_header Upgrade \$http_upgrade;\n\
+    proxy_set_header Connection \"upgrade\";\n\
+    proxy_set_header Host \$host;\n\
+  }\n\
 }\n" > /etc/nginx/conf.d/default.conf
+
 
 # 빌드 결과 복사
 COPY --from=build /app/dist /usr/share/nginx/html

@@ -14,57 +14,52 @@ import java.nio.charset.StandardCharsets;
 @Configuration
 public class FirebaseConfig {
 
+    private boolean firebaseEnabled = false; // ✅ Firebase 활성화 여부 플래그
+
     @PostConstruct
     public void init() {
         try {
+            String firebaseKey = System.getenv("FIREBASE_SERVICE_KEY");
+
+            if (firebaseKey == null || firebaseKey.isEmpty()) {
+                System.out.println("⚠️ 환경 변수 FIREBASE_SERVICE_KEY 미설정 → FCM 비활성화");
+                return;
+            }
+
             if (FirebaseApp.getApps().isEmpty()) {
-                String firebaseKey = System.getenv("FIREBASE_SERVICE_KEY");
-
-                if (firebaseKey == null || firebaseKey.isEmpty()) {
-                    throw new IllegalStateException("환경 변수 FIREBASE_SERVICE_KEY가 설정되지 않았습니다.");
-                }
-
-                // 🔽 문자열(JSON)을 InputStream으로 변환
                 var stream = new ByteArrayInputStream(firebaseKey.getBytes(StandardCharsets.UTF_8));
-
                 FirebaseOptions options = FirebaseOptions.builder()
                         .setCredentials(GoogleCredentials.fromStream(stream))
                         .build();
 
                 FirebaseApp.initializeApp(options);
+                firebaseEnabled = true;
                 System.out.println("✅ FirebaseApp 환경변수 기반 초기화 완료");
             } else {
+                firebaseEnabled = true;
                 System.out.println("ℹ️ FirebaseApp 이미 초기화됨");
             }
+
         } catch (Exception e) {
-            System.err.println("❌ Firebase 초기화 실패: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("⚠️ Firebase 초기화 실패 (무시하고 서버 계속 실행): " + e.getMessage());
+            firebaseEnabled = false;
         }
     }
 
     @Bean
-    public FirebaseMessaging firebaseMessaging() throws Exception {
-        String firebaseKey = System.getenv("FIREBASE_SERVICE_KEY");
+    public FirebaseMessaging firebaseMessaging() {
+        try {
+            if (!firebaseEnabled || FirebaseApp.getApps().isEmpty()) {
+                System.out.println("⚠️ FirebaseMessaging 비활성화 상태 → FCM 기능 사용 불가");
+                return null;
+            }
 
-        if (firebaseKey == null || firebaseKey.isEmpty()) {
-            throw new IllegalStateException("❌ 환경 변수 FIREBASE_SERVICE_KEY가 설정되지 않았습니다.");
+            FirebaseApp firebaseApp = FirebaseApp.getInstance();
+            return FirebaseMessaging.getInstance(firebaseApp);
+
+        } catch (Exception e) {
+            System.err.println("⚠️ FirebaseMessaging Bean 생성 실패 (무시): " + e.getMessage());
+            return null;
         }
-
-        FirebaseApp firebaseApp;
-        if (FirebaseApp.getApps().isEmpty()) {
-            var stream = new ByteArrayInputStream(firebaseKey.getBytes(StandardCharsets.UTF_8));
-
-            FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(stream))
-                    .build();
-
-            firebaseApp = FirebaseApp.initializeApp(options);
-            System.out.println("✅ FirebaseApp 환경변수 기반 초기화 완료");
-        } else {
-            firebaseApp = FirebaseApp.getInstance();
-            System.out.println("ℹ️ FirebaseApp 재사용");
-        }
-
-        return FirebaseMessaging.getInstance(firebaseApp);
     }
 }

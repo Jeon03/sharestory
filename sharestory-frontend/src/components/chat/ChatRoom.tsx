@@ -417,7 +417,9 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                     onConfirm={(lat, lng, address) => {
                         const payload = JSON.stringify({ lat, lng, address });
                         sendMessage(roomId, payload, currentUserId!, "LOCATION_MAP");
-                        sendMessage(roomId, address, currentUserId!, "LOCATION_TEXT");
+                        setTimeout(() => {
+                            sendMessage(roomId, address, currentUserId!, "LOCATION_TEXT");
+                        }, 150);
                         setShowMap(false);
                     }}
                     onCancel={() => setShowMap(false)}

@@ -30,6 +30,10 @@ import AuctionDetail from "./pages/AuctionDetail";
 import TopBanner from "./components/TopBanner";
 import AuctionTradeItems from "./components/mypage/AuctionTradeItems.tsx";
 
+import CommunityList from "./pages/community/CommunityList.tsx";
+import CommunityDetail from "./pages/community/CommunityDetail";
+import CommunityWrite from "./pages/community/CommunityWrite";
+import CommunityLayout from "./components/community/CommunityLayout.tsx";
 
 function AppLayout({
                        user,
@@ -218,6 +222,20 @@ export default function App() {
                     <Route path="/auction/:id" element={<AuctionDetail />} />
                     <Route path="/items/:id" element={<ProductDetail />} />
                     <Route path="/search" element={<SearchPage />} />
+
+
+                    <Route path="/community" element={<CommunityLayout />}>
+                        <Route index element={<CommunityList />} />
+                        <Route path=":id" element={<CommunityDetail />} />
+                        <Route
+                            path="write"
+                            element={
+                                <ProtectedRoute user={user} isAuthLoading={isAuthLoading}>
+                                    <CommunityWrite />
+                                </ProtectedRoute>
+                            }
+                        />
+                    </Route>
 
                     {/* 로그인 필수 라우트 */}
                     <Route

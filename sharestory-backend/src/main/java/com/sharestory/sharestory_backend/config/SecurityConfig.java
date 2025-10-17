@@ -63,7 +63,8 @@ public class SecurityConfig {
                                 "/ws-connect/**",
                                 "/api/auctions/list",
                                 "/api/auctions/{id}",
-                                "/api/auction/**"
+                                "/api/auction/**",
+                                "/api/community/**"
                         ).permitAll()
                         .requestMatchers(
                                 "/api/users/location",
@@ -76,7 +77,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(customAuthenticationEntryPoint) // ✅ JSON 응답
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
                 )
                 // 기본 로그인/HTTP Basic 비활성화
                 .formLogin(AbstractHttpConfigurer::disable)

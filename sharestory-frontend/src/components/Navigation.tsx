@@ -69,7 +69,7 @@ function Navigation() {
                 <Link to="/">중고거래</Link>
                 <Link to="/auction">물품경매</Link>
                 <Link to="/auction/register">경매물품등록</Link>
-                <Link to="/community">커뮤니티</Link>
+                <Link to="/community">동네생활</Link>
 
 
             </div>
