@@ -1,41 +1,8 @@
-/* ------------------------------
-   🔷 공통 폰트 (Pretendard)
------------------------------- */
-@font-face {
-    font-family: 'Pretendard';
-    src: url('@/assets/fonts/Pretendard-Medium.ttf') format('truetype');
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
-}
-
-.nav,
-.nav *,
-.navbar,
-.navbar *,
-.nav-links,
-.nav-links *,
-.nav-inner,
-.nav-inner *,
-.menu-area,
-.menu-area *,
-.dropdown-wrapper,
-.dropdown-wrapper *,
-.menu-icon,
-.menu-icon * {
-    font-family: 'Pretendard', sans-serif !important;
-    letter-spacing: 3px;
-}
-
-/* ------------------------------
-   🔶 네비게이션 스타일
------------------------------- */
 .nav {
     background-color: #f6e367;
     padding: 10px;
 }
 
-/* 내부 정렬 */
 .nav-inner {
     display: flex;
     align-items: center;
@@ -43,43 +10,83 @@
     gap: 20px;
 }
 
-/* 링크 기본 스타일 */
-.navbar a,
-.nav-links a {
-    font-size: 17px;
-    font-weight: 700;
-    color: black;
-    text-decoration: none;
-    margin: 0 20px;
-    transition: color 0.2s ease;
-    letter-spacing: 1px;
+.menu-area {
+    position: relative;
+    display: inline-block;
+    padding: 0 25px 0 20px;
 }
 
-/* hover 시 강조 효과 */
-.navbar a:hover,
-.nav-links a:hover {
-    color: #222222;
-}
-
-/* ☰ 메뉴 버튼 */
+/* ☰ 버튼 */
 .menu-icon {
     background: none;
     border: none;
     font-size: 20px;
     cursor: pointer;
     font-weight: bold;
+    color: #333;
+    transition: transform 0.2s ease, color 0.2s ease;
 }
 
-/* 드롭다운 메뉴 */
+.menu-icon:hover {
+    transform: scale(1.1);
+    color: #000;
+}
+
+/* ✅ 드롭다운 메뉴 감싸는 래퍼 */
 .dropdown-wrapper {
     position: absolute;
-    top: 48px;
+    top: 30px;
     left: 0;
     width: 200px;
-    background-color: white;
-    border: 1px solid #ddd;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    background-color: transparent;
     z-index: 999;
     padding: 0;
     margin: 0;
+
+    /* 자연스러운 열림 효과 */
+    opacity: 0;
+    transform: scaleY(0.95);
+    transform-origin: top;
+    pointer-events: none;
+    transition: all 0.25s ease;
 }
+
+/* ✅ 드롭다운 활성화 */
+.dropdown-wrapper.active {
+    opacity: 1;
+    transform: scaleY(1);
+    pointer-events: auto;
+}
+
+/* ✅ 드롭다운 내부 항목 (카테고리 스타일과 통일) */
+.dropdown-wrapper button {
+    width: 100%;
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 12px 18px;
+    font-size: 15px;
+    color: #333;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+    border-bottom: 1px solid #f9f9f9;
+}
+
+.dropdown-wrapper button:hover {
+    background-color: #fff8cc; /* 💛 중고나라 톤 */
+    color: #000;
+}
+
+/* ✅ 마지막 항목 테두리 제거 */
+.dropdown-wrapper button:last-child {
+    border-bottom: none;
+}
+
+/* ✅ 드롭다운 내 텍스트 스타일 */
+.dropdown-wrapper p {
+    padding: 10px 16px;
+    margin: 0;
+    font-size: 13px;
+    color: #666;
+}
+
