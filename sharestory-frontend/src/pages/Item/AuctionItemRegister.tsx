@@ -5,7 +5,7 @@ import Category from "../../components/Category";
 import ImmediatePurchaseSection from "../../components/ImmediatePurchaseSection";
 
 const MAX_IMAGES = 3;
-const ACCEPTED = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
 
 const AuctionItemRegister = () => {
     // 기본 정보
@@ -31,6 +31,27 @@ const AuctionItemRegister = () => {
 
     const handleSubmit = async () => {
         try {
+
+            if (!endDateTime) {
+                alert("경매 종료일시를 입력해주세요.");
+                return;
+            }
+
+            const selected = new Date(endDateTime);
+            const now = new Date();
+            const diffMs = selected.getTime() - now.getTime();
+
+            if (diffMs < 3 * 60 * 1000) {
+                alert("경매 종료일시는 현재 시간으로부터 최소 3분 이후로 설정해야 합니다.");
+                return;
+            }
+
+            if (diffMs > 7 * 24 * 60 * 60 * 1000) {
+                alert("경매 종료일시는 최대 1주일 이내로 설정해야 합니다.");
+                return;
+            }
+
+
             const formData = new FormData();
 
             // 기본 상품 정보
@@ -66,7 +87,7 @@ const AuctionItemRegister = () => {
             }
 
             alert("✅ 경매 상품이 등록되었습니다!");
-            // window.location.href = "/auction-list"; // 등록 후 이동할 페이지 (원하는 경로로 변경 가능)
+            window.location.href = "/auction";
 
         } catch (error) {
             console.error(error);
@@ -90,7 +111,6 @@ const AuctionItemRegister = () => {
         }
     }, [isImmediatePurchase, startPrice, immediatePrice]);
 
-    // ✅ 유효성 검사
     const isFormValid = Boolean(
         productName &&
         selectedCategory &&
@@ -148,7 +168,8 @@ const AuctionItemRegister = () => {
 
     // ✅ 날짜 제한
     const now = new Date();
-    const maxDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const minDate = new Date(now.getTime() + 3 * 60 * 1000); // 현재시간 + 3분
+    const maxDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 1주일 뒤
     const formatDate = (d: Date) => d.toISOString().slice(0, 16);
 
     return (
@@ -324,13 +345,14 @@ const AuctionItemRegister = () => {
                         type="datetime-local"
                         value={endDateTime}
                         onChange={(e) => setEndDateTime(e.target.value)}
-                        min={formatDate(now)}
+                        min={formatDate(minDate)}
                         max={formatDate(maxDate)}
                     />
                     <p className={styles.helperText}>
-                        최대 1주일 이내로 설정할 수 있습니다.
+                        현재 시각 기준 최소 3분 이후부터, 최대 1주일 이내로 설정 가능합니다.
                     </p>
                 </div>
+
 
                 {/* 등록 버튼 */}
                 <hr className={styles.hr_bold} />
@@ -349,7 +371,7 @@ const AuctionItemRegister = () => {
                 <AuctionWarningModal
                     onAgree={() => {
                         setShowAgreeModal(false);
-                        handleSubmit(); // ✅ 실제 서버 전송
+                        handleSubmit();
                     }}
                     onCancel={() => setShowAgreeModal(false)}
                 />

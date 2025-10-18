@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { writeFileSync } from "node:fs";
 import dotenv from "dotenv";
+import path from "path";
 
 dotenv.config();
 
@@ -34,6 +35,11 @@ const generateFirebaseConfig = {
 
 export default defineConfig({
   plugins: [react(), generateFirebaseConfig],
+    resolve: {
+        alias: {
+            "@": path.resolve(__dirname, "src"),
+        },
+    },
   server: {
     proxy: {
       "/api": { target: "http://localhost:8081", changeOrigin: true },

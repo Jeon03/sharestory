@@ -1,6 +1,5 @@
 .transactionContainer {
     width: 100%;
-    /*border: 2px solid black !important;*/
 }
 .validationMessage {
     color: red;
@@ -120,7 +119,7 @@
     font-weight: bolder;
     background-color: gold;
     margin-top: 10px;
-    border: 2px solid black !important;
+    border: 1px solid black !important;
     color: black;
     font-size: 17px;
     cursor: pointer;
@@ -129,7 +128,7 @@
 }
 
 .locationOptionButton:hover {
-    background-color: yellow;
+    background-color: #ffe873;
 }
 
 /* 카카오 지도 관련 스타일 */
@@ -167,7 +166,7 @@
 }
 
 .modalContent button {
-    border: 2px solid black !important;
+    border: 1px solid black !important;
     margin-top: 20px;
     padding: 10px 20px;
     background-color: gold;
@@ -203,4 +202,18 @@
     margin-top: 15px;
     margin-bottom: 15px;
     border: 0.5px solid #f0f0f0;
+}
+
+.phoneInput {
+    margin-top: 12px;
+}
+
+.noticeText {
+    font-size: 14px;
+    color: #555;
+    background-color: #fefce8;
+    border: 1px solid #fde68a;
+    border-radius: 6px;
+    padding: 10px 12px;
+    line-height: 1.5;
 }

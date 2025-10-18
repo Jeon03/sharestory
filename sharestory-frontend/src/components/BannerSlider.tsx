@@ -8,9 +8,9 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 
 
-import img1 from "../../public/banner.png";
-import img2 from "../../public/banner.png";
-import img3 from "../../public/banner.png";
+import img1 from "../../public/banner1.png";
+import img2 from "../../public/banner2.png";
+import img3 from "../../public/banner3.png";
 
 export default function BannerSlider() {
     return (
@@ -22,10 +22,10 @@ export default function BannerSlider() {
                 loop={true}
             >
                 <SwiperSlide>
-                    <img src={img1} alt="배너1" className="banner-image" />
+                    <img src={img1} alt="배너1" className="banner-image1" />
                 </SwiperSlide>
                 <SwiperSlide>
-                    <img src={img2} alt="배너2" className="banner-image" />
+                    <img src={img2} alt="배너2" className="banner-image2" />
                 </SwiperSlide>
                 <SwiperSlide>
                     <img src={img3} alt="배너3" className="banner-image" />

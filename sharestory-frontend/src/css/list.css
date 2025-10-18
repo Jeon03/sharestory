@@ -62,21 +62,53 @@
 
 /* ===== 배너 ===== */
 .banner-slider {
-    width: 1155px;
+    width: 1200px;
     height: 300px;
-    margin: 0 auto 30px;
+    margin: 20px auto 30px;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     display: flex;
     align-items: center;
     justify-content: center;
+    background-color: #000;
 
 }
 
+/* Swiper 컨테이너도 높이를 고정해야 함 ✅ */
+.banner-slider .swiper {
+    width: 100%;
+    height: 100%;
+}
+
+/* 슬라이드 영역도 부모 높이에 맞춤 ✅ */
+.banner-slider .swiper-slide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+/* 이미지 스타일 */
+.banner-image1 {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;       /* 꽉 채우기 */
+    object-position: center;  /* 세로 중앙 정렬 */
+    display: block;           /* 인라인 간격 제거 */
+}
+.banner-image2 {
+    width: 100%;
+    height: 80%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+
+}
 .banner-image {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    object-position: center;
+    object-fit: cover;        /* 꽉 채우기 */
+    object-position: center;  /* 세로 중앙 정렬 */
+    display: block;           /* 인라인 간격 제거 */
 }

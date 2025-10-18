@@ -1,9 +1,41 @@
+/* ------------------------------
+   🔷 공통 폰트 (Pretendard)
+------------------------------ */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('@/assets/fonts/Pretendard-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+.nav,
+.nav *,
+.navbar,
+.navbar *,
+.nav-links,
+.nav-links *,
+.nav-inner,
+.nav-inner *,
+.menu-area,
+.menu-area *,
+.dropdown-wrapper,
+.dropdown-wrapper *,
+.menu-icon,
+.menu-icon * {
+    font-family: 'Pretendard', sans-serif !important;
+    letter-spacing: 3px;
+}
+
+/* ------------------------------
+   🔶 네비게이션 스타일
+------------------------------ */
 .nav {
     background-color: #f6e367;
     padding: 10px;
-
 }
 
+/* 내부 정렬 */
 .nav-inner {
     display: flex;
     align-items: center;
@@ -11,14 +43,25 @@
     gap: 20px;
 }
 
-.menu-area {
-    position: relative;
-    display: inline-block;
-    padding: 0 25px 0 20px;
+/* 링크 기본 스타일 */
+.navbar a,
+.nav-links a {
+    font-size: 17px;
+    font-weight: 700;
+    color: black;
+    text-decoration: none;
+    margin: 0 20px;
+    transition: color 0.2s ease;
+    letter-spacing: 1px;
 }
 
+/* hover 시 강조 효과 */
+.navbar a:hover,
+.nav-links a:hover {
+    color: #222222;
+}
 
-/* ☰ 버튼 */
+/* ☰ 메뉴 버튼 */
 .menu-icon {
     background: none;
     border: none;
@@ -27,16 +70,16 @@
     font-weight: bold;
 }
 
-/* 드롭다운 메뉴 감싸는 래퍼 */
+/* 드롭다운 메뉴 */
 .dropdown-wrapper {
     position: absolute;
     top: 48px;
-    left: 0; /* ← 꼭 붙게 설정 */
+    left: 0;
     width: 200px;
     background-color: white;
     border: 1px solid #ddd;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     z-index: 999;
-    padding: 0;   /* ✅ 패딩 제거 */
-    margin: 0;    /* ✅ 마진 제거 */
+    padding: 0;
+    margin: 0;
 }

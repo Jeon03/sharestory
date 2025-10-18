@@ -293,7 +293,7 @@ export default function LocationSelector({ onLoginClick }: LocationSelectorProps
                 className="select-button"
                 onClick={() => {
                     if (!isAuthenticated) {
-                        onLoginClick(); // ✅ 바로 로그인 모달 열기
+                        onLoginClick();
                         return;
                     }
 
@@ -312,7 +312,6 @@ export default function LocationSelector({ onLoginClick }: LocationSelectorProps
             {isOpen && (
                 <>
                     <div className="location-selector-overlay" onClick={() => setIsOpen(false)} />
-
                     <div className="location-selector-modal" role="dialog" aria-modal="true">
                         <div className="location-selector-modal-header">
                             <span>지역 변경</span>
@@ -367,7 +366,6 @@ export default function LocationSelector({ onLoginClick }: LocationSelectorProps
 
             {/* 상품 검색창 */}
             <form className="header_search-box" onSubmit={handleSearchSubmit}>
-                {/* ✅ 입력창 + 자동완성 리스트를 감싸는 래퍼 */}
                 <div className="search-input-wrap">
                     <input
                         type="text"

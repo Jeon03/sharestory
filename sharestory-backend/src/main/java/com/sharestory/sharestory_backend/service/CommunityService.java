@@ -1,16 +1,23 @@
 package com.sharestory.sharestory_backend.service;
 
+import co.elastic.clients.elasticsearch._types.query_dsl.Like;
+import com.sharestory.sharestory_backend.domain.Comment;
+import com.sharestory.sharestory_backend.domain.CommunityLike;
 import com.sharestory.sharestory_backend.domain.CommunityPost;
 import com.sharestory.sharestory_backend.domain.User;
 import com.sharestory.sharestory_backend.dto.CommunityPostDto;
+import com.sharestory.sharestory_backend.repo.CommentRepository;
+import com.sharestory.sharestory_backend.repo.CommunityLikeRepository;
 import com.sharestory.sharestory_backend.repo.CommunityPostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +31,11 @@ public class CommunityService {
     private final CommunityPostRepository repo;
     private final S3Service s3Service;
     private final CommunityPostRepository communityPostRepository;
+    private final StringRedisTemplate redisTemplate;
+    private final CommunityLikeRepository likeRepository;
+    private final CommunityLikeRepository communityLikeRepository;
+    private final CommunityPostRepository postRepository;
+    private final CommentRepository commentRepository;
 
     public CommunityPostDto createPost(User user, String title, String content,String category,
                                        List<MultipartFile> images,
@@ -103,12 +115,30 @@ public class CommunityService {
     }
 
     /** 🔍 상세 조회 (조회수 증가) */
-    public CommunityPostDto getPost(Long id) {
-        CommunityPost post = repo.findById(id)
+    @Transactional
+    public CommunityPostDto getPost(Long postId, Long userId, String ipAddress) {
+        CommunityPost post = repo.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
-        post.setViewCount(post.getViewCount() + 1);
-        repo.save(post);
-        return CommunityPostDto.from(post);
+
+        // ✅ Redis 키 생성
+        String key = (userId != null && userId > 0)
+                ? "view:post:" + postId + ":user:" + userId
+                : "view:post:" + postId + ":ip:" + ipAddress;
+
+        // ✅ 이미 조회했는지 체크
+        Boolean alreadyViewed = redisTemplate.hasKey(key);
+
+        if (Boolean.FALSE.equals(alreadyViewed)) {
+            repo.incrementViewCount(postId); // DB에 바로 +1
+            redisTemplate.opsForValue().set(key, "1", Duration.ofSeconds(10));
+            log.info("👀 조회수 1 증가: postId={} (TTL 10초)", postId);
+        }
+        boolean liked = false;
+        if (userId != null && userId > 0) {
+            liked = likeRepository.findByPostIdAndUserId(postId, userId).isPresent();
+        }
+
+        return CommunityPostDto.from(post, liked);
     }
 
     @Transactional
@@ -131,10 +161,41 @@ public class CommunityService {
                 }
             }
         }
-
+        // ✅ 게시글 좋아요 전부 삭제
+        communityLikeRepository.deleteByPost(post);
         // ✅ 게시글 삭제
         communityPostRepository.delete(post);
 
         log.info("🗑️ 게시글 및 관련 이미지 삭제 완료 (id: {})", postId);
     }
+
+    /** ✅ 내가 쓴 글 */
+    public List<CommunityPostDto> getPostsByUser(User user) {
+        List<CommunityPost> posts = postRepository.findByAuthor(user);
+        return posts.stream()
+                .map(CommunityPostDto::from)
+                .toList();
+    }
+
+    /** ✅ 내가 댓글 단 글 */
+    public List<CommunityPostDto> getPostsByUserComments(User user) {
+        List<Comment> comments = commentRepository.findByAuthor(user);
+        return comments.stream()
+                .map(comment -> comment.getPost())
+                .distinct()
+                .map(CommunityPostDto::from)
+                .toList();
+    }
+
+    /** ✅ 내가 좋아요 누른 글 */
+    public List<CommunityPostDto> getPostsByUserLikes(User user) {
+        List<CommunityLike> likes = likeRepository.findByUser(user);
+        return likes.stream()
+                .map(CommunityLike::getPost)
+                .distinct()
+                .map(CommunityPostDto::from)
+                .toList();
+    }
+
+
 }

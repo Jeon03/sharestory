@@ -34,6 +34,12 @@ export default function MyPage({ user, setUser }: MyPageProps) {
                         </li>
                         <li><Link to="/mypage/points">포인트내역</Link></li>
                     </ul>
+                    <h4>커뮤니티</h4>
+                    <ul>
+                        <li><Link to="/mypage/posts">내가 쓴 글</Link></li>
+                        <li><Link to="/mypage/comments">내가 댓글 단 글</Link></li>
+                        <li><Link to="/mypage/likes">좋아요 누른 글</Link></li>
+                    </ul>
                     <h4>내 정보</h4>
                     <ul>
                         <li><Link to="/mypage/review">거래후기</Link></li>

@@ -18,13 +18,10 @@ function Transaction({ onLocationSelect, onDealInfoChange, initialDealInfo }: Tr
         safeTrade: initialDealInfo?.safeTrade ?? false,
     });
     const [shippingOption, setShippingOption] = useState(initialDealInfo?.shippingOption || "");
-    const [phoneNumber, setPhoneNumber] = useState(initialDealInfo?.phoneNumber || "");
-    const [phoneNumberValid, setPhoneNumberValid] = useState(false);
+
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const parcelRef = useRef<HTMLDivElement | null>(null);
-
-    const isValidPhoneNumber = (number: string) => /^010-?\d{4}-?\d{4}$/.test(number);
 
     useEffect(() => {
         if (initialDealInfo) {
@@ -41,13 +38,6 @@ function Transaction({ onLocationSelect, onDealInfoChange, initialDealInfo }: Tr
                 prev === (initialDealInfo.shippingOption || "") ? prev : initialDealInfo.shippingOption || ""
             );
 
-            setPhoneNumber((prev) =>
-                prev === (initialDealInfo.phoneNumber || "") ? prev : initialDealInfo.phoneNumber || ""
-            );
-
-            setPhoneNumberValid(
-                initialDealInfo.phoneNumber ? isValidPhoneNumber(initialDealInfo.phoneNumber) : false
-            );
         }
     }, [initialDealInfo]);
 
@@ -57,10 +47,10 @@ function Transaction({ onLocationSelect, onDealInfoChange, initialDealInfo }: Tr
             parcel: transactionMethods.parcel,
             direct: transactionMethods.direct,
             safeTrade: transactionMethods.safeTrade,
-            shippingOption: transactionMethods.parcel ? shippingOption : '',
-            phoneNumber: transactionMethods.parcel ? phoneNumber.replace(/-/g, '') : ''
+            shippingOption: transactionMethods.parcel ? shippingOption : "",
+            phoneNumber: "00000000000", // ✅ 항상 고정값 전달
         });
-    }, [transactionMethods, shippingOption, phoneNumber]);
+    }, [transactionMethods, shippingOption]);
 
     const handleTransactionMethodChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, checked } = e.target;
@@ -142,23 +132,9 @@ function Transaction({ onLocationSelect, onDealInfoChange, initialDealInfo }: Tr
 
                 {transactionMethods.parcel && (
                     <div className={styles.phoneInput}>
-                        <label>연락처 (택배 발송용)</label>
-                        <input
-                            type="tel"
-                            placeholder="01012345678"
-                            value={phoneNumber}
-                            onChange={(e) => {
-                                const value = e.target.value;
-                                setPhoneNumber(value);
-                                setPhoneNumberValid(isValidPhoneNumber(value));
-                            }}
-                        />
-                        {/* ✅ 입력값이 있는데 정규식에 맞지 않으면 메시지 출력 */}
-                        {!phoneNumberValid && phoneNumber.length > 0 && (
-                            <p className={styles.validationMessage}>
-                                올바른 휴대폰 번호를 입력해주세요. (예: 01012345678)
-                            </p>
-                        )}
+                        <p className={styles.noticeText}>
+                            📦 배송 관련 연락은 앱 내 채팅을 통해 진행됩니다.
+                        </p>
                     </div>
                 )}
             </div>
