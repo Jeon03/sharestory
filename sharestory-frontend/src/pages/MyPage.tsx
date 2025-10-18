@@ -1,7 +1,7 @@
 import "../css/myPage.css";
 import { useState } from "react";
 import type { User } from "../types/user";
-//커밋 출석 2
+//물품등록 ui
 import {Link, Outlet} from "react-router-dom";
 import FavoriteSlider from "../components/favorite/FavoriteSlider.tsx";
 
