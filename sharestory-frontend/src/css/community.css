@@ -152,7 +152,7 @@
 }
 .ss-community-write-container input:focus,
 .ss-community-write-container textarea:focus {
-    border-color: #ff7e36;
+    border-color: gold;
     outline: none;
     background: #fff;
 }
@@ -194,6 +194,7 @@
     border-radius: 12px;
     border: 1px solid #ddd;
     overflow: hidden;
+
 }
 .ss-community-map-container:empty {
     display: none;
@@ -375,25 +376,40 @@
     }
 }
 
+/* ===============================
+   📂 카테고리 셀렉트박스
+================================= */
 .ss-community-category {
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
 
 .ss-community-category label {
-    display: block;
     font-weight: 600;
+    display: block;
     margin-bottom: 6px;
-    color: #333;
 }
 
+/* ✅ input / textarea 와 동일한 너비와 스타일 */
 .ss-community-category select {
-    width: 100%;
+    width: 103%;
+    padding: 10px 12px;
     border: 1px solid #ccc;
     border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 14px;
-    background: #fafafa;
+    font-size: 15px;
+    background-color: #fafafa;
+    transition: border 0.2s ease;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
 }
+
+/* 포커스 효과 동일하게 */
+.ss-community-category select:focus {
+    border-color: gold;
+    outline: none;
+    background: #fff;
+}
+
 
 /* ===============================
    📍 REGION SELECT MODAL (지역 변경)
@@ -688,8 +704,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1200;
     padding: 16px; /* 모바일 여백 */
+    z-index: 9999;
 }
 
 /* 모달 박스 */
@@ -703,6 +719,8 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    z-index: 9999;
+
 }
 
 /* 지도 컨테이너 (모달 전용) */
@@ -746,4 +764,64 @@
     .ss-community-map-modal {
         height: 56vh;
     }
+}
+
+/* 좋아요 · 댓글 · 조회수 표시줄 */
+.community-stats {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #777;
+    font-size: 13px;
+    margin-top: -13px;
+}
+/* 각 아이콘+숫자 세트 */
+.community-stats div {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+/* 아이콘 크기 균일화 */
+.community-stats svg {
+    width: 14px;
+    height: 16px;
+}
+
+/* 좋아요 + 조회수 하단 바 */
+.ss-community-detail-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding: 0 4px;
+}
+
+/* 좋아요 버튼 */
+.like-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #555;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 15px;
+    transition: transform 0.1s ease;
+}
+
+.like-btn:hover {
+    transform: scale(1.05);
+}
+
+.like-btn.liked {
+    color: red;
+}
+
+/* 조회수 */
+.view-count {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #888;
+    font-size: 15px;
 }

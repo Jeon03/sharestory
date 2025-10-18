@@ -1,4 +1,38 @@
 /* ================================
+   🔷 폰트 전역 적용 (Pretendard)
+================================ */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('@/assets/fonts/Pretendard-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ✅ 위치 선택 모달 전체 폰트 통일 */
+.location-selector-modal,
+.location-selector-modal *,
+.location-selector-overlay,
+.select-button,
+.select-button *,
+.save-location-btn,
+.save-location-btn *,
+.cancel-location-btn,
+.cancel-location-btn *,
+.location-selector-address-box,
+.location-selector-address-box *,
+.location-selector-autocomplete-suggestions,
+.location-selector-autocomplete-suggestions *,
+.autocomplete-list,
+.autocomplete-list *,
+.radius-label,
+.radius-select,
+.text {
+    font-family: 'Pretendard', sans-serif !important;
+    letter-spacing: 1px;
+}
+
+/* ================================
    지역 선택 버튼
 ================================ */
 .select-button {

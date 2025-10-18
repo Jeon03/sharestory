@@ -1,12 +1,13 @@
 export interface CommunityPost {
     id: number;
+
     title: string;
     content: string;
     imageUrls: string[];
 
     latitude?: number;
     longitude?: number;
-
+    authorId?: number;
     postLatitude?: number;
     postLongitude?: number;
 
@@ -18,4 +19,7 @@ export interface CommunityPost {
     likeCount: number;
     viewCount: number;
     createdAt: string;
+    commentCount: number;
+
+    liked: boolean;
 }

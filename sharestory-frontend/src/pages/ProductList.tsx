@@ -32,7 +32,7 @@ interface ProductItem {
     favoriteCount: number;
     viewCount: number;
     chatRoomCount: number;
-    dealInfo?: DealInfo;   // ✅ safeTrade 대신 dealInfo 전체 받기
+    dealInfo?: DealInfo;
     latitude?: number;
     longitude?: number;
     location?: string;

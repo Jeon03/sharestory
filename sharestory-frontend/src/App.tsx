@@ -34,6 +34,9 @@ import CommunityList from "./pages/community/CommunityList.tsx";
 import CommunityDetail from "./pages/community/CommunityDetail";
 import CommunityWrite from "./pages/community/CommunityWrite";
 import CommunityLayout from "./components/community/CommunityLayout.tsx";
+import MyPostsPage from "./components/mypage/MyPostsPage.tsx";
+import MyCommentsPage from "./components/mypage/MyCommentsPage.tsx";
+import MyLikedPostsPage from "./components/mypage/MyLikedPostsPage.tsx";
 
 function AppLayout({
                        user,
@@ -308,6 +311,9 @@ export default function App() {
                         <Route path="safe" element={<SafeTradeItems />} />
                         {/* 경매 상품 */}
                         <Route path="auction" element={<AuctionTradeItems />} />
+                        <Route path="posts" element={<MyPostsPage />} />
+                        <Route path="comments" element={<MyCommentsPage />} />
+                        <Route path="likes" element={<MyLikedPostsPage />} />
                         <Route
                             path="points"
                             element={

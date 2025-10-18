@@ -4,6 +4,7 @@ import RegionButton from "../../components/community/RegionButton";
 import "../../css/community.css";
 import type { CommunityPost } from "../../types/community";
 import { useAuth } from "../../contexts/useAuth";
+import {Eye, Heart, MessageCircle} from "lucide-react";
 
 export default function CommunityList() {
     const [region, setRegion] = useState("전체 지역");
@@ -127,6 +128,11 @@ export default function CommunityList() {
                                 <p className="ss-community-meta">
                                     {shortLocation} · {p.category} · {timeAgo}
                                 </p>
+                                <div className="community-stats">
+                                    <div className="like"><Heart size={16} /> {p.likeCount}</div>
+                                    <div className="comment"><MessageCircle size={16} /> {p.commentCount}</div>
+                                    <div className="view"><Eye size={16} /> {p.viewCount}</div>
+                                </div>
                             </div>
 
                             {/* 오른쪽 썸네일 */}

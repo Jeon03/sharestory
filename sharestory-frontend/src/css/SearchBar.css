@@ -1,4 +1,20 @@
-/* SearchBar.css */
+/* ================================
+   🔷 폰트 전역 적용 (Pretendard)
+================================ */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('@/assets/fonts/Pretendard-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+.header_search-box,
+.header_search-box *,
+.search-input {
+    font-family: 'Pretendard', sans-serif !important;
+    letter-spacing: 0.2px;
+}
 
 .header_search-box {
     display: flex;

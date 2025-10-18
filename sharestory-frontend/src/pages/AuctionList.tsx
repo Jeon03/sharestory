@@ -64,6 +64,7 @@ export default function AuctionList() {
     const [endedItems, setEndedItems] = useState<Record<number, boolean>>({});
     const [loading, setLoading] = useState(true);
     const [timeLoading, setTimeLoading] = useState(true);
+
     useEffect(() => {
         (async () => {
             try {
@@ -72,7 +73,15 @@ export default function AuctionList() {
                 });
                 if (!res.ok) throw new Error("경매상품 불러오기 실패");
                 const data: AuctionItem[] = await res.json();
-                setAuctionItems(data);
+
+                // ✅ 종료된 상품 제외 (ONGOING만 남김)
+                const ongoing = data.filter((item) => item.status === "ONGOING");
+                setAuctionItems(ongoing);
+
+                // ✅ 진행 중인 상품이 없으면 바로 timeLoading 해제
+                if (ongoing.length === 0) {
+                    setTimeLoading(false);
+                }
             } catch (err) {
                 console.error("[API] 경매상품 로드 실패:", err);
             } finally {
@@ -80,6 +89,7 @@ export default function AuctionList() {
             }
         })();
     }, []);
+
     useEffect(() => {
         const timer = setInterval(() => {
             const newTimes: Record<number, string> = {};

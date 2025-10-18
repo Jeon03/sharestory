@@ -3,8 +3,10 @@ package com.sharestory.sharestory_backend.api;
 import com.sharestory.sharestory_backend.domain.User;
 import com.sharestory.sharestory_backend.dto.CommunityPostDto;
 import com.sharestory.sharestory_backend.dto.CommunityPostListResponse;
+import com.sharestory.sharestory_backend.repo.UserRepository;
 import com.sharestory.sharestory_backend.security.CustomUserDetails;
 import com.sharestory.sharestory_backend.service.CommunityService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -22,7 +24,7 @@ import java.util.List;
 public class CommunityController {
 
     private final CommunityService communityService;
-
+    private final UserRepository userRepository;
     @PostMapping(
             value = "/write",
             consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }
@@ -94,8 +96,18 @@ public class CommunityController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CommunityPostDto> getPost(@PathVariable Long id) {
-        return ResponseEntity.ok(communityService.getPost(id));
+    public ResponseEntity<CommunityPostDto> getPost(
+            @PathVariable Long id,
+            @RequestParam(required = false) Long userId,
+            HttpServletRequest request) {
+
+        // 요청자의 IP 주소
+        String ipAddress = request.getRemoteAddr();
+
+        // Redis 중복방지 + 조회수 증가 포함
+        CommunityPostDto dto = communityService.getPost(id, userId, ipAddress);
+
+        return ResponseEntity.ok(dto);
     }
 
     @DeleteMapping("/{id}")
@@ -118,5 +130,42 @@ public class CommunityController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("삭제 중 오류가 발생했습니다.");
         }
     }
+
+    /** ✅ 내가 쓴 글 */
+    @GetMapping("/myposts")
+    public ResponseEntity<?> getMyPosts(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null || userDetails.getUser() == null) {
+            return ResponseEntity.status(401).body("로그인이 필요합니다.");
+        }
+
+        User user = userDetails.getUser();
+        List<CommunityPostDto> posts = communityService.getPostsByUser(user);
+        return ResponseEntity.ok(posts);
+    }
+
+    /** ✅ 내가 댓글 단 글 */
+    @GetMapping("/mycomments")
+    public ResponseEntity<?> getMyCommentedPosts(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null || userDetails.getUser() == null) {
+            return ResponseEntity.status(401).body("로그인이 필요합니다.");
+        }
+
+        User user = userDetails.getUser();
+        List<CommunityPostDto> posts = communityService.getPostsByUserComments(user);
+        return ResponseEntity.ok(posts);
+    }
+
+    /** ✅ 내가 좋아요 누른 글 */
+    @GetMapping("/mylikes")
+    public ResponseEntity<?> getMyLikedPosts(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null || userDetails.getUser() == null) {
+            return ResponseEntity.status(401).body("로그인이 필요합니다.");
+        }
+
+        User user = userDetails.getUser();
+        List<CommunityPostDto> posts = communityService.getPostsByUserLikes(user);
+        return ResponseEntity.ok(posts);
+    }
+
 
 }
