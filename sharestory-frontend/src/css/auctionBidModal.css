@@ -1,3 +1,31 @@
+/* ============================= */
+/* Pretendard 폰트 설정 */
+/* ============================= */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('@/assets/fonts/Pretendard-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ============================= */
+/* 경매 입찰 모달 공통 설정 */
+/* ============================= */
+.auction-bid-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+    letter-spacing: 0.2px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
 .auction-bid-modal-backdrop {
     position: fixed;
     inset: 0;
@@ -5,7 +33,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 2000;
+    z-index: 9999;
 }
 
 .auction-bid-modal {

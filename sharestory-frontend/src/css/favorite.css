@@ -1,3 +1,25 @@
+/* ===============================
+   🔷 공통 폰트 (Pretendard)
+=============================== */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('@/assets/fonts/Pretendard-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* 전체 패널 영역 폰트 적용 */
+.favorite-panel,
+.favorite-panel *,
+.favorite-overlay,
+.favorite-overlay * {
+    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+    letter-spacing: 0.2px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
 .favorite-panel {
     position: fixed;
     top: 0;

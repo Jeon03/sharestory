@@ -1,3 +1,23 @@
+/* ===============================
+   💛 폰트 & 기본 설정
+=============================== */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('@/assets/fonts/Pretendard-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+.transactionContainer,
+.transactionContainer * {
+    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+    letter-spacing: 0.2px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    box-sizing: border-box;
+}
+
 .transactionContainer {
     width: 100%;
 }

@@ -1,12 +1,23 @@
-body {
-  margin: 0;
-  font-family: 'Arial', sans-serif;
+/* ===== Pretendard 폰트 등록 ===== */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('@/assets/fonts/Pretendard-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
 
-}
+/* ===== 전역 기본 설정 ===== */
 html, body, #root {
-  height: 100%;
-  margin: 0;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+    letter-spacing: 0.3px;
+    color: #222;
+    background-color: #fff;
 }
+
 
 
 /* 기본 레이아웃 */

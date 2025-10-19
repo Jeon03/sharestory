@@ -171,6 +171,7 @@ export default function ItemEdit() {
     return (
         <section className={styles.saleProduct}>
             <h2 className={styles.h2_top}>상품 수정</h2>
+            <hr className={styles.hr_bold} />
             <form
                 onSubmit={(e) => {
                     e.preventDefault();
@@ -238,19 +239,24 @@ export default function ItemEdit() {
                         value={productName}
                         onChange={(e) => setProductName(e.target.value)}
                     />
+                    <p className={styles.characterCount}>{productName.length}/50</p>
                 </div>
 
                 {/* 카테고리 */}
+                <hr className={styles.hr} />
                 <div className={styles.category}>
                     <h4>카테고리</h4>
-                    <Category
-                        selectedCategory={selectedCategory}
-                        setSelectedCategory={setSelectedCategory}
-                        enableNavigation={false}
-                    />
+                    <div className={styles.categoryContainer}>
+                        <Category
+                            selectedCategory={selectedCategory}
+                            setSelectedCategory={setSelectedCategory}
+                            enableNavigation={false}
+                        />
+                    </div>
                 </div>
 
                 {/* 상태 */}
+                <hr className={styles.hr} />
                 <div className={styles.productCondition}>
                     <h4>상품상태</h4>
                     {["중고상품", "새상품(미사용)", "고장·파손상품"].map((condition) => (
@@ -266,6 +272,7 @@ export default function ItemEdit() {
                 </div>
 
                 {/* 설명 */}
+                <hr className={styles.hr} />
                 <div className={styles.productExplain}>
                     <h4>상품설명</h4>
                     <textarea
@@ -277,6 +284,8 @@ export default function ItemEdit() {
                 </div>
 
                 {/* 가격 */}
+                <h2 className={styles.h2}>가격</h2>
+                <hr className={styles.hr_bold} />
                 <div className={styles.price}>
                     <h4>판매가격</h4>
                     <div className={styles.priceInputWrapper}>
@@ -292,7 +301,11 @@ export default function ItemEdit() {
                 </div>
 
                 {/* 거래 방식 + 위치 */}
+                <h2 className={styles.h2}>거래</h2>
+                <hr className={styles.hr_bold} />
+                <h4>거래방법</h4>
                 <div className={styles.exchangeMethod}>
+                    <div className={styles.transactionStyle}>
                     <Transaction
                         onLocationSelect={({ lat, lng }) =>
                             setForm((prev) => ({ ...prev, latitude: lat, longitude: lng }))
@@ -300,9 +313,11 @@ export default function ItemEdit() {
                         onDealInfoChange={handleDealInfoChange}
                         initialDealInfo={dealInfo}
                     />
+                    </div>
                 </div>
 
                 {/* 버튼 */}
+                <hr className={styles.hr_bold} />
                 <div className={styles.submitOption}>
                     <button type="submit" className={styles.submitOptionButton}>
                         수정하기

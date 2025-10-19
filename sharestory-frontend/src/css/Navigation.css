@@ -9,6 +9,7 @@
     font-display: swap;
 }
 
+/* 전체 네비 관련 요소에 폰트 통일 */
 .nav,
 .nav *,
 .navbar,
@@ -24,18 +25,19 @@
 .menu-icon,
 .menu-icon * {
     font-family: 'Pretendard', sans-serif !important;
-    letter-spacing: 3px;
+    letter-spacing: 0.2px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* ------------------------------
-   🔶 네비게이션 스타일
+   🔶 네비게이션 기본 스타일
 ------------------------------ */
 .nav {
     background-color: #f6e367;
     padding: 10px;
 }
 
-/* 내부 정렬 */
 .nav-inner {
     display: flex;
     align-items: center;
@@ -43,22 +45,13 @@
     gap: 20px;
 }
 
-/* 링크 기본 스타일 */
-.navbar a,
-.nav-links a {
-    font-size: 17px;
-    font-weight: 700;
-    color: black;
-    text-decoration: none;
-    margin: 0 20px;
-    transition: color 0.2s ease;
-    letter-spacing: 1px;
-}
-
-/* hover 시 강조 효과 */
-.navbar a:hover,
-.nav-links a:hover {
-    color: #222222;
+/* ------------------------------
+   📁 메뉴 영역
+------------------------------ */
+.menu-area {
+    position: relative;
+    display: inline-block;
+    padding: 0 25px 0 20px;
 }
 
 /* ☰ 메뉴 버튼 */
@@ -68,18 +61,92 @@
     font-size: 20px;
     cursor: pointer;
     font-weight: bold;
+    color: #333;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+.menu-icon:hover {
+    transform: scale(1.1);
+    color: #000;
 }
 
-/* 드롭다운 메뉴 */
+/* ------------------------------
+   🔗 네비 링크
+------------------------------ */
+.navbar a,
+.nav-links a {
+    font-size: 17px;
+    font-weight: 700;
+    color: #000;
+    text-decoration: none;
+    margin: 0 20px;
+    transition: color 0.2s ease;
+}
+.navbar a:hover,
+.nav-links a:hover {
+    color: #222;
+}
+
+/* ------------------------------
+   🔽 드롭다운 메뉴
+------------------------------ */
 .dropdown-wrapper {
     position: absolute;
-    top: 48px;
+    top: 30px;
     left: 0;
     width: 200px;
-    background-color: white;
-    border: 1px solid #ddd;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    background-color: transparent;
     z-index: 999;
     padding: 0;
     margin: 0;
+    opacity: 0;
+    transform: scaleY(0.95);
+    transform-origin: top;
+    pointer-events: none;
+    transition: all 0.25s ease;
 }
+
+/* 활성화 상태 */
+.dropdown-wrapper.active {
+    opacity: 1;
+    transform: scaleY(1);
+    pointer-events: auto;
+}
+
+/* 드롭다운 버튼 스타일 (카테고리와 통일) */
+.dropdown-wrapper button {
+    width: 100%;
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 12px 18px;
+    font-size: 15px;
+    color: #333;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+    border-bottom: 1px solid #f9f9f9;
+}
+.dropdown-wrapper button:hover {
+    background-color: #fff8cc; /* 💛 중고나라 느낌 */
+    color: #000;
+}
+.dropdown-wrapper button:last-child {
+    border-bottom: none;
+}
+
+/* 드롭다운 내부 설명 텍스트 */
+.dropdown-wrapper p {
+    padding: 10px 16px;
+    margin: 0;
+    font-size: 13px;
+    color: #666;
+}
+
+/* ------------------------------
+   ⚡ 추가 미세조정
+------------------------------ */
+.navbar a,
+.nav-links a,
+.dropdown-wrapper button {
+    -webkit-tap-highlight-color: transparent; /* 모바일 터치 하이라이트 제거 */
+}
+

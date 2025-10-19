@@ -1,3 +1,30 @@
+/* ===== 폰트 임포트 ===== */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('@/assets/fonts/Pretendard-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ===== 전체 공통 폰트 ===== */
+.product-grid,
+.product-card,
+.product-info,
+.status-badge,
+.list-badge-reserved,
+.list-badge-safe,
+.list-badge-sold,
+.product-title,
+.product-price,
+.product-date,
+.favorite-and-views,
+.count,
+.time-badge {
+    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+    letter-spacing: 0.3px;
+}
+
 /* ===== 공통 상품 카드 그리드 ===== */
 .product-grid {
     display: grid;
@@ -8,7 +35,7 @@
 }
 .product-grid-my {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); /* ✅ 한 줄에 5개 */
+    grid-template-columns: repeat(4, 1fr);
     gap: 16px;
     padding: 0;
     list-style: none;

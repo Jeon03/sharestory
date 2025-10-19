@@ -1,3 +1,33 @@
+/* ============================= */
+/* Pretendard 폰트 설정 */
+/* ============================= */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('@/assets/fonts/Pretendard-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ============================= */
+/* 전체 채팅방 패널 공통 폰트 적용 */
+/* ============================= */
+.chatroom-panel-header,
+.chatroom-panel-body,
+.chatroom-item,
+.chatroom-info,
+.chatroom-title,
+.chatroom-item-title,
+.chatroom-last,
+.chatroom-price,
+.chatroom-time,
+.empty-message {
+    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+    letter-spacing: 0.2px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
 
 @keyframes slideIn {
     from { transform: translateX(100%); }

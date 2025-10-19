@@ -1,3 +1,35 @@
+/* ============================= */
+/* Pretendard 폰트 설정 */
+/* ============================= */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('@/assets/fonts/Pretendard-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ============================= */
+/* 폰트 전역 적용 (경매 상세) */
+/* ============================= */
+.auction-detail-container,
+.auction-detail-breadcrumb,
+.auction-detail-main,
+.auction-detail-slider,
+.auction-detail-info,
+.auction-detail-title,
+.auction-detail-meta,
+.auction-detail-summary,
+.auction-detail-price-box,
+.auction-detail-bid-section,
+.auction-detail-desc,
+.auction-detail-seller {
+    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+    letter-spacing: 0.2px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
 /* =========================
    📦 전체 컨테이너
 ========================= */

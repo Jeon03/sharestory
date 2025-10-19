@@ -1,3 +1,23 @@
+/* ===============================
+   💛 공통 폰트 (Pretendard)
+=============================== */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('@/assets/fonts/Pretendard-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* 전체 적용 */
+.modalBackground,
+.modalBackground * {
+    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+    letter-spacing: 0.2px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
 /* 모달 배경 스타일 */
 .modalBackground {
     position: fixed;

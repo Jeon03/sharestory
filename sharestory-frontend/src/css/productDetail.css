@@ -1,3 +1,40 @@
+/* ============================= */
+/* Pretendard 폰트 설정 */
+/* ============================= */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('@/assets/fonts/Pretendard-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* 전체 페이지 기본 폰트 */
+.detail-container,
+.detail-main,
+.detail-info,
+.detail-title,
+.detail-price,
+.detail-description,
+.detail-row,
+.action-buttons,
+.favorite-btn,
+.btn-chat,
+.btn-buy,
+.owner-actions,
+.owner-status,
+.auction-bid-list,
+.waiting-tracking-msg,
+.breadcrumb,
+.detail-table,
+.status-label,
+.detail-status-badge {
+    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+    letter-spacing: 0.2px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
 .detail-container {
     padding: 24px;
     background: #fff;

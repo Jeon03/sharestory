@@ -74,11 +74,9 @@ export default function AuctionList() {
                 if (!res.ok) throw new Error("경매상품 불러오기 실패");
                 const data: AuctionItem[] = await res.json();
 
-                // ✅ 종료된 상품 제외 (ONGOING만 남김)
                 const ongoing = data.filter((item) => item.status === "ONGOING");
                 setAuctionItems(ongoing);
 
-                // ✅ 진행 중인 상품이 없으면 바로 timeLoading 해제
                 if (ongoing.length === 0) {
                     setTimeLoading(false);
                 }
@@ -243,15 +241,18 @@ export default function AuctionList() {
                                                 >
                                                     <Clock size={14} />
                                                     <span>
-                    종료일자:{" "}
+  종료일자:{" "}
                                                         {new Date(item.endDateTime).toLocaleString("ko-KR", {
                                                             year: "numeric",
                                                             month: "2-digit",
                                                             day: "2-digit",
+                                                        })}
+                                                        <br />
+                                                        {new Date(item.endDateTime).toLocaleString("ko-KR", {
                                                             hour: "2-digit",
                                                             minute: "2-digit",
                                                         })}
-                  </span>
+</span>
                                                 </div>
                                             )}
                                         </Link>

@@ -1,23 +1,118 @@
-.delivery-page {
-    padding: 20px;
+/* ===============================
+   🔷 공통 폰트 (Pretendard)
+=============================== */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('@/assets/fonts/Pretendard-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
 }
 
+/* 전체 적용 */
+.delivery-page,
+.delivery-page * {
+    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+    letter-spacing: 0.2px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===============================
+   🚚 배송 진행 페이지
+=============================== */
+.delivery-page {
+    padding: 20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+/* ===============================
+   📦 진행 상태 바
+=============================== */
 .progress {
     display: flex;
     justify-content: space-between;
-    margin: 20px 0;
+    align-items: center;
+    margin: 28px 0;
+    position: relative;
 }
 
+/* 선 (progress bar background) */
+.progress::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    background: #e5e7eb;
+    transform: translateY(-50%);
+    z-index: 1;
+}
+
+/* 각 단계 */
 .step {
+    position: relative;
     flex: 1;
-    padding: 10px;
     text-align: center;
-    border-bottom: 3px solid lightgray;
-    color: gray;
+    color: #777;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: default;
+    z-index: 2;
 }
 
+/* 동그라미 */
+.step::before {
+    content: "";
+    display: block;
+    width: 14px;
+    height: 14px;
+    margin: 0 auto 6px;
+    background: #e5e7eb;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    transition: all 0.25s ease;
+}
+
+/* 활성 단계 */
 .step.active {
-    border-color: green;
-    color: black;
-    font-weight: bold;
+    color: #222;
+    font-weight: 700;
+}
+.step.active::before {
+    background: #4caf50; /* 초록색 진행점 */
+    border-color: #4caf50;
+    box-shadow: 0 0 6px rgba(76, 175, 80, 0.5);
+}
+
+/* 완료된 단계 */
+.step.completed {
+    color: #16a34a;
+}
+.step.completed::before {
+    background: #16a34a;
+    border-color: #16a34a;
+}
+
+/* 다음 단계 미도달 상태 */
+.step.upcoming::before {
+    background: #f3f4f6;
+    border-color: #ddd;
+}
+
+/* 반응형 */
+@media (max-width: 600px) {
+    .step {
+        font-size: 12px;
+    }
+    .step::before {
+        width: 10px;
+        height: 10px;
+        margin-bottom: 4px;
+    }
 }

@@ -24,7 +24,25 @@
     width: 100%;
     text-align: center;
 }
+/* ✅ Swiper 전체 그림자/hover/배지 짤림 방지 */
+.product-swiper,
+.product-swiper .swiper-wrapper {
+    overflow: visible !important;
+}
+/* ✅ 슬라이드 폭이 자동으로 맞춰지게 */
+.product-swiper .swiper-slide {
+    width: auto !important;
+}
+/* ✅ 카드가 잘리지 않고 hover 효과 부드럽게 유지 */
+.product-card {
+    overflow: visible; /* 카드 자체에서도 잘림 방지 */
+}
 
+/* ✅ 이미지 영역만 둥글게 자르기 */
+.product-image-wrapper {
+    overflow: hidden;
+    border-radius: 12px 12px 0 0;
+}
 /* 기본 점 스타일 */
 .product-swiper .swiper-pagination-bullet {
     width: 6px;
@@ -55,6 +73,7 @@
 }
 
 .textMain {
+    margin-top: 50px;
     font-size: 25px;
     font-weight: bold;
     margin-bottom: 20px;
