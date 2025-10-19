@@ -13,7 +13,7 @@ type FormState = {
 };
 
 const MAX_IMAGES = 3;
-const ACCEPTED = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const ACCEPTED = ['image/jpeg', 'image/png', 'image/webp'];
 
 const ItemRegister = () => {
     const [form, setForm] = useState<FormState>({ latitude: 0, longitude: 0 });
@@ -65,7 +65,7 @@ const ItemRegister = () => {
         // 포맷 필터링
         const valid = selected.filter(f => ACCEPTED.includes(f.type));
         if (valid.length !== selected.length) {
-            alert('이미지 파일(jpeg/png/webp/gif)만 업로드할 수 있어요.');
+            alert('이미지 파일(jpeg/png/webp)만 업로드할 수 있어요.');
         }
 
         // 중복 제거(이름+크기)
@@ -219,7 +219,7 @@ const ItemRegister = () => {
                         ))}
                     </div>
 
-                    <p className={styles.helperText}>jpeg/png/webp/gif, 최대 {MAX_IMAGES}장 업로드</p>
+                    <p className={styles.helperText}>jpeg/png/webp 최대 {MAX_IMAGES}장 업로드</p>
                 </div>
 
                 {/* 상품명 */}

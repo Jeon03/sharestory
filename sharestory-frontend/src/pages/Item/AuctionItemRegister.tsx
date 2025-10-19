@@ -129,7 +129,7 @@ const AuctionItemRegister = () => {
         const valid = selected.filter((f) => ACCEPTED.includes(f.type));
 
         if (valid.length !== selected.length) {
-            alert("이미지 파일(jpeg/png/webp/gif)만 업로드할 수 있어요.");
+            alert("이미지 파일(jpeg/png/webp)만 업로드할 수 있어요.");
         }
 
         const merged = [...images, ...valid].filter(
@@ -231,7 +231,7 @@ const AuctionItemRegister = () => {
                         ))}
                     </div>
                     <p className={styles.helperText}>
-                        jpeg/png/webp/gif, 최대 {MAX_IMAGES}장 업로드
+                        jpeg/png/webp 최대 {MAX_IMAGES}장 업로드
                     </p>
                 </div>
 

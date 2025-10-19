@@ -159,6 +159,7 @@
     padding: 10px 14px;
     border-radius: 8px;
     cursor: pointer;
+    border : 1px solid #ddd !important;
 }
 .delivery-slider-cancel-btn:hover {
     background: #ddd;
@@ -171,6 +172,7 @@
     border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
+    border : 1px solid black !important;
 }
 .delivery-slider-confirm-btn:hover {
     background: #333;
