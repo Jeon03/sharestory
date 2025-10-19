@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,18 +20,22 @@ import java.time.Duration;
 public class FcmService {
 
     private final FcmTokenRepository tokenRepo;
-    private final FirebaseMessaging firebaseMessaging;
     private final StringRedisTemplate redisTemplate;
+    private final Optional<FirebaseMessaging> firebaseMessaging;
 
     private static final long NOTIFY_COOLDOWN_SECONDS = 3;
 
+    /**
+     * 채팅 알림 전송 (쿨다운 3초)
+     */
     @Async
     public void sendToUser(Long userId, String title, String body, String clickAction, Long roomId) {
-        if (firebaseMessaging == null) {
+        if (firebaseMessaging.isEmpty()) {
             log.warn("⚠️ FirebaseMessaging 비활성화 상태 → FCM 전송 스킵 (userId={})", userId);
             return;
         }
 
+        FirebaseMessaging messaging = firebaseMessaging.get();
         String redisKey = "fcm:chat:lastSent:" + userId;
 
         try {
@@ -50,7 +55,7 @@ public class FcmService {
                         .build();
 
                 try {
-                    String response = firebaseMessaging.send(message);
+                    String response = messaging.send(message);
                     log.info("✅ FCM 전송 성공 → userId={}, roomId={}, response={}", userId, roomId, response);
 
                     // ✅ 쿨다운 적용 (3초)
@@ -77,11 +82,16 @@ public class FcmService {
         }
     }
 
+    /**
+     * 일반 알림 전송
+     */
     public void sendNotification(String token, String title, String body) {
-        if (firebaseMessaging == null) {
+        if (firebaseMessaging.isEmpty()) {
             log.warn("⚠️ FirebaseMessaging 비활성화 상태 → 알림 스킵 (token={})", token);
             return;
         }
+
+        FirebaseMessaging messaging = firebaseMessaging.get();
 
         try {
             Message message = Message.builder()
@@ -94,7 +104,7 @@ public class FcmService {
                     )
                     .build();
 
-            firebaseMessaging.send(message);
+            messaging.send(message);
             log.info("✅ [FCM] 푸시 전송 성공 → token={}", token);
 
         } catch (FirebaseMessagingException e) {
