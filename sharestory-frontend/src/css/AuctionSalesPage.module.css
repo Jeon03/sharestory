@@ -41,7 +41,7 @@
 }
 
 .h2_top {
-    margin-top: 30px;
+    margin-top: 50px;
     font-size: 24px;
     font-weight: bold;
 }
@@ -440,7 +440,7 @@
     font-weight: bolder;
     background-color: gold;
     margin-top: 10px;
-    border: 2px solid black !important;
+    border: 1px solid black !important;
     color: black;
     font-size: 17px;
     cursor: pointer;

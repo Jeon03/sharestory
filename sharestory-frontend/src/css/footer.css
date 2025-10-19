@@ -1,3 +1,22 @@
+/* ===============================
+   🔷 공통 폰트 (Pretendard)
+=============================== */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('@/assets/fonts/Pretendard-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* 전체 푸터 영역 폰트 적용 */
+.custom-footer,
+.custom-footer * {
+    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+    letter-spacing: 0.2px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
 .custom-footer {
     background-color: #f8f9fa;
     padding: 30px 0; /* 좌우 패딩은 제거, container가 잡아줌 */

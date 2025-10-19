@@ -1,3 +1,23 @@
+/* ===============================
+   💛 공통 폰트 (Pretendard)
+=============================== */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('@/assets/fonts/Pretendard-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* 전체 모달 폰트 적용 */
+.point-modal-overlay,
+.point-modal-overlay * {
+    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+    letter-spacing: 0.2px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
 .point-modal-overlay {
     position: fixed;
     top: 0;
@@ -161,7 +181,7 @@
     border-radius: 6px;
     background-color: gold;
     color: black;
-    border: 2px solid #4a5568;
+    border: 1px solid #4a5568;
     /*border-color:black;*/
     cursor: pointer;
     transition: 0.2s;
@@ -177,7 +197,7 @@
     margin-top: 10px;
     width: 100%;
     padding: 10px;
-    border: 2px solid #4a5568;
+    border: 1px solid #4a5568;
     border-radius: 6px;
     background-color: #6c757d;
     color: white;

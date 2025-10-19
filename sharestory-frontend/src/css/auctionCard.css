@@ -1,3 +1,34 @@
+/* ============================= */
+/* Pretendard 폰트 설정 */
+/* ============================= */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('@/assets/fonts/Pretendard-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ============================= */
+/* 공통 폰트 적용 (경매 전역) */
+/* ============================= */
+.auction-grid,
+.auction-grid2,
+.auction-card,
+.auction-info,
+.auction-title,
+.auction-price-line,
+.auction-meta,
+.auction-end-date,
+.auction-overlay,
+.auction-time-badge,
+.auction-list-loading {
+    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+    letter-spacing: 0.2px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
 /* ===== 카드 레이아웃 ===== */
 .auction-grid {
     display: grid;

@@ -1,32 +1,90 @@
+/* ============================= */
+/* Pretendard 폰트 설정 */
+/* ============================= */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('@/assets/fonts/Pretendard-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ============================= */
+/* 채팅방 오버레이 & 패널 */
+/* ============================= */
 .chatroom-overlay {
-    position: fixed; inset: 0;
+    position: fixed;
+    inset: 0;
     background: rgba(0,0,0,0.4);
     z-index: 9999;
 }
 
+/* 슬라이드 패널 */
 .chatroom-panel {
     position: fixed;
-    top: 0; right: 0;
-    width: 35vw; max-width: 580px; min-width: 280px;
+    top: 0;
+    right: 0;
+    width: 35vw;
+    max-width: 580px;
+    min-width: 280px;
     height: 100vh;
     background: #fff;
     box-shadow: -2px 0 8px rgba(0,0,0,0.15);
-    display: flex; flex-direction: column;
+    display: flex;
+    flex-direction: column;
     z-index: 10000;
+    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+    letter-spacing: 0.2px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    animation: slideIn 0.3s ease-out;
 }
 
+/* 헤더 */
 .chatroom-panel-header {
-    padding: 10px;
-    font-weight: bold;
-    font-size: 14px;
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 15px;
     border-bottom: 1px solid #ddd;
-    display: flex; justify-content: space-between; align-items: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #222;
+    background: #fff;
 }
 
+.chatroom-panel-header button {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    color: rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.chatroom-panel-header button:hover {
+    color: #000;
+}
+
+/* 바디 */
 .chatroom-panel-body {
-    flex: 1; overflow-y: auto;
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5rem 0;
+    font-size: 14px;
+    color: #444;
 }
 
+/* 모바일 대응 */
 @media (max-width: 768px) {
-    .chatroom-panel { width: 80vw; max-width: none; }
+    .chatroom-panel {
+        width: 80vw;
+        max-width: none;
+    }
+}
+
+/* 슬라이드 애니메이션 */
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0.7; }
+    to { transform: translateX(0); opacity: 1; }
 }

@@ -1,3 +1,29 @@
+/* ============================= */
+/* Pretendard 폰트 설정 */
+/* ============================= */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('@/assets/fonts/Pretendard-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ============================= */
+/* 경매 주의사항 모달 전체 폰트 통일 */
+/* ============================= */
+.auction-warning-overlay,
+.auction-warning-modal,
+.auction-warning-title,
+.auction-warning-list,
+.auction-warning-notice,
+.auction-warning-buttons {
+    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+    letter-spacing: 0.2px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
 .auction-warning-overlay {
     position: fixed;
     top: 0;
@@ -8,7 +34,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 999;
+    z-index: 9999;
 }
 
 .auction-warning-modal {

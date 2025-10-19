@@ -1,3 +1,35 @@
+/* ============================= */
+/* Pretendard 폰트 설정 */
+/* ============================= */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('@/assets/fonts/Pretendard-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ============================= */
+/* 채팅 전역 폰트 적용 */
+/* ============================= */
+.chat-container,
+.chat-messages,
+.chat-input,
+.chat-bubble,
+.chat-room-item-header,
+.modal-box,
+.modal-header,
+.modal-footer,
+.btn,
+.chat-date-divider,
+.chat-map-address,
+.chat-system-message {
+    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+    letter-spacing: 0.2px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
 .chat-container {
     display: flex;
     flex-direction: column;
