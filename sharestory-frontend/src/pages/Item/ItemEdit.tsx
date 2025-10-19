@@ -15,7 +15,7 @@ type FormState = {
 type ExistingImage = { id: number; url: string };
 
 const MAX_IMAGES = 3;
-const ACCEPTED = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
 const API_BASE = import.meta.env.VITE_API_BASE || "";
 
 export default function ItemEdit() {
