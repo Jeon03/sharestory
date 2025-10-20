@@ -69,10 +69,10 @@ services:
   backend:
     build: ./sharestory-backend
     container_name: sharestory-backend
-    ports:
-      - "8081:8081"
+    expose:
+      - "8081"
     env_file:
-      - ./sharestory-backend/.env   # DB_URL은 반드시 db 호스트 사용 (ex: jdbc:mysql://db:3306/story)
+      - ./sharestory-backend/.env
     depends_on:
       db:
         condition: service_healthy
@@ -85,7 +85,7 @@ services:
       - sharestory-net
 
   frontend:
-    build: ./sharestory-frontend   # Dockerfile에서 .env.production을 COPY
+    build: ./sharestory-frontend
     container_name: sharestory-frontend
     ports:
       - "80:80"
