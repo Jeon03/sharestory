@@ -1,4 +1,11 @@
+//위치정보 추가중
+
+
 import { useEffect, useState } from 'react';
+
+
+
+
 import { Link } from 'react-router-dom';
 import { getCommunityPosts } from '../services/communityApi';
 import { useAuth } from '../contexts/useAuth';
