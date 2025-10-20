@@ -48,7 +48,7 @@ function Transaction({ onLocationSelect, onDealInfoChange, initialDealInfo }: Tr
             direct: transactionMethods.direct,
             safeTrade: transactionMethods.safeTrade,
             shippingOption: transactionMethods.parcel ? shippingOption : "",
-            phoneNumber: "00000000000", // ✅ 항상 고정값 전달
+            phoneNumber: "010-1234-5678", // ✅ 항상 고정값 전달
         });
     }, [transactionMethods, shippingOption]);
 
