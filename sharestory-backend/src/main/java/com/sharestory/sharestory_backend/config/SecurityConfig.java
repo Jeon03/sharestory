@@ -53,6 +53,7 @@ public class SecurityConfig {
                                 "/login/**",
                                 "/auth/**",
                                 "/actuator/**",
+				"/logout",
                                 "/api/allItems",
                                 "/api/items/sorted/**",
                                 "/api/items/**",
@@ -72,7 +73,8 @@ public class SecurityConfig {
                                 "/registerItem",
                                 "/mypage/**",
                                 "/api/orders/**",
-                                "/api/items/safe/**"
+                                "/api/items/safe/**",
+				"/api/points/**"
 
                         ).authenticated()
                         .anyRequest().authenticated()

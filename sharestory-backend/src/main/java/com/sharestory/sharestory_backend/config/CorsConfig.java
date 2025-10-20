@@ -10,15 +10,17 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class CorsConfig {
     @Bean
     public WebMvcConfigurer corsConfigurer(
-            @Value("${app.cors.origins:http://localhost:5173,http://localhost:3000}") String origins
+            @Value("${app.cors.origins:http://localhost:5173,http://localhost:3000,http://43.201.67.84}") String origins
     ) {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
                         .allowedOrigins(origins.split(","))
-                        .allowedMethods("GET","POST","PUT","PATCH","DELETE","OPTIONS")
-                        .allowCredentials(true);
+                        .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+                        .allowedHeaders("*")          // ? 헤더 전체 허용
+                        .exposedHeaders("Set-Cookie") // ? 쿠키 헤더 노출
+                        .allowCredentials(true);       // ? 쿠키 포함 허용
             }
         };
     }

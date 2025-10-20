@@ -18,12 +18,11 @@ public class ElasticsearchConfig {
     @Bean
     public ElasticsearchClient elasticsearchClient() {
         RestClient restClient = RestClient.builder(
-                new HttpHost("localhost", 9200, "http")
-//                new HttpHost("es", 9200, "http")
+                new HttpHost("es", 9200, "http")
         ).build();
 
         ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());   // ✅ LocalDateTime 지원
+        objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
         ElasticsearchTransport transport = new RestClientTransport(
