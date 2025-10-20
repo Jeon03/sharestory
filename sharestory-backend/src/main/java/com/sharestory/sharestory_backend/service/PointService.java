@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.HttpHeaders;
 
@@ -111,8 +112,17 @@ public class PointService {
 
             return newBalance;
 
+        } catch (HttpClientErrorException.NotFound e) {
+            log.error("❌ 아임포트 결제 정보 없음: {}", request.getImpUid());
+            throw new IllegalStateException("존재하지 않는 결제정보입니다. (imp_uid: " + request.getImpUid() + ")");
+        } catch (HttpClientErrorException e) {
+            log.error("❌ 아임포트 API 호출 실패: {}", e.getResponseBodyAsString());
+            throw new IllegalStateException("아임포트 API 오류: " + e.getMessage());
         } catch (JsonProcessingException e) {
             throw new RuntimeException("아임포트 요청 JSON 직렬화 실패", e);
+        } catch (Exception e) {
+            log.error("❌ 포인트 충전 중 내부 오류", e);
+            throw new RuntimeException("포인트 충전 중 오류: " + e.getMessage());
         }
     }
 

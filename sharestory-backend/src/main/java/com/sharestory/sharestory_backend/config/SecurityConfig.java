@@ -72,7 +72,8 @@ public class SecurityConfig {
                                 "/registerItem",
                                 "/mypage/**",
                                 "/api/orders/**",
-                                "/api/items/safe/**"
+                                "/api/items/safe/**",
+                                "/api/points/**"
 
                         ).authenticated()
                         .anyRequest().authenticated()
