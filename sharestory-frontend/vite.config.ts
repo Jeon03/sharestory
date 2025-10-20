@@ -21,10 +21,9 @@ const generateFirebaseConfig = {
     };
 
     try {
-      // ✅ JSON 대신 JS 파일로 작성
       writeFileSync(
-          "public/firebase-config.js",
-          `self.firebaseConfig = ${JSON.stringify(config, null, 2)};`
+        "public/firebase-config.js",
+        `self.firebaseConfig = ${JSON.stringify(config, null, 2)};`
       );
       console.log("✅ firebase-config.js 생성 완료");
     } catch (err) {
@@ -33,30 +32,34 @@ const generateFirebaseConfig = {
   },
 };
 
+// ✅ EC2 환경에서는 proxy 제거, 로컬에서는 유지
+const isLocal = process.env.NODE_ENV !== "production";
+
 export default defineConfig({
   plugins: [react(), generateFirebaseConfig],
-    resolve: {
-        alias: {
-            "@": path.resolve(__dirname, "src"),
-        },
-    },
-  server: {
-    proxy: {
-      "/api": { target: "http://localhost:8081", changeOrigin: true },
-      "/auth": { target: "http://localhost:8081", changeOrigin: true },
-      "/oauth2": { target: "http://localhost:8081", changeOrigin: true },
-      "/login": { target: "http://localhost:8081", changeOrigin: true },
-      "/logout": { target: "http://localhost:8081", changeOrigin: true },
-      "/ws": { target: "http://localhost:8081", changeOrigin: true, ws: true },
-      "/ws-connect": {
-        target: "http://localhost:8081",
-        changeOrigin: true,
-        ws: true,
-      },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "src"),
     },
   },
+  ...(isLocal && {
+    server: {
+      proxy: {
+        "/api": { target: "http://localhost:8081", changeOrigin: true },
+        "/auth": { target: "http://localhost:8081", changeOrigin: true },
+        "/oauth2": { target: "http://localhost:8081", changeOrigin: true },
+        "/login": { target: "http://localhost:8081", changeOrigin: true },
+        "/logout": { target: "http://localhost:8081", changeOrigin: true },
+        "/ws": { target: "http://localhost:8081", changeOrigin: true, ws: true },
+        "/ws-connect": {
+          target: "http://localhost:8081",
+          changeOrigin: true,
+          ws: true,
+        },
+      },
+    },
+  }),
   define: {
     global: "window",
   },
 });
-

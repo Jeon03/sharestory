@@ -33,7 +33,7 @@ function Login({ isOpen, onClose, onLoginSuccess }: LoginProps) {
 
     // OAuth 리다이렉트 (Vite proxy 쓰면 상대경로 사용 권장)
     const goOAuth = useCallback((provider: "google" | "naver" | "kakao") => {
-        const backendUrl = import.meta.env.VITE_API_URL || "http://localhost:8081";
+        const backendUrl = import.meta.env.VITE_API_URL || "";
         window.location.href = `${backendUrl}/oauth2/authorization/${provider}`;
     }, []);
 
