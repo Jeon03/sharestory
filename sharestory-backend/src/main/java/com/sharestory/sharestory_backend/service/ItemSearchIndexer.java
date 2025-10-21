@@ -20,21 +20,6 @@ public class ItemSearchIndexer {
     public void indexItem(Item item) {
         try {
 
-            // 1. 좌표 매핑
-//            ItemDoc.GeoPoint point = new ItemDoc.GeoPoint();
-//            point.setLat(item.getLatitude());
-//            point.setLon(item.getLongitude());
-
-            // 2. ES 문서 객체 생성
-//            ItemDoc doc = new ItemDoc();
-//            doc.setId(item.getId());
-//            doc.setTitle(item.getTitle());
-//            doc.setTitleSuggest(item.getTitle());
-//            doc.setTitleNgram(item.getTitle());
-//            doc.setPrice(item.getPrice());
-//            doc.setLocation(point);
-//            doc.setCreatedAt(item.getCreatedDate().toString());
-
             ItemDoc doc = new ItemDoc();
             doc.setId(item.getId());
             doc.setTitle(item.getTitle());
@@ -95,10 +80,15 @@ public class ItemSearchIndexer {
 
     public void deleteItem(Long itemId) {
         try {
-            es.delete(d -> d.index("items").id(itemId.toString()));
-            System.out.println("[DELETE SUCCESS] id=" + itemId);
+            var resp = es.delete(d -> d.index("items").id(itemId.toString()));
+            if (resp.result().name().equalsIgnoreCase("Deleted")) {
+                System.out.printf("🧹 [ES DELETE SUCCESS] id=%d%n", itemId);
+            } else {
+                System.out.printf("⚠️ [ES DELETE WARNING] id=%d result=%s%n", itemId, resp.result());
+            }
         } catch (Exception e) {
-            System.err.println("[DELETE FAIL] " + e.getMessage());
+            System.err.printf("❌ [ES DELETE FAIL] id=%d: %s%n", itemId, e.getMessage());
+            e.printStackTrace();
         }
     }
 }

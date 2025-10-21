@@ -3,6 +3,7 @@ package com.sharestory.sharestory_backend.service;
 import com.sharestory.sharestory_backend.domain.AuctionBid;
 import com.sharestory.sharestory_backend.domain.AuctionItem;
 import com.sharestory.sharestory_backend.domain.PointHistory;
+import com.sharestory.sharestory_backend.domain.User;
 import com.sharestory.sharestory_backend.dto.AuctionStatus;
 import com.sharestory.sharestory_backend.event.AuctionEventPublisher;
 import com.sharestory.sharestory_backend.repo.AuctionBidRepository;
@@ -51,6 +52,78 @@ public class AuctionScheduler {
         }
     }
 
+    @Scheduled(fixedRate = 10000)
+    @Transactional
+    public void checkUnpaidAuctions() {
+        LocalDateTime now = LocalDateTime.now();
+
+        List<AuctionItem> expiredItems = auctionItemRepository
+                .findByStatusAndPaymentDeadlineBeforeAndPenaltyAppliedFalse(AuctionStatus.FINISHED, now);
+
+        for (AuctionItem item : expiredItems) {
+            if (item.getWinnerId() == null || item.getWinningPrice() == null) continue;
+
+            User winner = userRepository.findById(item.getWinnerId()).orElse(null);
+            User seller = userRepository.findById(item.getSellerId()).orElse(null);
+            if (winner == null || seller == null) continue;
+
+            // ✅ 금액 계산
+            int winningPrice = item.getWinningPrice();
+            int totalPenalty = (int) (winningPrice * 0.2); // 총 20% 차감
+            int refund = winningPrice - totalPenalty;      // 낙찰자 환불 금액 (80%)
+            int sellerReward = (int) (winningPrice * 0.1); // 판매자 보상 10%
+
+            // ✅ 1) 낙찰자 환불 (80%)
+            winner.setPoints(winner.getPoints() + refund);
+            userRepository.save(winner);
+
+            pointHistoryRepository.save(PointHistory.builder()
+                    .user(winner)
+                    .amount(refund)
+                    .balance(winner.getPoints())
+                    .type("AUCTION_TIMEOUT_REFUND")
+                    .description(String.format("[%s] 결제시간 초과 - 낙찰금 20%% 패널티 후 80%% 환불", item.getTitle()))
+                    .build());
+
+            // ✅ 2) 판매자에게 10% 보상
+            seller.setPoints(seller.getPoints() + sellerReward);
+            userRepository.save(seller);
+
+            pointHistoryRepository.save(PointHistory.builder()
+                    .user(seller)
+                    .amount(sellerReward)
+                    .balance(seller.getPoints())
+                    .type("AUCTION_TIMEOUT_COMPENSATION")
+                    .description(String.format("[%s] 낙찰자 미결제로 보상금 10%% 수령", item.getTitle()))
+                    .build());
+
+            // ✅ 알림 전송
+            notificationService.sendNotification(
+                    winner,
+                    "AUCTION_TIMEOUT",
+                    String.format("[%s] 결제 시간이 초과되어 낙찰금의 20%%가 차감되었습니다. (80%% 환불)", item.getTitle()),
+                    item.getId()
+            );
+
+            notificationService.sendNotification(
+                    seller,
+                    "AUCTION_TIMEOUT_REWARD",
+                    String.format("[%s] 낙찰자가 결제하지 않아 10%% 보상금을 수령했습니다.", item.getTitle()),
+                    item.getId()
+            );
+
+            // ✅ 경매 상태 업데이트
+            item.setPenaltyApplied(true);
+            item.setStatus(AuctionStatus.CANCELLED);
+            auctionItemRepository.save(item);
+
+            System.out.printf("⚠️ [Scheduler] [%s] 낙찰자 %d 결제시간 초과 → 20%% 패널티 (판매자 10%% 보상)%n",
+                    item.getTitle(), item.getWinnerId());
+        }
+    }
+
+
+
     private void handleAuctionEnd(AuctionItem item) {
         System.out.println("🔍 [Scheduler] 경매 종료 처리 시작 → ID=" + item.getId());
 
@@ -65,6 +138,8 @@ public class AuctionScheduler {
             item.setWinnerId(topBid.getUserId());
             item.setWinningPrice(topBid.getBidPrice());
             item.setStatus(AuctionStatus.FINISHED);
+            item.setPaymentDeadline(LocalDateTime.now().plusMinutes(3));
+            item.setPenaltyApplied(false);
             auctionItemRepository.save(item);
 
             // ✅ 비낙찰자 포인트 환불 처리 추가
@@ -96,23 +171,23 @@ public class AuctionScheduler {
     }
 
     private void sendNotifications(AuctionItem item, AuctionBid topBid) {
-        // 판매자에게 알림
+        // 판매자에게
         userRepository.findById(item.getSellerId()).ifPresent(seller ->
                 notificationService.sendNotification(
                         seller,
                         "AUCTION_SOLD",
-                        String.format("[%s] 경매가 %s원에 낙찰되었습니다.",
+                        String.format("[%s] 경매가 %s원에 낙찰되었습니다. (구매자 3분 내 결제 필요)",
                                 item.getTitle(), String.format("%,d", topBid.getBidPrice())),
                         item.getId()
                 )
         );
 
-        // 낙찰자(구매자)에게 알림
+        // 낙찰자에게
         userRepository.findById(topBid.getUserId()).ifPresent(buyer ->
                 notificationService.sendNotification(
                         buyer,
                         "AUCTION_WON",
-                        String.format("[%s] 경매에 낙찰되었습니다. 안전거래를 진행해주세요.", item.getTitle()),
+                        String.format("[%s] 경매에 낙찰되었습니다. 3분 내 안전거래 결제를 진행해주세요.", item.getTitle()),
                         item.getId()
                 )
         );

@@ -14,6 +14,7 @@ import { useAuth } from "../contexts/useAuth";
 import axios from "axios";
 import type { DeliveryInfo } from "../api/delivery";
 import { useNavigate } from "react-router-dom";
+import AuctionPaymentTimer from "../components/AuctionPaymentTimer";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "";
 
@@ -42,6 +43,8 @@ interface AuctionDetail {
     buyer: boolean;
     canViewTrade: boolean;
 
+    paymentDeadline?: string;
+    penaltyApplied?: boolean;
 }
 
 export default function AuctionDetail() {
@@ -61,6 +64,7 @@ export default function AuctionDetail() {
         { id: number; bidderName: string; bidPrice: number; createdAt: string }[]
     >([]);
     const [timeLoading, setTimeLoading] = useState(true);
+    const [isExpired, setIsExpired] = useState(false);
 
     /** ✅ 경매 상세 불러오기 */
     useEffect(() => {
@@ -255,7 +259,6 @@ export default function AuctionDetail() {
                             </div>
                         ))}
                     </Slider>
-                    {isEnded && <div className="auction-detail-overlay">경매 종료</div>}
                 </div>
 
                 <div className="auction-detail-info">
@@ -275,8 +278,29 @@ export default function AuctionDetail() {
                                 즉시구매가: <span>{item.immediatePrice.toLocaleString()}원</span>
                             </p>
                         )}
-                        <p className="auction-detail-timer">
-                            <Clock size={15} style={{ color: "#007bff", marginRight: "6px", marginBottom:"-2px" }} />
+                        <p
+                            className={`auction-detail-timer ${
+                                isEnded
+                                    ? "finished"
+                                    : (() => {
+                                        // 숫자만 추출해서 남은 초 계산
+                                        const match = timeLeft.match(/(\d+)\s*일|(\d+)\s*시간|(\d+)\s*분|(\d+)\s*초/);
+                                        if (!match) return "safe";
+
+                                        // 대략적인 남은 분 추정
+                                        const minMatch = timeLeft.match(/(\d+)\s*분/);
+                                        const min = minMatch ? parseInt(minMatch[1]) : 0;
+                                        const hourMatch = timeLeft.match(/(\d+)\s*시간/);
+                                        const hour = hourMatch ? parseInt(hourMatch[1]) : 0;
+                                        const totalMin = hour * 60 + min;
+
+                                        if (totalMin < 1) return "danger";   // ⏰ 1분 미만
+                                        if (totalMin < 5) return "warn";     // ⚠️ 5분 미만
+                                        return "safe";                       // ✅ 5분 이상
+                                    })()
+                            }`}
+                        >
+                            <Clock className="timer-icon" size={15} />
                             남은 시간: {timeLeft}
                         </p>
                     </div>
@@ -312,16 +336,39 @@ export default function AuctionDetail() {
                                                     <span>📥 수령</span>
                                                     <span>💳 포인트 지급</span>
                                                 </div>
-
+                                                {/* ✅ 결제 제한 타이머 + 버튼 */}
                                                 <div className="safe-detail-buttons">
+                                                    {item.paymentDeadline && (
+                                                        <AuctionPaymentTimer
+                                                            deadline={item.paymentDeadline}
+                                                            onExpire={() => {
+                                                                setIsExpired(true);
+                                                            }}
+                                                        />
+                                                    )}
+
                                                     <button
                                                         className="safe-detail-btn safe-detail-btn-green"
                                                         onClick={() => setOpenDeliverySlider(true)}
+                                                        disabled={isExpired} // ✅ 비활성화 조건
+                                                        style={{
+                                                            opacity: isExpired ? 0.5 : 1,
+                                                            cursor: isExpired ? "not-allowed" : "pointer",
+                                                            transition: "opacity 0.3s ease, transform 0.2s ease",
+                                                            transform: isExpired ? "none" : "scale(1)",
+                                                        }}
                                                     >
                                                         🛒 안전거래 진행하기
                                                     </button>
-                                                    <p className="safe-detail-status-banner yellow">
-                                                        낙찰을 축하드립니다! 배송 정보를 입력하여 안전거래를 시작하세요.
+
+                                                    <p
+                                                        className={`safe-detail-status-banner ${
+                                                            isExpired ? "red" : "yellow"
+                                                        }`}
+                                                    >
+                                                        {isExpired
+                                                            ? "⛔ 결제 가능 시간이 만료되었습니다. 경매가 취소됩니다."
+                                                            : "낙찰을 축하드립니다! 배송 정보를 입력하여 안전거래를 시작하세요."}
                                                     </p>
                                                 </div>
                                             </div>
@@ -626,7 +673,32 @@ export default function AuctionDetail() {
                                     <p>⚠️ 경매가 종료되었습니다. 거래 정보는 판매자와 낙찰자만 확인할 수 있습니다.</p>
                                 </div>
                             )}
+                            {/* ❌ 경매가 취소된 경우 */}
+                            {item.status === "CANCELLED" && (
+                                <div className="safe-detail-action">
+                                    <div className="safe-detail-buyer">
+                                        <div className="safe-detail-progress">
+                                            <span>💳 안전거래</span>
+                                            <span>📦 송장 등록</span>
+                                            <span>🚚 배송중</span>
+                                            <span>📥 수령</span>
+                                            <span>💳 포인트 지급</span>
+                                        </div>
+
+                                        <div className="safe-detail-buttons">
+                                            <p className="safe-detail-status-banner red">
+                                                {user && item.sellerId === user.id
+                                                    ? "❌ 낙찰자가 결제하지 않아 경매가 자동 취소되었습니다."
+                                                    : user && item.winnerId === user.id
+                                                        ? "⚠️ 결제 가능 시간이 초과되어 경매가 취소되었습니다."
+                                                        : "❌ 이 경매는 취소되어 거래가 종료되었습니다."}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </>
+
                     )}
 
                     {/* 입찰 모달 */}

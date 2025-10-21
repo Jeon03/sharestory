@@ -1,5 +1,6 @@
 package com.sharestory.sharestory_backend.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.sharestory.sharestory_backend.dto.AuctionStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -61,5 +62,20 @@ public class AuctionItem {
     // ✅ 배송 추적 정보 (1:1 연결)
     @OneToOne(mappedBy = "auctionItem", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private DeliveryTracking deliveryTracking;
+
+    /**
+     * 결제 마감 기한 (낙찰 시점 + 5분)
+     * 프론트 타이머 표시용으로 JSON 포맷 지정
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime paymentDeadline;
+
+    /**
+     * 결제 기한 초과 시 패널티 적용 여부
+     * (스케줄러에서 중복 패널티 방지용)
+     */
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean penaltyApplied = false;
 }
 

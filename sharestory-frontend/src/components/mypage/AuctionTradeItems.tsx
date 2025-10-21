@@ -16,6 +16,7 @@ interface AuctionItem {
     createdAt: string;
     endDateTime: string;
     status: string;
+    paymentDeadline?: string | null;
 }
 
 export default function AuctionTradeItems() {
@@ -25,6 +26,7 @@ export default function AuctionTradeItems() {
     const [loading, setLoading] = useState(true);
     const [timeLeft, setTimeLeft] = useState<Record<number, string>>({});
     const [urgentItems, setUrgentItems] = useState<Record<number, boolean>>({});
+    const [progressMap, setProgressMap] = useState<Record<number, number>>({});
 
     const fetchData = async (url: string) => {
         const res = await fetch(`${API_BASE}${url}`, {
@@ -43,8 +45,14 @@ export default function AuctionTradeItems() {
                     fetchData("/auction/my-auctions"),
                     fetchData("/auction/my-sellings"),
                 ]);
-                setParticipated(participatedData);
-                setSelling(sellingData);
+
+                // ✅ 최신순 정렬 (종료일 또는 등록일 기준)
+                const sortByLatest = (a: AuctionItem, b: AuctionItem) =>
+                    new Date(b.endDateTime || b.createdAt).getTime() -
+                    new Date(a.endDateTime || a.createdAt).getTime();
+
+                setParticipated(participatedData.sort(sortByLatest));
+                setSelling(sellingData.sort(sortByLatest));
             } catch (err) {
                 console.error("❌ 경매내역 불러오기 실패:", err);
             } finally {
@@ -54,26 +62,43 @@ export default function AuctionTradeItems() {
         fetchAuctions();
     }, []);
 
-// ✅ 남은시간 계산 (일/시간/분 단위)
+    // ✅ 남은시간 + 진행률 계산
     useEffect(() => {
         const updateTimes = () => {
             const allItems = [...participated, ...selling];
             const now = new Date().getTime();
             const newTimeLeft: Record<number, string> = {};
             const newUrgent: Record<number, boolean> = {};
+            const newProgress: Record<number, number> = {};
 
             allItems.forEach((item) => {
-                const end = new Date(item.endDateTime).getTime();
-                const diff = end - now;
+                let targetTime = new Date(item.endDateTime).getTime();
+                let totalDuration = targetTime - now;
+
+                // ✅ FINISHED 상태에서는 결제 데드라인 기준
+                if (item.status === "FINISHED" && item.paymentDeadline) {
+                    const deadline = new Date(item.paymentDeadline).getTime();
+                    const auctionEnd = new Date(item.endDateTime).getTime();
+                    targetTime = deadline;
+                    totalDuration = deadline - auctionEnd; // 5분 간격
+                }
+
+                const diff = targetTime - now;
 
                 if (diff <= 0) {
-                    newTimeLeft[item.id] = "종료됨";
+                    newTimeLeft[item.id] =
+                        item.status === "FINISHED" ? "결제시간 만료" : "종료됨";
+                    newProgress[item.id] = 0;
                 } else {
                     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
                     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-                    if (days > 0) {
+                    if (item.status === "FINISHED") {
+                        // ✅ 결제 마감 카운트다운 (분/초 단위)
+                        newTimeLeft[item.id] = `${minutes}분 ${seconds}초 남음`;
+                    } else if (days > 0) {
                         newTimeLeft[item.id] = `${days}일 ${hours}시간 남음`;
                     } else if (hours > 0) {
                         newTimeLeft[item.id] = `${hours}시간 ${minutes}분 남음`;
@@ -83,15 +108,20 @@ export default function AuctionTradeItems() {
 
                     // 🔥 긴급 상태 (남은시간 1시간 미만)
                     newUrgent[item.id] = diff < 1000 * 60 * 60;
+
+                    // 진행률 계산
+                    const percent = Math.min(100, Math.max(0, (diff / totalDuration) * 100));
+                    newProgress[item.id] = percent;
                 }
             });
 
             setTimeLeft(newTimeLeft);
             setUrgentItems(newUrgent);
+            setProgressMap(newProgress);
         };
 
         updateTimes();
-        const timer = setInterval(updateTimes, 60 * 1000);
+        const timer = setInterval(updateTimes, 1000);
         return () => clearInterval(timer);
     }, [participated, selling]);
 
@@ -103,7 +133,12 @@ export default function AuctionTradeItems() {
         return `${Math.floor(diff / 86400)}일 전`;
     };
 
-    if (loading) return <div className="auction-list-loading"><div className="loading-spinner"></div>불러오는 중...</div>;
+    if (loading)
+        return (
+            <div className="auction-list-loading">
+                <div className="loading-spinner"></div>불러오는 중...
+            </div>
+        );
 
     const currentList = selectedTab === "PARTICIPATED" ? participated : selling;
 
@@ -136,10 +171,7 @@ export default function AuctionTradeItems() {
                         const isEnded = Date.now() > endTime;
 
                         return (
-                            <li
-                                key={item.id}
-                                className={`auction-card ${isEnded ? "ended" : ""}`}
-                            >
+                            <li key={item.id} className={`auction-card ${isEnded ? "ended" : ""}`}>
                                 <Link to={`/auction/${item.id}`}>
                                     {/* 썸네일 */}
                                     <div className="auction-thumb">
@@ -149,7 +181,7 @@ export default function AuctionTradeItems() {
                                             onError={(e) => (e.currentTarget.src = "/placeholder.png")}
                                         />
 
-                                        {/* 남은시간 or 종료 */}
+                                        {/* 🔹 타이머 & 진행바 */}
                                         {item.endDateTime && (
                                             <div
                                                 className={`auction-time-badge ${
@@ -160,14 +192,30 @@ export default function AuctionTradeItems() {
                                                             : ""
                                                 }`}
                                             >
-                                                {timeLeft[item.id] || "계산 중..."}
-                                            </div>
-                                        )}
-
-                                        {/* 오버레이 (종료 시) */}
-                                        {isEnded && (
-                                            <div className="auction-overlay">
-                                                <span>경매 종료</span>
+                                                {item.status === "FINISHED" && item.paymentDeadline ? (
+                                                    <>
+                                                        <span className="deadline-label">💳 결제 마감</span>
+                                                        <div className="deadline-progress-wrapper">
+                                                            <div
+                                                                className="deadline-progress-bar"
+                                                                style={{
+                                                                    width: `${progressMap[item.id] ?? 0}%`,
+                                                                    background:
+                                                                        progressMap[item.id] > 60
+                                                                            ? "#4caf50"
+                                                                            : progressMap[item.id] > 30
+                                                                                ? "#ffa726"
+                                                                                : "#ef5350",
+                                                                }}
+                                                            ></div>
+                                                        </div>
+                                                        <span className="deadline-time-text">
+                                                            {timeLeft[item.id] || "계산 중..."}
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    <>{timeLeft[item.id] || "계산 중..."}</>
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -175,7 +223,6 @@ export default function AuctionTradeItems() {
                                     {/* 본문 */}
                                     <div className="auction-info">
                                         <h3 className="auction-title">{item.title}</h3>
-
                                         <p className="auction-price-line">
                                             시작가 {item.startPrice.toLocaleString()}원
                                         </p>
@@ -191,7 +238,7 @@ export default function AuctionTradeItems() {
                                         </div>
                                     </div>
 
-                                    {/* ✅ 카드 하단 종료일자 */}
+                                    {/* ✅ 종료일자 */}
                                     {item.endDateTime && (
                                         <div
                                             className={`auction-end-date ${
@@ -200,7 +247,7 @@ export default function AuctionTradeItems() {
                                         >
                                             <Clock size={14} />
                                             <span>
-                        종료일자:{" "}
+                                                종료일자:{" "}
                                                 {new Date(item.endDateTime).toLocaleString("ko-KR", {
                                                     year: "numeric",
                                                     month: "2-digit",
@@ -208,7 +255,7 @@ export default function AuctionTradeItems() {
                                                     hour: "2-digit",
                                                     minute: "2-digit",
                                                 })}
-                      </span>
+                                            </span>
                                         </div>
                                     )}
                                 </Link>
