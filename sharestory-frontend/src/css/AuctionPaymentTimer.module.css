@@ -1,0 +1,91 @@
+/* ============================= */
+/* 🪶 Pretendard 폰트 설정 */
+/* ============================= */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('@/assets/fonts/Pretendard-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+
+/* 🔸 타이머 컨테이너 */
+.ss-payment-timer-box {
+    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+    width: 100%;
+    margin: 0 auto 10px auto;
+    padding: 20px 16px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+    text-align: center;
+    transition: all 0.3s ease-in-out;
+}
+
+/* ✅ 기본 (정상: 노란색) */
+.ss-timer-normal {
+    background-color: #fff5d1;
+    color: #4a3c00;
+    border: 1px solid #f1e2a4;
+}
+
+/* ⚠️ 경고 (2분 미만) */
+.ss-timer-warning {
+    background-color: #ffe2b8;
+    color: #623500;
+    border: 1px solid #f7c56a;
+    animation: pulseWarning 1.5s infinite alternate;
+}
+
+/* ❌ 시간 초과 */
+.ss-timer-expired {
+    background-color: #ffd5d5;
+    color: #660000;
+    border: 1px solid #e49090;
+    animation: pulseExpired 1.2s infinite alternate;
+}
+
+/* 💫 애니메이션 효과 */
+@keyframes pulseWarning {
+    from { transform: scale(1); opacity: 1; }
+    to { transform: scale(1.03); opacity: 0.9; }
+}
+@keyframes pulseExpired {
+    from { transform: scale(1); opacity: 1; }
+    to { transform: scale(1.05); opacity: 0.85; }
+}
+
+/* 🕒 아이콘 */
+.ss-payment-timer-icon {
+    font-size: 1.1rem;
+    display: inline-block;
+    animation: spin 2s linear infinite; /* ✅ 회전 애니메이션 */
+    transform-origin: center;
+}
+
+/* 회전 효과 정의 */
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* ❌ 만료 상태일 때는 회전 멈춤 */
+.ss-timer-expired .ss-payment-timer-icon {
+    animation: none;
+    transform: none;
+}
+/* 남은 시간 강조 */
+.ss-payment-timer-text {
+    font-weight: 700;
+}

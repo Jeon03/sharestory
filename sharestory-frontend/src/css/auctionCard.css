@@ -22,12 +22,16 @@
 .auction-end-date,
 .auction-overlay,
 .auction-time-badge,
-.auction-list-loading {
+.auction-list-loading,
+.deadline-label,
+.deadline-progress-wrapper,
+.deadline-time-text {
     font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
-    letter-spacing: 0.2px;
+    letter-spacing: 0.3px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
+
 
 /* ===== 카드 레이아웃 ===== */
 .auction-grid {
@@ -213,4 +217,49 @@
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
+}
+
+/* 🔹 결제 마감 Progress 시각화 */
+.deadline-label {
+
+    color: white;
+    font-size: 0.85rem;
+}
+
+.deadline-progress-wrapper {
+    position: relative;
+    width: 100%;
+    height: 6px;
+    background: #e9e9e9;
+    border-radius: 6px;
+    margin: 4px 0;
+    overflow: hidden;
+}
+
+.deadline-progress-bar {
+    height: 100%;
+    transition: width 0.5s ease;
+    border-radius: 6px;
+}
+
+.deadline-time-text {
+    font-size: 0.8rem;
+    color: white;
+    font-weight: 500;
+    display: block;
+    text-align: right;
+}
+
+/* 긴급 상태 강조 */
+.auction-time-badge.urgent {
+    background: rgba(255, 64, 64, 0.9);
+    color: white;
+    border: 1px solid #f5b4b4;
+    animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
 }

@@ -26,7 +26,8 @@ public class OrderService {
     private final NotificationTemplateService notificationTemplateService;
     private final ChatService chatService;
     private final ApplicationEventPublisher eventPublisher;
-    /* ✅ 일반 상품용 안전거래 생성 */
+    private final ItemSearchIndexer itemSearchIndexer;
+
     @Transactional
     public void createSafeOrder(Long itemId, Long buyerId, DeliveryInfo deliveryInfo) {
         Item item = itemRepository.findById(itemId)
@@ -74,6 +75,13 @@ public class OrderService {
                 .build();
         orderRepository.save(order);
         log.info("📦 주문 생성 완료 → orderId={}, status={}", order.getId(), order.getStatus());
+
+        try {
+            itemSearchIndexer.deleteItem(item.getId());
+            log.info("🧹 [Elasticsearch] 안전거래 결제 상품 인덱스에서 제거 완료 → itemId={}", item.getId());
+        } catch (Exception e) {
+            log.warn("⚠️ [Elasticsearch] 인덱스 제거 실패 (itemId={}): {}", item.getId(), e.getMessage());
+        }
 
         // ✅ 아이템 상태 동기화
         item.setBuyerId(buyer.getId());

@@ -68,7 +68,7 @@ public class AuctionOrderService {
                 .amount(-total)
                 .balance(buyer.getPoints())
                 .type("AUCTION_SAFE_PAYMENT")
-                .description("경매 안전거래 결제 (배송비 + 수수료)")
+                .description(String.format("경매 [%s] 안전거래 결제 (배송비 + 수수료)", auctionItem.getTitle()))
                 .createdAt(Instant.now())
                 .build());
 
@@ -257,7 +257,7 @@ public class AuctionOrderService {
                 .amount(payoutPoint)
                 .balance(seller.getPoints())
                 .type("AUCTION_PAYOUT")
-                .description("경매 낙찰 상품 포인트 정산")
+                .description(String.format("경매 낙찰 상품 [%s] 포인트 정산", auction.getTitle()))
                 .createdAt(Instant.now())
                 .build());
 
