@@ -65,7 +65,9 @@ public class SecurityConfig {
                                 "/api/auctions/{id}",
                                 "/api/auction/**",
                                 "/api/community/**",
-                                "/api/comments/**"
+                                "/api/comments/**",
+                                "/api/category/**"
+
                         ).permitAll()
                         .requestMatchers(
                                 "/api/users/location",

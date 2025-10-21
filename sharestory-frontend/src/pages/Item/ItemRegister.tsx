@@ -5,6 +5,7 @@ import Category from '../../components/Category';
 import Transaction from "../../components/Transaction";
 import {useNavigate} from 'react-router-dom';
 import type {DealInfo} from '../../types/dealInfo';
+import CategoryAutoSuggest from "../../components/CategoryAutoSuggest";
 
 type FormState = {
     latitude: number;
@@ -234,7 +235,14 @@ const ItemRegister = () => {
                     />
                     <p className={styles.characterCount}>{productName.length}/50</p>
                 </div>
-
+                {/* ✅ 카테고리 자동 추천 (상품명 입력 시 GPT 호출) */}
+                <CategoryAutoSuggest
+                    title={productName}
+                    onSelect={(key) => {
+                        setSelectedCategory(key);
+                        alert(`카테고리가 '${key}'로 선택되었습니다.`);
+                    }}
+                />
                 {/* 카테고리 */}
                 <hr className={styles.hr} />
                 <div className={styles.category}>
