@@ -38,5 +38,7 @@ public interface AuctionItemRepository extends JpaRepository<AuctionItem, Long> 
     """)
     List<AuctionItem> findParticipatedAuctions(@Param("userId") Long userId);
 
+    List<AuctionItem> findByStatusAndPaymentDeadlineBeforeAndPenaltyAppliedFalse(
+            AuctionStatus status, LocalDateTime deadline);
 
 }

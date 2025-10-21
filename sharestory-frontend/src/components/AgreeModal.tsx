@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import { useState } from 'react';
 import styles from '../css/ProjectRegisterForm.module.css';
 
 type AgreeFormProps = {
@@ -22,10 +22,10 @@ function Agreeform({ onAgree, onCancel }: AgreeFormProps) {
             <div className={styles.modalContent}>
                 <h2 className={styles.modalHeader}>위치정보 수집 및 이용 동의</h2>
                 <div className={styles.modalBody}>
-                    <p><strong>1. 수집 목적:</strong> 위치 기반 중고거래 서비스 제공</p><br />
-                    <p><strong>2. 수집 항목:</strong> GPS, Wi-Fi, IP, 직접 입력한 위치</p><br />
-                    <p><strong>3. 보유 기간:</strong> 서비스 이용 기간 동안 보유, 목적 달성 시 파기</p><br />
-                    <p><strong>4. 제공 및 공유:</strong> 법령에 의한 경우 외에는 제3자 제공 없음</p><br />
+                    <p><strong>1. 수집 목적:</strong> 위치 기반 중고거래 서비스 제공</p>
+                    <p><strong>2. 수집 항목:</strong> GPS, Wi-Fi, IP, 직접 입력한 위치</p>
+                    <p><strong>3. 보유 기간:</strong> 서비스 이용 기간 동안 보유, 목적 달성 시 파기</p>
+                    <p><strong>4. 제공 및 공유:</strong> 법령에 의한 경우 외에는 제3자 제공 없음</p>
                     <p><strong>5. 거부 시:</strong> 위치 기반 서비스 이용 제한 가능</p>
                 </div>
 
@@ -36,14 +36,12 @@ function Agreeform({ onAgree, onCancel }: AgreeFormProps) {
                         onChange={(e) => setLocationAgreement(e.target.checked)}
                         className={styles.checkboxInput}
                     />
-                    위치정보 수집 및 이용에 동의합니다.
+                    <span className={styles.checkboxText}>위치정보 수집 및 이용에 동의합니다.</span>
                 </label>
 
                 <div className={styles.buttonGroup}>
                     <button onClick={onCancel} className={styles.buttonCancel}>취소</button>
-                    <button onClick={handleConfirm} className={styles.buttonConfirm}>
-                        동의
-                    </button>
+                    <button onClick={handleConfirm} className={styles.buttonConfirm}>동의</button>
                 </div>
             </div>
         </div>

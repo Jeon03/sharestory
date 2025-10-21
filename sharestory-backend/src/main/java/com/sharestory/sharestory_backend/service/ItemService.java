@@ -264,12 +264,27 @@ public class ItemService {
     public void updateStatus(Long itemId, ItemStatus status, Long userId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다."));
-
+        log.info("📦 [DEBUG] updateStatus 호출됨 → itemId={}, 요청 status={}, userId={}", itemId, status, userId);
         if (!item.getUserId().equals(userId)) {
             throw new SecurityException("판매자만 상태를 변경할 수 있습니다.");
         }
 
         item.setStatus(status);
+        itemRepository.save(item);
+        itemRepository.flush();
+        log.info("🔍 [DEBUG] 전달된 상태값 확인 → status={}, enumName={}", status, status.name());
+
+        try {
+            if (status == ItemStatus.SOLD_OUT) {
+                itemSearchIndexer.deleteItem(itemId);
+                log.info("🧹 [Elasticsearch] 거래완료 상품 인덱스에서 제거 완료 → itemId={}", itemId);
+            } else if (status == ItemStatus.ON_SALE || status == ItemStatus.RESERVED) {
+                itemSearchIndexer.indexItem(item);
+                log.info("📦 [Elasticsearch] 상품 상태 복구/등록 → itemId={}, status={}", itemId, status);
+            }
+        } catch (Exception e) {
+            log.warn("⚠️ [Elasticsearch] 상태 변경 반영 실패 (itemId={}, status={}): {}", itemId, status, e.getMessage());
+        }
 
         // 🔔 선택: 상태 변경 시 채팅방 참여자에게 알림 보내기
         List<ChatRoom> rooms = chatRoomRepository.findByItem_Id(itemId);
@@ -380,10 +395,18 @@ public class ItemService {
 
         // ✅ 상태 변경
         item.setStatus(ItemStatus.SOLD_OUT);
-
         // ✅ 최종 구매자 지정
         item.setBuyerId(buyerId);
+        itemRepository.save(item);
+        itemRepository.flush();
 
+        // ✅ Elasticsearch 인덱스에서 제거
+        try {
+            itemSearchIndexer.deleteItem(itemId);
+            log.info("🧹 [Elasticsearch] 거래완료 상품 인덱스에서 제거 완료 → itemId={}", itemId);
+        } catch (Exception e) {
+            log.error("❌ [Elasticsearch] 거래완료 인덱스 제거 실패 → itemId={}, 이유={}", itemId, e.getMessage());
+        }
         ChatRoom room = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
 

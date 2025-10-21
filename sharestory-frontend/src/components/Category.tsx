@@ -37,7 +37,7 @@ function Category({ selectedCategory, setSelectedCategory, enableNavigation = tr
     const handleClick = (key: string) => {
         setSelectedCategory?.(key); // ✅ 선택 상태 설정
         if (enableNavigation) {
-            navigate(`/category/${key}`); // ✅ 페이지 이동은 옵션
+            navigate(`/`); // ✅ 페이지 이동은 옵션
         }
     };
 

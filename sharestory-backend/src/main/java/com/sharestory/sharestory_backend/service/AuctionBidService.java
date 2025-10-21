@@ -260,6 +260,11 @@ public class AuctionBidService {
         item.setStatus(com.sharestory.sharestory_backend.dto.AuctionStatus.TRADE_PENDING);
         auctionItemRepository.save(item);
 
+        // 🕒 낙찰 후 결제 제한시간 5분 설정
+        item.setPaymentDeadline(LocalDateTime.now().plusMinutes(3));
+        item.setPenaltyApplied(false);
+        auctionItemRepository.save(item);
+
         //안전거래(Order) 자동 생성
         try {
             System.out.println("[즉시구매] 안전거래(Order) 생성 시도...");
@@ -271,12 +276,12 @@ public class AuctionBidService {
         }
 
 
-        //판매자 알림
+        // ✅ 판매자 알림
         userRepository.findById(item.getSellerId()).ifPresent(seller -> {
             notificationService.sendNotification(
                     seller,
                     "AUCTION_IMMEDIATE_BUY",
-                    String.format("[%s] 경매 상품이 즉시구매로 낙찰되었습니다.", item.getTitle()),
+                    String.format("[%s] 경매 상품이 즉시구매로 낙찰되었습니다. (결제 마감까지 3분)", item.getTitle()),
                     item.getId()
             );
         });

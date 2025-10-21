@@ -26,7 +26,7 @@ public class AuctionItemResponseDto {
     private String createdAt;
     private String endDateTime;
     private String status;
-
+    private String paymentDeadline;
     // 민감 정보
     private Long winnerId;
     private Integer winningPrice;
@@ -75,6 +75,7 @@ public class AuctionItemResponseDto {
                 .endDateTime(item.getEndDateTime() != null ? item.getEndDateTime().toString() : null)
                 .status(item.getStatus() != null ? item.getStatus().name() : null)
                 .canViewTrade(canViewTrade)
+                .paymentDeadline(item.getPaymentDeadline() != null ? item.getPaymentDeadline().toString() : null)
                 .isSeller(isSeller)
                 .isBuyer(isBuyer);
 
@@ -112,6 +113,7 @@ public class AuctionItemResponseDto {
                 .endDateTime(item.getEndDateTime() != null ? item.getEndDateTime().toString() : null)
                 .status(item.getStatus() != null ? item.getStatus().name() : null)
                 .canViewTrade(canViewTrade)
+                .paymentDeadline(item.getPaymentDeadline() != null ? item.getPaymentDeadline().toString() : null)
                 .isSeller(isSeller)
                 .isBuyer(isBuyer)
                 .winnerId(canViewTrade ? item.getWinnerId() : null)
@@ -140,6 +142,7 @@ public class AuctionItemResponseDto {
                 .isSeller(false)
                 .isBuyer(false)
                 .canViewTrade(false)
+                .paymentDeadline(item.getPaymentDeadline() != null ? item.getPaymentDeadline().toString() : null)
                 .build();
     }
 }

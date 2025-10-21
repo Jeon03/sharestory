@@ -151,10 +151,75 @@
     font-weight: 600;
 }
 
+/* ✅ 기본 스타일 */
 .auction-detail-timer {
-    margin-top: 6px;
-    font-weight: 500;
-    color: #333;
+    margin-top: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #222;
+    border-radius: 8px;
+    padding: 6px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 0.2px;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+}
+
+/* 🕒 아이콘 회전 */
+.auction-detail-timer .timer-icon {
+    font-size: 1rem;
+    color: #007bff;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ✅ 안정 상태 (5분 이상) */
+.auction-detail-timer.safe {
+    background: linear-gradient(135deg, #f4f8ff, #eaf1ff);
+    color: #004085;
+    border-color: #cce5ff;
+    box-shadow: 0 1px 4px rgba(0, 123, 255, 0.15);
+}
+
+/* ⚠️ 경고 상태 (1~5분 남음) */
+.auction-detail-timer.warn {
+    background: linear-gradient(135deg, #fffbea, #fff3cd);
+    color: #856404;
+    border-color: #ffeeba;
+    box-shadow: 0 1px 4px rgba(255, 193, 7, 0.25);
+    animation: pulseYellow 2s infinite;
+}
+
+@keyframes pulseYellow {
+    0%, 100% { box-shadow: 0 0 6px rgba(255, 193, 7, 0.4); }
+    50% { box-shadow: 0 0 10px rgba(255, 193, 7, 0.6); }
+}
+
+/* ⏰ 긴급 상태 (1분 이하) */
+.auction-detail-timer.danger {
+    background: linear-gradient(135deg, #fff5f5, #ffeaea);
+    color: #a94442;
+    border-color: #f2b8b8;
+    box-shadow: 0 0 6px rgba(255, 0, 0, 0.3);
+    animation: pulseRed 1.2s infinite;
+}
+
+@keyframes pulseRed {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 6px rgba(255, 0, 0, 0.3); }
+    50% { transform: scale(1.03); box-shadow: 0 0 12px rgba(255, 0, 0, 0.5); }
+}
+
+
+.auction-detail-timer.finished {
+    background: #f0f0f0;
+    color: #777;
+    border: 1px solid #ccc;
 }
 
 /* =========================
@@ -222,4 +287,30 @@
     padding: 50px;
     font-size: 1.2rem;
     color: #666;
+}
+.safe-detail-status-banner.red {
+    background: linear-gradient(135deg, #ffe4e4, #ffd5d5);
+    color: #660000;
+    border: 1px solid #f5aaaa;
+    font-weight: 600;
+    text-align: center;
+    padding: 10px 12px;
+    border-radius: 10px;
+    margin-top: 12px;
+    animation: fadeIn 0.6s ease-in-out;
+    width: 100%;
+    max-width: 600px;
+    align-self: center;
+    justify-content: center;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
