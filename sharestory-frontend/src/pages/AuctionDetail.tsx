@@ -141,6 +141,40 @@ export default function AuctionDetail() {
 
     const handleBidConfirm = async (price: number) => {
         if (!item) return;
+
+        // ✅ 즉시구매가 존재하고, 입력한 금액이 즉시구매가 이상이면 확인창 띄우기
+        if (item.immediatePrice && price >= item.immediatePrice) {
+            const confirmBuyNow = window.confirm(
+                `입찰 금액이 즉시구매가(${item.immediatePrice.toLocaleString()}원) 이상입니다.\n즉시구매로 진행하시겠습니까?`
+            );
+
+            if (confirmBuyNow) {
+                // ✅ 즉시구매 API 호출로 전환
+                try {
+                    const res = await fetch(`${API_BASE}/api/auctions/${item.id}/buy`, {
+                        method: "POST",
+                        credentials: "include",
+                    });
+                    if (!res.ok) {
+                        const data = await res.json().catch(() => ({}));
+                        alert(data.error || "즉시구매 실패");
+                        return;
+                    }
+                    alert("즉시구매가 완료되었습니다!");
+                    window.location.reload();
+                } catch (err) {
+                    console.error("즉시구매 오류:", err);
+                    alert("즉시구매 중 오류가 발생했습니다.");
+                }
+                return;
+            } else {
+                //사용자가 취소한 경우 — 입찰 요청 중단
+                alert("즉시구매가 취소되었습니다.");
+                return;
+            }
+        }
+
+        // ✅ 일반 입찰 로직
         try {
             const res = await fetch(`${API_BASE}/api/auctions/${item.id}/bid`, {
                 method: "POST",
