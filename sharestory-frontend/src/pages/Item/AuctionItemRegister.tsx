@@ -3,7 +3,7 @@ import styles from "../../css/AuctionSalesPage.module.css";
 import AuctionWarningModal from "../../components/AuctionWarningModal";
 import Category from "../../components/Category";
 import ImmediatePurchaseSection from "../../components/ImmediatePurchaseSection";
-
+import CategoryAutoSuggest from "../../components/CategoryAutoSuggest";
 const MAX_IMAGES = 3;
 const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
 
@@ -247,7 +247,13 @@ const AuctionItemRegister = () => {
                     />
                     <p className={styles.characterCount}>{productName.length}/50</p>
                 </div>
-
+                <CategoryAutoSuggest
+                    title={productName}
+                    onSelect={(key) => {
+                        setSelectedCategory(key);
+                        alert(`카테고리가 '${key}'로 선택되었습니다.`);
+                    }}
+                />
                 {/* 카테고리 */}
                 <hr className={styles.hr} />
                 <div className={styles.category}>
