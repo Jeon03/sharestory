@@ -3,7 +3,7 @@ server:
 
 app:
   ## 프론트 도메인 (Vite dev 서버)
-  frontend-url: "http://43.201.67.84"
+  frontend-url: "http://3.39.215.194"
   ## JWT 설정 (반드시 긴 랜덤값으로, 환경변수 주입 권장)
   jwt:
     secret: ${APP_JWT_SECRET}               # 512bit 이상 랜덤 시크릿
@@ -12,7 +12,7 @@ app:
 
   ## 쿠키 설정 (로컬: Lax/secure=false, 배포: None/secure=true + HTTPS)
   cookie:
-    domain: "43.201.67.84"
+    domain: "3.39.215.194"
     secure: false
     same-site: Lax
 
