@@ -42,8 +42,8 @@ export default function AuctionTradeItems() {
         const fetchAuctions = async () => {
             try {
                 const [participatedData, sellingData] = await Promise.all([
-                    fetchData("/auction/my-auctions"),
-                    fetchData("/auction/my-sellings"),
+                    fetchData("/api/auction/my-auctions"),
+                    fetchData("/api/auction/my-sellings"),
                 ]);
 
                 // ✅ 최신순 정렬 (종료일 또는 등록일 기준)
