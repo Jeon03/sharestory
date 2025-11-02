@@ -66,18 +66,29 @@ public class ChatService {
         return chatRoomRepository.findByBuyerIdOrSellerId(userId, userId)
                 .stream()
                 .map(room -> {
-                    String partnerName = room.getBuyerId().equals(userId)
-                            ? userRepository.findById(room.getSellerId()).get().getNickname()
-                            : userRepository.findById(room.getBuyerId()).get().getNickname();
+                    // 🔒 상대방 ID 결정
+                    Long partnerId = room.getBuyerId().equals(userId)
+                            ? room.getSellerId()
+                            : room.getBuyerId();
 
-                    String lastMsg = room.getMessages().isEmpty() ? "" :
-                            room.getMessages().get(room.getMessages().size() - 1).getContent();
+                    // ✅ Optional 안전 처리
+                    String partnerName = userRepository.findById(partnerId)
+                            .map(User::getNickname)
+                            .orElse("탈퇴한 사용자");
 
+                    // ✅ 마지막 메시지 처리
+                    String lastMsg = room.getMessages().isEmpty()
+                            ? ""
+                            : room.getMessages().get(room.getMessages().size() - 1).getContent();
+
+                    // ✅ 안 읽은 메시지 수 계산
                     int unreadCount = chatReadRepository.countUnreadByRoomAndUser(room.getId(), userId);
+
                     return ChatRoomDto.from(room, partnerName, lastMsg, unreadCount);
                 })
                 .toList();
     }
+
 
     @Transactional
     public ChatMessage saveMessage(ChatMessageDto dto) {

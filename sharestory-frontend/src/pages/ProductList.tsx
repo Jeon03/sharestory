@@ -210,10 +210,10 @@ export default function ProductList() {
                                     {item.price.toLocaleString()}원
                                 </p>
 
-                                <div className="swiper-product-meta">
-                                    <span className="swiper-location">{item.location}</span>
+                                <div className="product-meta">
+                                    <span className="location">{item.location}</span>
                                     <span> · </span>
-                                    <span className="swiper-product-date">
+                                    <span className="product-date">
                     {formatTimeAgo(item.createdDate)}
                                         {item.modified && (
                                             <span
