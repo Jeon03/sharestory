@@ -103,6 +103,16 @@ export default function CommunityWrite() {
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     required
+                    style={{
+                        width: "100%",
+                        minHeight: "120px", // 최소 높이 지정
+                        resize: "none",
+                        padding: "10px",
+                        borderRadius: "8px",
+                        fontSize: "15px",
+                        lineHeight: "1.5",
+                        overflow: "hidden",
+                    }}
                 />
 
                 {/* 이미지 업로드 */}
