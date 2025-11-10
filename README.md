@@ -228,6 +228,14 @@
 
 [📄 프로젝트 계획서 PPT ](https://github.com/Jeon03/sharestory/blob/main/%EC%89%90%EC%96%B4%ED%86%A0%EB%A6%AC(ShareStory)%20%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%20%EA%B3%84%ED%9A%8D%EC%84%9C%20PPT.pptx)
 
+## 프로젝트 포스터 
+
+[📄 프로젝트 포스터 ](https://github.com/Jeon03/sharestory/blob/main/2025_%EA%B2%BD%EC%A7%84%EB%8C%80%ED%9A%8C_%ED%8F%AC%EC%8A%A4%ED%84%B0_%EC%BB%B4%ED%93%A8%ED%84%B0%EC%86%8C%ED%94%84%ED%8A%B8%EC%9B%A8%EC%96%B4%EA%B3%B5%ED%95%99%EA%B3%BC_YD_Dream.pptx)
+
+## 프로젝트 브로셔
+
+[📄 프로젝트 브로셔 ](https://github.com/Jeon03/sharestory/blob/main/2025%20%EC%A1%B8%EC%97%85%EC%9E%91%ED%92%88%EC%A7%91_%EC%BB%B4%ED%93%A8%ED%84%B0%EC%86%8C%ED%94%84%ED%8A%B8%EC%9B%A8%EC%96%B4%EA%B3%B5%ED%95%99%EA%B3%BC_YD_Dream%20%EB%B8%8C%EB%A1%9C%EC%85%94.hwp)
+
 ## 프로젝트 최종 발표 ppt
 
 <img width="1920" height="1080" alt="슬라이드1" src="https://github.com/user-attachments/assets/b9cb5b55-560e-416a-ad32-f9803108330a" />
