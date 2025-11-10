@@ -53,6 +53,7 @@
 
 ### 시스템 구성도
 <img width="1920" height="1080" alt="슬라이드13" src="https://github.com/user-attachments/assets/50c67af7-3883-425f-8816-fbd7c3fc2098" />
+<img width="1920" height="1080" alt="system" src="https://github.com/user-attachments/assets/bb7e298e-23ef-4356-88b8-32b38b21cbc8" />
 <img width="1920" height="1080" alt="슬라이드16" src="https://github.com/user-attachments/assets/e023dcc9-5e4e-4d2f-8013-f94982def73d" />
 
 ### ERD
